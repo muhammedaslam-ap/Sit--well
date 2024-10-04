@@ -1,0 +1,72 @@
+
+    <!-- Header part end-->
+    <%-include('../../views/partials/user/header.ejs')%>
+    <!-- breadcrumb start-->
+    <section class="breadcrumb breadcrumb_bg">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="breadcrumb_iner">
+                        <div class="breadcrumb_iner_item">
+                            <h2>Create an Account</h2>
+                            <p>Home <span>-</span> Register</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- breadcrumb end-->
+
+    <!--================registration_part Area =================-->
+    <section class="registration_part padding_top">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-6">
+                    <div class="registration_part_text text-center">
+                        <div class="registration_part_text_iner">
+                            <h2>Welcome to our shop!</h2>
+                            <p>Create an account to enjoy faster shopping, track orders, and access member-exclusive deals.</p>
+                            <a href="/login" class="btn_3">Already have an account? Sign In</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <div class="registration_part_form">
+                        <div class="registration_part_form_iner">
+                            <h3>Create an Account</h3>
+                            <form class="row contact_form" action="#" method="post" novalidate="novalidate">
+                                <div class="col-md-12 form-group p_star">
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="Username">
+                                </div>
+                                <div class="col-md-12 form-group p_star">
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Email">
+                                </div>
+                                <div class="col-md-12 form-group p_star">
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                                </div>
+                                <div class="col-md-12 form-group p_star">
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
+                                </div>
+                                <div class="col-md-12 form-group">
+                                    <button type="submit" value="submit" class="btn_3">
+                                        Create Account
+                                    </button>
+                                </div>
+                                <div class="col-md-12 form-group">
+                                    <div class="creat_account d-flex align-items-center">
+                                        <input type="checkbox" id="f-option" name="newsletter">
+                                        <label for="f-option">Sign me up for the newsletter</label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--================registration_part end =================-->
+
+    <!--::footer_part start::-->
+    <%-include('../../views/partials/user/footer.ejs')%>
