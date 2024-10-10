@@ -1,17 +1,51 @@
- const express=require('express')
- const app=express()
- const path=require('path')
- const env=require('dotenv').config()
- const userRoute=require('./routes/userRoute')
- const db=require('./configaration/db')
- db()
+ const express = require('express')
+ const app = express()
+ const path = require('path')
+ const env = require('dotenv').config()
+ const userRoute = require('./routes/userRoute')
+ const adminRoute = require('./routes/adminRoute')
+ const session = require('express-session')
+ const db = require('./configaration/db')
+ const passport = require('./configaration/passport')
+ db();
  
  
- 
- 
- app.use(express.static('public'))
- app.use('/',userRoute)
+ app.use(express.json()); 
+ app.use(express.urlencoded({ extended: true })); 
+ app.use(session({
+    secret:process.env.SESSION_SECRET,
+    resave:false,
+    saveUninitialized:true,
+    cookie:{
+        secure:false,
+        httpOnly:true,
+        maxAge:72*60*60*1000
+    }
+ }))
 
-app.listen(process.env.PORT,()=>{console.log(`server is running on 3000`)})
 
-module.exports= app
+
+ app.use(passport.initialize())
+ app.use(passport.session());
+ 
+ app.use((req,res,next)=>{
+    res.set('cache-control','no-store')
+    next()
+ })
+
+ app.set('view engine','ejs')
+ app.set('views', [
+   path.join(__dirname, '/views/user'),
+   path.join(__dirname,'/views/partials/user'),
+   path.join(__dirname,'/views/partials/admin'),
+   path.join(__dirname, '/views/admin')
+ ]);
+ app.use(express.static(path.join(__dirname, 'public')));
+
+
+ app.use('/',userRoute) 
+ app.use('/admin',adminRoute) 
+
+ app.listen(process.env.PORT,()=>{console.log(`server is running on 3000`)})
+
+ module.exports = app

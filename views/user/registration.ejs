@@ -1,72 +1,252 @@
 
     <!-- Header part end-->
     <%-include('../../views/partials/user/header.ejs')%>
-    <!-- breadcrumb start-->
-    <section class="breadcrumb breadcrumb_bg">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="breadcrumb_iner">
-                        <div class="breadcrumb_iner_item">
-                            <h2>Create an Account</h2>
-                            <p>Home <span>-</span> Register</p>
-                        </div>
+    <!-- Breadcrumb Section Start -->
+<!-- <section class="breadcrumb breadcrumb_bg">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="breadcrumb_iner">
+                    <div class="breadcrumb_iner_item">
+                        <h2>Create an Account</h2>
+                        <p>Home <span>-</span> Register</p>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-    <!-- breadcrumb end-->
+    </div>
+</section> -->
+<!-- Breadcrumb Section End -->
 
-    <!--================registration_part Area =================-->
-    <section class="registration_part padding_top">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 col-md-6">
-                    <div class="registration_part_text text-center">
-                        <div class="registration_part_text_iner">
-                            <h2>Welcome to our shop!</h2>
-                            <p>Create an account to enjoy faster shopping, track orders, and access member-exclusive deals.</p>
-                            <a href="/login" class="btn_3">Already have an account? Sign In</a>
-                        </div>
+<!-- Registration Section Start -->
+<section class="login_part padding_top">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Welcome Text Section -->
+            <div class="col-lg-6 col-md-6">
+                <div class="login_part_text text-center">
+                    <div class="login_part_text_iner">
+                        <h2>New to our Shop?</h2>
+                        <p>Create an account to enjoy faster shopping, track orders, and access member-exclusive deals.</p>
+                        <a href="/login" class="btn_3">Already have an Account? Sign In</a>
                     </div>
                 </div>
-                <div class="col-lg-6 col-md-6">
-                    <div class="registration_part_form">
-                        <div class="registration_part_form_iner">
-                            <h3>Create an Account</h3>
-                            <form class="row contact_form" action="#" method="post" novalidate="novalidate">
-                                <div class="col-md-12 form-group p_star">
-                                    <input type="text" class="form-control" id="name" name="name" placeholder="Username">
+            </div>
+
+            <!-- Signup Form Section -->
+            <div class="col-lg-6 col-md-6">
+                <div class="login_part_form">
+                    <div class="login_part_form_iner">
+                        <h3>Join Us Now! <br> Create your account</h3>
+                        <form id="signform" class="row contact_form" action="/signup" method="post" novalidate="novalidate">
+                            <div id="error1" class="error-message"></div>
+                            <div class="col-md-12 form-group p_star">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Username" required>
+                            </div>
+                            
+                            <div id="error2" class="error-message"></div>
+                            <div class="col-md-12 form-group p_star">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                            </div>
+
+                            <div id="error3" class="error-message"></div>
+                            <div class="col-md-12 form-group p_star">
+                                <input type="text" class="form-control" id="phone" name="phone" placeholder="Phone Number" required>
+                            </div>
+
+                            <div id="error4" class="error-message"></div>
+                            <div class="col-md-12 form-group p_star">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                            </div>
+
+                            <div id="error5" class="error-message"></div>
+                            <div class="col-md-12 form-group p_star">
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+                            </div>
+                            
+                            <% if(locals.message && message.length>0){ %>
+                                <div class="alert-danger  text-center">
+                                    <%=message%>
                                 </div>
-                                <div class="col-md-12 form-group p_star">
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="Email">
-                                </div>
-                                <div class="col-md-12 form-group p_star">
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
-                                </div>
-                                <div class="col-md-12 form-group p_star">
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
-                                </div>
-                                <div class="col-md-12 form-group">
-                                    <button type="submit" value="submit" class="btn_3">
-                                        Create Account
-                                    </button>
-                                </div>
-                                <div class="col-md-12 form-group">
-                                    <div class="creat_account d-flex align-items-center">
-                                        <input type="checkbox" id="f-option" name="newsletter">
-                                        <label for="f-option">Sign me up for the newsletter</label>
-                                    </div>
-                                </div>
-                            </form>
+                           <% } %>
+
+                            <div class="col-md-12 form-group">
+                                <button type="submit" value="submit" class="btn_3">Create Account</button>
+                            </div>
+                        </form>
+
+                        <!-- Google Sign-In Button -->
+                        <div class="col-md-12 form-group">
+                            <a href="/auth/google" class="btn_3" id="google-signin" style="background-color: #FF3368; color: white; width: 100%; border: none; padding: 10px; border-radius: 5px;">
+                                Sign Up with Google
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+
+<!-- Include Google Sign-In Library -->
+<!-- <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+<script>
+    document.getElementById('google-signin').onclick = function() {
+        const auth2 = gapi.auth2.getAuthInstance();
+        auth2.signIn().then(function(googleUser) {
+            const profile = googleUser.getBasicProfile();
+            const email = profile.getEmail(); // Get the email from the profile
+
+            // Use AJAX to send the email to your backend and register the user
+            fetch('/google-signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Handle successful signup, e.g., redirect or display a message
+                    window.location.href = '/welcome'; // Redirect to welcome page
+                } else {
+                    // Handle errors, e.g., display an error message
+                    document.getElementById('error1').innerText = data.message;
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('error1').innerText = 'An error occurred. Please try again.';
+            });
+        });
+    };
+</script> -->
+
+
+<style>
+    .error-message{
+        color:red;
+        font-size: 0.75rem;
+        display:none;
+    }
+</style>
+<!-- Registration Section End -->
+
     <!--================registration_part end =================-->
 
     <!--::footer_part start::-->
     <%-include('../../views/partials/user/footer.ejs')%>
+    <script>
+        const nameid = document.getElementById('name');
+        const emailid = document.getElementById('email');
+        const phoneid = document.getElementById('phone');
+        const passid = document.getElementById('password');
+        const cpassid = document.getElementById('confirm_password');
+        const error1 = document.getElementById('error1');
+        const error2 = document.getElementById('error2');
+        const error3 = document.getElementById('error3');
+        const error4 = document.getElementById('error4');
+        const error5 = document.getElementById('error5');
+        const signform = document.getElementById('signform');
+    
+        // Name Validation
+        function nameValidateChecking(e) {
+            const nameval = nameid.value.trim();
+            const namepattern = /^[A-Za-z\s]+$/;
+    
+            if (nameval === "") {
+                error1.style.display = "block";
+                error1.innerHTML = "Please enter a valid name";
+                return false;
+            } else if (!namepattern.test(nameval)) {
+                error1.style.display = "block";
+                error1.innerHTML = "Name can only contain alphabets and spaces";
+                return false;
+            } else {
+                error1.style.display = "none";
+                error1.innerHTML = '';
+                return true;
+            }
+        }
+    
+        // Email Validation
+        function emailValidateChecking(e) {
+            const emailval = emailid.value;
+            const emailpattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+            if (!emailpattern.test(emailval)) {
+                error2.style.display = "block";
+                error2.innerHTML = "Invalid email format";
+                return false;
+            } else {
+                error2.style.display = "none";
+                error2.innerHTML = '';
+                return true;
+            }
+        }
+    
+        // Phone Validation
+        function phoneValidateChecking(e) {
+            const phoneval = phoneid.value.trim();
+            const phonepattern = /^\+?[0-9]{10,15}$/;
+    
+            if (phoneval === "") {
+                error3.style.display = "block";
+                error3.innerHTML = "Please enter a valid phone number";
+                return false;
+            } else if (!phonepattern.test(phoneval)) {
+                error3.style.display = "block";
+                error3.innerHTML = "Invalid phone number format";
+                return false;
+            } else {
+                error3.style.display = "none";
+                error3.innerHTML = '';
+                return true;
+            }
+        }
+    
+        // Password Validation
+        function passValidateChecking(e) {
+            const passval = passid.value;
+            const cpassval = cpassid.value;
+            const passpattern = /^.{8,}$/;
+    
+            if (!passpattern.test(passval)) {
+                error4.style.display = "block";
+                error4.innerHTML = "Password should contain at least 8 characters";
+                return false;
+            } else {
+                error4.style.display = "none";
+                error4.innerHTML = '';
+            }
+    
+            if (passval !== cpassval) {
+                error5.style.display = "block";
+                error5.innerHTML = "Passwords do not match";
+                return false;
+            } else {
+                error5.style.display = "none";
+                error5.innerHTML = '';
+                return true;
+            }
+        }
+    
+        // Add Event Listener to the form on submit
+        document.addEventListener("DOMContentLoaded", function () {
+            signform.addEventListener('submit', function (e) {
+                const isNameValid = nameValidateChecking();
+                const isEmailValid = emailValidateChecking();
+                const isPhoneValid = phoneValidateChecking();
+                const isPassValid = passValidateChecking();
+    
+               
+                if (!isNameValid || !isEmailValid || !isPhoneValid || !isPassValid) {
+                    e.preventDefault();  
+                }
+            });
+        });
+    </script>

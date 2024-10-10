@@ -6,7 +6,7 @@ const userSchema=new Schema({
         type:String,
         required:true
     },
-    Email:{
+    email:{
         type:String,
         required:true,
         unique:true
@@ -18,9 +18,10 @@ const userSchema=new Schema({
         sparse:true,
         default:null
     },
-    googleId:{
-        type:String,
-        unique:true
+    googleId: {
+        type: String,
+        unique:true,
+       
     },
     password:{
         type:String,
@@ -56,13 +57,16 @@ const userSchema=new Schema({
     },
     referalCode:{
         type:String,
+        // required:true
     },
     redeemed:{
-        type:Boolean
+        type:Boolean,
+        // default:false
     },
     redeemedUsers:[{
         type:Schema.Types.ObjectId,
-        ref:"User"
+        ref:"User",
+        // require:true
     }],
     searchHistory:[{
         category:{
@@ -80,6 +84,4 @@ const userSchema=new Schema({
 })
 
 const User=mongoose.model('User',userSchema)
-module.exports={
-    user
-}
+module.exports =  User

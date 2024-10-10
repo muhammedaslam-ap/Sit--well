@@ -46,11 +46,9 @@ const productSchema=new Schema({
         type:String,
         enum:['avilable','out Of Stock','Discontinued'],
         required:true,
-        default:avilable
+        default:'avilable'
      }
 },{timestamps:true})
 
 const Product=mongoose.model('Product',productSchema)
-module.exports={
-    Product
-}
+module.exports = Product

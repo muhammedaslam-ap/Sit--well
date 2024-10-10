@@ -1,7 +1,7 @@
-const mongoose=require('mongoose')
+const mongoose = require('mongoose')
 const { Product } = require('./productSchema')
-const {Schema}=mongoose
-const whishlistSchema=new Schema({
+const {Schema} = mongoose
+const whishlistSchema = new Schema({
     userId:{
       type:Schema.Types.ObjectId,
       ref:'User',
@@ -20,7 +20,7 @@ const whishlistSchema=new Schema({
    }]
 })
 
-const Whishlist=mongoose.model('Whishlist',whishlistSchema)
-module.exports={
+const Whishlist = mongoose.model('Whishlist',whishlistSchema)
+module.exports = {
     Whishlist
 }
