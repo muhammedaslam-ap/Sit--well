@@ -4,11 +4,11 @@ const {Schema}=mongoose
 const productSchema=new Schema({
      name:{
         type:String,
-        required:true
+        required:false
      },
      decription:{
          type:String,
-         required:true
+         required:false
      },
      category:{
         type:String,
@@ -16,11 +16,11 @@ const productSchema=new Schema({
      },
      regularPrice:{
         type:Number,
-        required:true
+        required:false
      },
      salePrice:{
         type:Number,
-        required:true
+        required:false
      },
      productOffer:{
         type:Number,
@@ -28,11 +28,11 @@ const productSchema=new Schema({
      },
      quantity:{
         type:Number,
-        required:true
+        required:false
      },
      color:{
         type:String,
-        required:true
+        required:false
      },
      productImage:{
         type:[String],

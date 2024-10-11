@@ -2,6 +2,8 @@ const express = require('express')
 const adminRoute = express()
 const path = require('path')
 adminRoute.set('views','./views/admin');
+const multer = require('multer');
+const fs = require('fs')
 const {userAuth,adminAuth} = require('../middleware/auth')
 const adminController = require('../controller/admin/adminController')
 const costomerController = require('../controller/admin/costomerController')
@@ -28,8 +30,33 @@ adminRoute.get('/unlistCategory',adminAuth,categoryConroller.unlistCategory)
 adminRoute.get('/editCategory',adminAuth,categoryConroller.editCategory)
 adminRoute.post('/editCategory/:id',adminAuth,categoryConroller.postEditCategory)
 
+
+
+
+
+
+
+
+
+// Define multer for handling file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '..', 'public/uploads/product-images');
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true }); // Create directory if it doesn't exist
+        }
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploads = multer({ storage: storage });
 //product menagement
 adminRoute.get('/product',adminAuth,productController.getProductAddPage)
+adminRoute.post('/addProduts', adminAuth, uploads.array("images", 4), productController.addProduts);
 
 
 
