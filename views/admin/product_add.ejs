@@ -30,7 +30,7 @@
             <div class="col-lg-6">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <form method="post" action="/admin/addProduts" enctype="multipart/form-data"
+                        <form method="post" action="/admin/addProducts" enctype="multipart/form-data"
                             onsubmit="return validateForm()">
                             <div class="mb-4">
                                 <label for="product_name" class="form-label">Product Name</label>
@@ -56,7 +56,7 @@
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="mb-4">
-                                        <label class="form-label">Sale price</label>
+                                        <label class="form-label">SalePrice</label>
                                         <input placeholder="$" name="salePrice" type="text" class="form-control border">
                                        
                                     </div>
@@ -157,7 +157,7 @@
                                                                 </div>
                                                             </div>
                                                            
-                                                            <div class="row">
+                                                            <!-- <div class="row">
                                                                 <div class="card-body align-items-center" style="margin-bottom: 20px;">
                                                                     <img src="" alt="" id="imgView4">
  
@@ -165,14 +165,14 @@
                                                            
                                                                     <input class="form-control" type="file" name="images" id="input4"
                                                                         accept="image/png, image/jpeg, image/jpg"
-                                                                        onchange="viewImage4(event),viewImage(event, 4)">
-                                                                </div>
-                                                                <div class="image-cropper d-flex align-items-center"
+                                                                        onchange="viewImage4(event),viewImage(event, 4)"> -->
+                                                                <!-- </div> -->
+                                                                <!-- <div class="image-cropper d-flex align-items-center"
                                                                     style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
                                                                     <img src="" id="croppedImg4" alt="">
                                                                     <button type="button" id="saveButton4" class="btn-sm btn-primary">Save</button>
-                                                                </div>
-                                                            </div>
+                                                                </div> -->
+                                                            <!-- </div> --> 
                            
                                                         </div>
                             </div>
@@ -344,6 +344,10 @@
          displayErrorMessage('regularPrice-error', 'Regular price must be greater than sale price.');
          isValid = false;
      }
+     if (!/^#([0-9A-Fa-f]{3}){1,2}$/.test(color)) {
+        displayErrorMessage('color-error', 'Please enter a valid hex color code.');
+        isValid = false;
+    }
  
      if (images.files.length === 0) {
          displayErrorMessage("images-error", 'Please select an image.');

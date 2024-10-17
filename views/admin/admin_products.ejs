@@ -1,0 +1,93 @@
+<%- include('../../views/partials/admin/header.ejs') %>
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Products List</h2>
+        </div>
+    </div>
+  
+    <div class="card mb-4">
+        <header class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
+                    <select class="form-select">
+                        <option selected>All categories</option>
+                        <% cat.forEach(cat => { %>
+                            <option value="<%= cat._id %>"><%= cat.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+        </header> <!-- card-header end// -->
+        <div class="card-body">
+            <% if (data.length > 0) { %>
+                <% data.forEach(data => { %>
+                    <article class="itemlist mb-3" style="border: 1px solid rgba(128, 128, 128, 0.195);">
+                        <div class="row align-items-center">
+                            <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
+                                <a class="itemside" href="#">
+                                    <div class="left">
+                                        <% if (data.productImage && data.productImage.length > 0) { %>
+                                            <img src="/uploads/product-images/<%= data.productImage[0] %>" class="img-sm img-thumbnail" alt="<%= data.productName %>">
+                                            <% } else { %>
+                                            <img src="/path/to/default/image.jpg" class="img-sm img-thumbnail" alt="No image available">
+                                        <% } %>
+                                    </div>
+                                    <div class="info">
+                                        <h6 class="mb-0"><%= data.productName %></h6>
+                                    </div>
+                                </a>
+                                
+                            </div>
+                            <div class="col-lg-2 col-sm-2 col-4 col-price"> 
+                                <span> Regular Price : ₹<%= data.regularPrice %></span>
+                            </div>
+                            <div class="col-lg-2 col-sm-2 col-4 col-price"> 
+                                <span>Sales price : ₹<%= data.salePrice %></span>
+                            </div>
+                            <div class="col-lg-2 col-sm-2 col-4 col-price"> 
+                                <span>Category : <%= data.category ? data.category.name : 'No Category' %></span>
+                            </div>
+                            <div class="col-lg-2 col-sm-2 col-4 col-status">
+                            </div>
+                            <div class="col-lg-1 col-sm-2 col-4 col-date">
+                                <span><%= data.createdAt.toDateString() %></span>
+                            </div>
+                            <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
+                                <a href="/admin/editProduct/?id=<%= data._id %>" class="btn btn-sm font-sm rounded btn-brand">
+                                    <i class="material-icons md-edit"></i> Edit
+                                </a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <% if (data.isBlocked == true) { %>
+                                    <a href="/admin/unblockProduct?id=<%= data._id %>" class="btn btn-sm font-sm rounded btn-success">UnBlock</a> 
+                                <% } else { %>
+                                    <a href="/admin/blockProduct?id=<%= data._id %>" class="btn btn-sm font-sm rounded btn-danger">Block</a>
+                                <% } %>
+                            </div>
+                            
+                            
+                        </div> <!-- row .// -->
+                    </article> <!-- itemlist  .// -->
+                <% }) %>
+            <% } else { %>
+                <p>No products found.</p>
+            <% } %>
+        </div> <!-- card-body end// -->
+    </div> <!-- card end// -->
+    <div class="pagination-area mt-30 mb-50">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i == currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+</section> 
+ 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<%- include('../../views/partials/admin/footer.ejs') %>

@@ -1,13 +1,17 @@
 const User = require('../../models/userSchema')
+const Product = require('../../models/productSchema')
+const Category = require("../../models/categorySchema");
+
 const nodemailer=require('nodemailer')
 const env=require('dotenv').config()
-const bcrypt=require('bcrypt')
+const bcrypt=require('bcrypt');
+const { render } = require('ejs');
 
 // const home = async(req,res)=>{
 //     try {
 //         res.render('home')
 //     } catch (error) {
-//         console.log(error)
+//         console.log(error) 
 //     }
 // }
 
@@ -21,7 +25,23 @@ const pageNotFound = async(req,res)=>{
 
 const landing = async(req,res)=>{
     try {
-        res.render('landing')
+        const user = req.session.user
+        const categories = await Category.find({isListed:true})
+        let productData = await Product.find({
+            isBlocked:false,
+            category:{$in:categories.map(category=>category._id)},quantity:{$gt:0}
+        })
+        
+        productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn))
+        productData = productData.slice(0,4)
+
+        if(user){
+            const userData = await User.findOne({_id: user._id})
+            return res.render('landing',{user:userData,products:productData})
+        }else{
+            return res.render('landing',{products:productData})
+
+        }
     } catch (error) {
         console.log(error.message)
     }
@@ -45,33 +65,50 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // Check if email and password are provided
         if (!email || !password) {
             return res.render('login', { message: "Please provide both email and password" });
         }
 
+        // Find the user based on email
         const findUser = await User.findOne({ is_admin: false, email: email });
 
+        // Check if the user exists
         if (!findUser) {
             return res.render('login', { message: "User Not Found" });
         }
 
+        // Check if the user is blocked
         if (findUser.is_blocked) {
             return res.render('login', { message: "Admin Blocked You" });
         }
 
+        // Ensure the password exists
+        if (!findUser.password) {
+            return res.render('login', { message: "Password not found for this user" });
+        }
+
+        // Compare provided password with the hashed password
         const passwordMatch = await bcrypt.compare(password, findUser.password);
 
+        // If passwords don't match, send error
         if (!passwordMatch) {
             return res.render('login', { message: "Incorrect Password" });
         }
 
-        req.session.user = findUser.id;  // Use distinct session key for users
+        // If successful, store the user ID or object in session
+        req.session.user = findUser._id;  // Ensure this aligns with your session config
+
+        // Redirect to home or dashboard after successful login
         res.redirect('/');
     } catch (error) {
         console.error(error);
-        res.render('login', { message: "Login failed" });
+
+        // Render error message in case of any unexpected issues
+        res.render('login', { message: "Login failed due to a system error." });
     }
 };
+
 
 const loadsignup = (req,res)=>{
     try {
@@ -192,7 +229,7 @@ const verifyotp = async (req, res) => {
     }
 };
 
-const resendOtp=async (req,res)=>{
+const resendOtp = async (req,res)=>{
     try {
         const {email} = req.session.userData
         if(!email) {
@@ -215,6 +252,45 @@ const resendOtp=async (req,res)=>{
     }
 }
 
+const productDetails = async (req, res) => {
+    try {
+        // Uncomment this line to retrieve the user session
+        const user = req.session.user;
+
+        // Fetch categories
+        const categories = await Category.find({ isListed: true });
+
+        // Get the product ID from the request params
+        const productId = req.params.id; // Ensure your route has this param
+
+        // Fetch the specific product based on the product ID
+        const productData = await Product.findOne({
+            _id: productId,
+            isBlocked: false,
+            quantity: { $gt: 0 }
+        });
+
+        // If the product is not found, return a 404 error
+        if (!productData) {
+            return res.status(404).send("Product not found");
+        }
+
+        // Fetch user data if the user is logged in
+        let userData;
+        if (user) {
+            userData = await User.findOne({ _id: user._id });
+        }
+
+        // Render the product details page with the product and user data
+        return res.render('product_details', { product: productData, user: userData || null }); // Pass userData if exists
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).send("Server error");
+    }
+};
+
+
+
 
 module.exports={
     // home,
@@ -225,5 +301,6 @@ module.exports={
     loadsignup,
     signup,
     verifyotp,
-    resendOtp
+    resendOtp,
+    productDetails
 }

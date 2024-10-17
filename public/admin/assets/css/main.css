@@ -3992,6 +3992,7 @@ body.offcanvas-active {
   max-width: 120px;
   margin-top: 5px;
   min-width: 120px;
+  padding-left: 40px;
 }
 
 .main-header {
