@@ -1,9 +1,57 @@
 
     <!-- Header part end-->
     <%-include('../../views/partials/user/header.ejs')%>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
     <!--================Home Banner Area =================-->
     <!-- breadcrumb start-->
      <style>
+        .breadcrumb.carousel_section {
+            background-color: #000; 
+        }
+
+        .carousel-inner .carousel-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%; 
+        }
+
+        .carousel-inner img {
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+
+        .carousel-fade .carousel-item {
+            opacity: 0; 
+            transition: opacity 0.5s ease; 
+        }
+
+        .carousel-fade .carousel-item.active {
+            opacity: 1; 
+        }
+
+        .breadcrumb_iner {
+            position: absolute; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            z-index: 10; 
+        }
+        .breadcrumb_iner {
+            position: absolute; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white; 
+            text-align: center; 
+            z-index: 10; 
+        }
+
       .product-actions {
             display: flex;
             justify-content: space-between;
@@ -16,285 +64,153 @@
             order: 2;
         }
         .indian-rupee::before {
-            content: "\20B9"; /* Unicode for Indian Rupee symbol */
+            content: "\20B9";
             font-family: Arial, sans-serif;
             margin-right: 2px;
-            font-weight: 300; /* Light font weight */
-            color: #666; /* Lighter color */
+            font-weight: 300; 
+            color: #666;
+        }
+        .category-container {
+            display: flex;
+            gap: 20px; 
+            flex-wrap: wrap;
+            align-items: center;
         }
 
+        .single_product_menu p {
+            margin: 0; 
+            padding: 0; 
+        }
      </style>
-    <section class="breadcrumb breadcrumb_bg">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="breadcrumb_iner">
-                        <div class="breadcrumb_iner_item">
-                            <h2>Shop Category</h2>
-                            <p>Home <span>-</span> Shop Category</p>
-                        </div>
-                    </div>
-                </div>
+ <!-- Carousel Section with Breadcrumb Overlay -->
+<!-- Include the viewport meta tag -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Carousel Section with Breadcrumb Overlay -->
+<section class="breadcrumb carousel_section position-relative">
+    <div id="carouselExampleAutoplaying" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/uploads/product-images/carousel-2.webp" class="d-block w-100" alt="...">
+            </div>
+            <div class="carousel-item">
+                <img src="/uploads/product-images/carousel-1.webp" class="d-block w-100" alt="...">
+            </div>
+            <div class="carousel-item">
+                <img src="/uploads/product-images/carousel-3.webp" class="d-block w-100" alt="...">
             </div>
         </div>
-    </section>
-    <!-- breadcrumb start-->
+        <!-- Carousel controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
 
-    <!--================Category Product Area =================-->
-    <section class="cat_product_area section_padding">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3">
-                    <div class="left_sidebar_area">
-                        <aside class="left_widgets p_filter_widgets">
-                            <div class="l_w_title">
-                                <h3>Browse Categories</h3>
-                            </div>
-                            <div class="widgets_inner">
-                                <ul class="list">
-                                    <li>
-                                        <a href="#">Frozen Fish</a>
-                                        <span>(250)</span>
-                                    </li>
-                                    <li>
-                                        <a href="#">Dried Fish</a>
-                                        <span>(250)</span>
-                                    </li>
-                                    <li>
-                                        <a href="#">Fresh Fish</a>
-                                        <span>(250)</span>
-                                    </li>
-                                    <li>
-                                        <a href="#">Meat Alternatives</a>
-                                        <span>(250)</span>
-                                    </li>
-                                    <li>
-                                        <a href="#">Fresh Fish</a>
-                                        <span>(250)</span>
-                                    </li>
-                                    <li>
-                                        <a href="#">Meat Alternatives</a>
-                                        <span>(250)</span>
-                                    </li>
-                                    <li>
-                                        <a href="#">Meat</a>
-                                        <span>(250)</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </aside>
+    <!-- Breadcrumb text centered on top of the full-screen carousel -->
+    <div class="breadcrumb_iner">
+        <h2 class="text-red display-3">Sit Well</h2>
+        <p class="text-white">Home <span></span></p>
+    </div>
+</section>
 
-                        <aside class="left_widgets p_filter_widgets">
-                            <div class="l_w_title">
-                                <h3>Product filters</h3>
-                            </div>
-                            <div class="widgets_inner">
-                                <ul class="list">
-                                    <li>
-                                        <a href="#">Apple</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Asus</a>
-                                    </li>
-                                    <li class="active">
-                                        <a href="#">Gionee</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Micromax</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Samsung</a>
-                                    </li>
-                                </ul>
-                                <ul class="list">
-                                    <li>
-                                        <a href="#">Apple</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Asus</a>
-                                    </li>
-                                    <li class="active">
-                                        <a href="#">Gionee</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Micromax</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Samsung</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </aside>
 
-                        <aside class="left_widgets p_filter_widgets">
-                            <div class="l_w_title">
-                                <h3>Color Filter</h3>
+<!-- Category Product Area -->
+<section class="cat_product_area section_padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Category List -->
+                <div class="row mb-4">
+                    <div class="col-lg-12">
+                        <div class="category-container d-flex flex-wrap justify-content-start"> 
+                            <% for (i = 0; i < category.length; i++) { %>
+                            <div class="single_product_menu me-3 mb-2">
+                                <p class="btn btn-outline-secondary"><%= category[i].name %></p>
                             </div>
-                            <div class="widgets_inner">
-                                <ul class="list">
-                                    <li>
-                                        <a href="#">Black</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Black Leather</a>
-                                    </li>
-                                    <li class="active">
-                                        <a href="#">Black with red</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Gold</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Spacegrey</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </aside>
-
-                        <aside class="left_widgets p_filter_widgets price_rangs_aside">
-                            <div class="l_w_title">
-                                <h3>Price Filter</h3>
-                            </div>
-                            <div class="widgets_inner">
-                                <div class="range_item">
-                                    <!-- <div id="slider-range"></div> -->
-                                    <input type="text" class="js-range-slider" value="" />
-                                    <div class="d-flex">
-                                        <div class="price_text">
-                                            <p>Price :</p>
-                                        </div>
-                                        <div class="price_value d-flex justify-content-center">
-                                            <input type="text" class="js-input-from" id="amount" readonly />
-                                            <span>to</span>
-                                            <input type="text" class="js-input-to" id="amount" readonly />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
-                    </div>
-                </div>
-                <div class="col-lg-9">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="product_top_bar d-flex justify-content-between align-items-center">
-                                <div class="single_product_menu">
-                                    <p><span>10000 </span> Prodict Found</p>
-                                </div>
-                                <div class="single_product_menu d-flex">
-                                    <h5>short by : </h5>
-                                    <select>
-                                        <option data-display="Select"> name</option>
-                                        <option value="1">price</option>
-                                        <option value="2">product</option>
-                                    </select>
-                                </div>
-                                <div class="single_product_menu d-flex">
-                                    <h5>show :</h5>
-                                    <div class="top_pageniation">
-                                        <ul>
-                                            <li>1</li>
-                                            <li>2</li>
-                                            <li>3</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="single_product_menu d-flex">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="search"
-                                            aria-describedby="inputGroupPrepend">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text" id="inputGroupPrepend"><i
-                                                    class="ti-search"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <% } %>
                         </div>
                     </div>
-                    
-                    <div class="row align-items-center latest_product_inner">
-                        <%for(i=0;i<products.length;i++){%>
-                        <div class="col-lg-4 col-sm-6">
-                            <div class="single_product_item ">
-                                <a href="/productDetails/<%=products[i]._id%>">
-                                <img class="default-img" src="/uploads/product-images/<%=products[i].productImage[0]%>" alt="<%=products[i].productName%>">
-                                </a>
-                                <div class="single_product_text">
-                                    <h4><%=products[i].productName%></h4>
-                                    <h3><span class="indian-rupee"></span><span style="text-decoration: line-through; color: #a0a0a0;">
+                </div>
+                <!-- Product Grid -->
+                <div class="row align-items-center latest_product_inner">
+                    <% for(i = 0; i < products.length; i++) { %>
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="single_product_item">
+                            <a href="/productDetails/<%= products[i]._id %>">
+                                <img class="default-img img-fluid" src="/uploads/product-images/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
+                            </a>
+                            <div class="single_product_text text-center mt-3">
+                                <h4><%= products[i].productName %></h4>
+                                <h3>
+                                    <span class="indian-rupee"></span>
+                                    <span style="text-decoration: line-through; color: #a0a0a0;">
                                         <%= products[i].regularPrice %>
-                                    </span>&nbsp;&nbsp;<span class="indian-rupee"></span><%=products[i].salePrice%></h3>
-                                    <div class="product-actions">
-                                        <a href="/addToCart?id=<%=products[i]._id%>" class="add_cart">+ add to cart</a>
-                                        <a href="/addToWhishlist?id=<%=products[i]._id%>" class="wishlist ti-heart"></a>
-                                    </div>
+                                    </span>
+                                    &nbsp;&nbsp;
+                                    <span class="indian-rupee"></span><%= products[i].salePrice %>
+                                </h3>
+                                <div class="product-actions mt-2">
+                                    <a href="/addToCart?id=<%= products[i]._id %>" class="btn btn-primary btn-sm">+ Add to cart</a>
+                                    <a href="/addToWhishlist?id=<%= products[i]._id %>" class="btn btn-outline-secondary btn-sm ms-2"><i class="ti-heart"></i></a>
                                 </div>
                             </div>
                         </div>
-                        <%}%>
-                       
-                        
                     </div>
+                    <% } %>
                 </div>
             </div>
         </div>
-    </section>
-    <!--================End Category Product Area =================-->
+    </div>
+</section>
 
-    <!-- product_list part start-->
-    <section class="product_list best_seller">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-12">
-                    <div class="section_tittle text-center">
-                        <h2>Best Sellers <span>shop</span></h2>
-                    </div>
-                </div>
-            </div>
-            <div class="row align-items-center justify-content-between">
-                <div class="col-lg-12">
-                    <div class="best_product_slider owl-carousel">
-                        <div class="single_product_item">
-                            <img src="/user/img/product/product_1.png" alt="">
-                            <div class="single_product_text">
-                                <h4>Quartz Belt Watch</h4>
-                                <h3>$150.00</h3>
-                            </div>
-                        </div>
-                        <div class="single_product_item">
-                            <img src="/user/img/product/product_2.png" alt="">
-                            <div class="single_product_text">
-                                <h4>Quartz Belt Watch</h4>
-                                <h3>$150.00</h3>
-                            </div>
-                        </div>
-                        <div class="single_product_item">
-                            <img src="/user/img/product/product_3.png" alt="">
-                            <div class="single_product_text">
-                                <h4>Quartz Belt Watch</h4>
-                                <h3>$150.00</h3>
-                            </div>
-                        </div>
-                        <div class="single_product_item">
-                            <img src="/user/img/product/product_4.png" alt="">
-                            <div class="single_product_text">
-                                <h4>Quartz Belt Watch</h4>
-                                <h3>$150.00</h3>
-                            </div>
-                        </div>
-                        <div class="single_product_item">
-                            <img src="/user/img/product/product_5.png" alt="">
-                            <div class="single_product_text">
-                                <h4>Quartz Belt Watch</h4>
-                                <h3>$150.00</h3>
-                            </div>
-                        </div>
-                    </div>
+<!-- Best Seller Section -->
+<section class="product_list best_seller section_padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="section_tittle text-center mb-5">
+                    <h2>Best Sellers <span>shop</span></h2>
                 </div>
             </div>
         </div>
-    </section>
+        <div class="row">
+            <div class="best_product_slider owl-carousel">
+                <% for (let i = 0; i < products.length; i++) { %>
+                <div class="single_product_item text-center">
+                    <a href="/productDetails/<%= products[i]._id %>">
+                        <img class="default-img img-fluid" src="/uploads/product-images/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
+                    </a>
+                    <div class="single_product_text mt-3">
+                        <h4><%= products[i].productName %></h4>
+                        <h3>
+                            <span class="indian-rupee"></span>
+                            <span style="text-decoration: line-through; color: #a0a0a0;">
+                                <%= products[i].regularPrice %>
+                            </span>&nbsp;&nbsp;
+                            <span class="indian-rupee"></span><%= products[i].salePrice %>
+                        </h3>
+                        <div class="product-actions mt-2">
+                            <a href="/addToCart?id=<%= products[i]._id %>" class="btn btn-primary btn-sm">+ Add to cart</a>
+                            <a href="/addToWhishlist?id=<%= products[i]._id %>" class="btn btn-outline-secondary btn-sm ms-2"><i class="ti-heart"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    
     <!-- product_list part end-->
 
     <!--::footer_part start::-->

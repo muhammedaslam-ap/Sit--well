@@ -7,13 +7,7 @@ const env=require('dotenv').config()
 const bcrypt=require('bcrypt');
 const { render } = require('ejs');
 
-// const home = async(req,res)=>{
-//     try {
-//         res.render('home')
-//     } catch (error) {
-//         console.log(error) 
-//     }
-// }
+
 
 const pageNotFound = async(req,res)=>{
     try {
@@ -29,17 +23,41 @@ const landing = async(req,res)=>{
         const categories = await Category.find({isListed:true})
         let productData = await Product.find({
             isBlocked:false,
-            category:{$in:categories.map(category=>category._id)},quantity:{$gt:0}
+            category:{$in:categories.map(category=>category._id)},quantity:{$gte:0}
         })
         
         productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn))
-        productData = productData.slice(0,4)
+        productData = productData.slice(0,10)
 
         if(user){
             const userData = await User.findOne({_id: user._id})
-            return res.render('landing',{user:userData,products:productData})
+            return res.render('landing',{user:userData,products:productData,category:categories})
         }else{
-            return res.render('landing',{products:productData})
+            return res.render('landing',{products:productData,category:categories})
+
+        }
+    } catch (error) {
+        console.log(error.message)
+    }
+}
+
+const shop  = async(req,res)=>{
+    try {
+        const user = req.session.user
+        const categories = await Category.find({isListed:true})
+        let productData = await Product.find({
+            isBlocked:false,
+            category:{$in:categories.map(category=>category._id)},quantity:{$gte:0}
+        })
+        
+        productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn))
+        productData = productData.slice(0,10)
+
+        if(user){
+            const userData = await User.findOne({_id: user._id})
+            return res.render('shop',{user:userData,products:productData,category:categories})
+        }else{
+            return res.render('shop',{products:productData,category:categories})
 
         }
     } catch (error) {
@@ -253,47 +271,48 @@ const resendOtp = async (req,res)=>{
 }
 
 const productDetails = async (req, res) => {
-    try {
-        // Uncomment this line to retrieve the user session
+    try {       
         const user = req.session.user;
 
-        // Fetch categories
         const categories = await Category.find({ isListed: true });
 
-        // Get the product ID from the request params
-        const productId = req.params.id; // Ensure your route has this param
+        const productId = req.params.id; 
 
-        // Fetch the specific product based on the product ID
         const productData = await Product.findOne({
             _id: productId,
             isBlocked: false,
-            quantity: { $gt: 0 }
+            category: { $in: categories.map(category => category._id) },
+            quantity: { $gte: 0 }
         });
 
-        // If the product is not found, return a 404 error
         if (!productData) {
-            return res.status(404).send("Product not found");
+            return res.status(404).redirect('/pageNotFound');
         }
 
-        // Fetch user data if the user is logged in
         let userData;
         if (user) {
             userData = await User.findOne({ _id: user._id });
         }
 
-        // Render the product details page with the product and user data
-        return res.render('product_details', { product: productData, user: userData || null }); // Pass userData if exists
+        const productCategory = categories.find(category => category._id.equals(productData.category));
+
+        return res.render('product_details', { 
+            product: productData, 
+            user: userData || null,
+            category: productCategory,
+            quantity: productData.quantity 
+        });
     } catch (error) {
         console.log(error.message);
         return res.status(500).send("Server error");
     }
-};
+}
 
 
 
 
 module.exports={
-    // home,
+
     pageNotFound,
     landing,
     loadLogin,
@@ -302,5 +321,6 @@ module.exports={
     signup,
     verifyotp,
     resendOtp,
-    productDetails
+    productDetails,
+    shop
 }

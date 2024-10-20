@@ -17,6 +17,7 @@ userRoute.post('/signup',userController.signup)
 userRoute.post('/verify-otp',userController.verifyotp);
 userRoute.post('/resend-otp',userController.resendOtp)
 userRoute.get('/productDetails/:id', userController.productDetails);
+userRoute.get('/shop',userController.shop)
 
 userRoute.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}))
 userRoute.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signup'}),(req,res)=>{

@@ -18,25 +18,38 @@ const loadlogin = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const admin = await User.findOne({ email, is_admin: true });
+
+        // Find admin by email and ensure it's an admin user
+        const admin = await User.findOne({ email: email, is_admin: true });
 
         if (admin) {
+            // Compare password
             const passwordMatch = await bcrypt.compare(password, admin.password);
 
             if (passwordMatch) {
-                req.session.admin = true;  // Use distinct session key for admins
+                // Set the session for the admin user
+                req.session.admin = {
+                    id: admin._id, // Store admin ID in session for easy retrieval later
+                    email: admin.email, // You can store more information if needed
+                };
+
+                // Redirect to admin dashboard on successful login
                 return res.redirect('/admin/dashboard');
             } else {
+                // If password doesn't match, return error
                 return res.render('admin_login', { message: 'Incorrect password' });
             }
         } else {
+            // If admin not found
             return res.render('admin_login', { message: 'Admin not found' });
         }
     } catch (error) {
-        console.error(error);
+        console.error("Error during admin login:", error);
+        // Redirect to an error page if something goes wrong
         res.redirect('/pageError');
     }
 };
+
 
 // Load Admin Dashboard
 const loadDashboard = async (req, res) => {
