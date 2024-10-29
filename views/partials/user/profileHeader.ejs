@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sit Well</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="/user/img/sitwell.png" type="image/png">
+    <style>
+       body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: #f9a5c1;
+            padding: 0.5rem 1rem;
+        }
+
+        .sidebar {
+            background-color: #f4f4f4;
+            height: 100vh; /* Full height */
+            position: fixed;
+            top: 0; /* Below the navbar */
+            left: 0;
+            width: 250px;
+            z-index: 1000;
+            transition: left 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            left: -250px; /* Hide the sidebar */
+        }
+
+        .sidebar .nav-link {
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s, background-color 0.3s;
+            padding: 15px;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #d3658a;
+            color: #fff;
+        }
+
+        /* Main content */
+        main {
+            margin-left: 250px; /* Space for the sidebar */
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-collapsed {
+            margin-left: 0; /* Adjust main content margin when sidebar is hidden */
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -250px; /* Hidden by default */
+            }
+
+            .sidebar.active {
+                left: 0; /* Show when active */
+            }
+
+            main {
+                margin-left: 0; /* Adjust main content margin */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    
+
+    <nav class="navbar navbar-expand-md navbar-dark shadow-sm fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img style="height: 70px;width: 120px;" src="/user/img/sitwell.png" alt="Sitwell Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/shop">Shop</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container-fluid" style="margin-top: 20px;"> <!-- Add margin-top to adjust for the fixed navbar -->
+        <div class="row">
+            <!-- Sidebar -->
+            <nav  style="margin-top: 100px;" id="sidebar" class="col-md-3 col-lg-2 sidebar  d-md-block shadow-sm">
+                <div class="">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link " href="/userProfile">Account Details</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/orderDetails">Order Details</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/transactions">Transactions</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/addAddress">Add New Address</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/coupons">Coupons</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/wallet">Wallet</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+        <!-- Main Content Area -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">

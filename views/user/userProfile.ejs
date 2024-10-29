@@ -1,0 +1,95 @@
+<%- include('../../views/partials/user/profileHeader.ejs') %>
+<style>
+    .form-control[readonly] {
+    background-color: #e9ecef; /* Light gray background for readonly fields */
+    color: #6c757d; /* Muted text color */
+    pointer-events: none; /* Prevents interaction */
+}
+</style>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">User Profile</h1>
+                </div>
+                <section id="account" class="card">
+                    <div class="card-body">
+                        <h2 class="card-title mb-4">Account Details</h2>
+                        <form id="accountForm" action="/update-profile" method="post">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name:</label>
+                                <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" requiredpattern="^[A-Za-z\s]{2,50}$" title="Name should only contain letters and spaces (2-50 characters).">
+                                <div class="invalid-feedback">
+                                    Please enter a valid name (letters and spaces only, 2-50 characters).
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email:</label>
+                                <input 
+                                    type="email" 
+                                    class="form-control" 
+                                    id="email" 
+                                    name="email" 
+                                    value="<%= user.email %>" 
+                                    readonly 
+                                    required
+                                >
+                            </div>
+                            <button type="submit" class="btn btn-primary shadow-sm">Update Account Details</button>
+                        </form>
+                    </div>
+                </section>
+           
+                <%- include('../../views/partials/user/profileHeader.ejs') %>
+
+
+
+<!-- Script to check URL for success message and show Swal-->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<% if (typeof updateSuccess !== 'undefined' && updateSuccess) { %>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Profile Updated!',
+            text: 'Your profile has been successfully updated.',
+            confirmButtonText: 'OK'
+        });
+    </script>
+<% } %>
+
+<script>
+    document.getElementById('name').addEventListener('input', function () {
+      const nameField = this;
+      const namePattern = /^[A-Za-z\s]{2,50}$/;
+  
+      if (!namePattern.test(nameField.value)) {
+          nameField.classList.add('is-invalid');
+      } else {
+          nameField.classList.remove('is-invalid');
+      }
+    });
+    
+    document.querySelector('form').addEventListener('submit', function (event) {
+      const nameField = document.getElementById('name');
+      const namePattern = /^[A-Za-z\s]{2,50}$/;
+  
+      if (!namePattern.test(nameField.value)) {
+          event.preventDefault();
+          nameField.classList.add('is-invalid');
+      }
+      if (!nameField.value.trim()) {
+        event.preventDefault();
+        nameField.classList.add('is-invalid');
+        nameField.nextElementSibling.textContent = 'Name cannot be empty.';
+    } else if (!namePattern.test(nameField.value)) {
+        event.preventDefault();
+        nameField.classList.add('is-invalid');
+        nameField.nextElementSibling.textContent = 'Please enter a valid name (letters and spaces only, 2-50 characters).';
+    } else {
+        nameField.classList.remove('is-invalid');
+    }
+    });
+  </script>
+  
+
+</body>
+</html>

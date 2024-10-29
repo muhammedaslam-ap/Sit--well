@@ -1,0 +1,112 @@
+<%-include('../../views/partials/user/header.ejs')%>
+<style>
+  .table {
+    font-size: 0.95rem;
+  }
+  .table th, .table td {
+    vertical-align: middle;
+  }
+  .card {
+    border: none;
+    border-radius: 10px;
+  }
+  .card-title {
+    color: #333;
+    font-weight: 600;
+  }
+  .table-light {
+    background-color: #f8f9fa;
+  }
+  .img-thumbnail {
+    border-radius: 5px;
+  }
+</style>
+
+<section class="confirmation_part padding_top">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="confirmation_tittle">
+                    <span>Thank you. Your order has been received.</span>
+                </div>
+            </div>
+            <div class="col-lg-6 col-lx-4">
+                <div class="single_confirmation_details">
+                    <h4>Order Info</h4>
+                    <ul>
+                        <li><p>Order Number</p><span>: <%= orderDetails.orderId %></span></li>
+                        <li><p>Date</p><span>: <%= orderDetails.createdOn.toLocaleDateString() %></span></li>
+                        <li><p>Total</p><span>: RS :<%= orderDetails.finalAmount.toFixed(2) %></span></li>
+                        <li><p>Payment Method</p><span>: <%= orderDetails.paymentMethod %></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-lx-4">
+                <div class="single_confirmation_details">
+                    <h4>Billing Address</h4>
+                    <ul>
+                        <li><p>Street</p><span>: <%= orderDetails.address[0].addressLine1 %></span></li>
+                        <li><p>City</p><span>: <%= orderDetails.address[0].city %></span></li>
+                        <li><p>Country</p><span>: United States</span></li>
+                        <li><p>Postcode</p><span>: <%= orderDetails.address[0].pinCode %></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="container mt-5">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h3 class="card-title mb-4">Order Details</h3>
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead class="table-light">
+                        <tr>
+                          <th scope="col">Product</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Quantity</th>
+                          <th scope="col" class="text-end">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% orderDetails.orderedItems.forEach(item => { %>
+                          <tr>
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <img style="width: 100px; height: 100px;" 
+                                src="/uploads/product-images/<%=item.productImage %>" 
+                                alt="<%= item.productName %>" />
+                              </div>
+                            </td>
+                            <td><span><%= item.productName %></span></td>
+                            <td>x<%= item.quantity %></td>
+                            <td class="text-end">$<%= (item.price * item.quantity).toFixed(2) %></td>
+                          </tr>
+                        <% }) %>
+                      </tbody>
+                      <tfoot class="table-light">
+                        <tr>
+                          <td colspan="2">Subtotal</td>
+                          <td class="text-end">$<%= orderDetails.totalPrice.toFixed(2) %></td>
+                        </tr>
+                        <tr>
+                          <td colspan="2">Shipping</td>
+                          <td class="text-end">Free</td>
+                        </tr>
+                        <tr class="fw-bold">
+                          <td colspan="2">Total</td>
+                          <td class="text-end">$<%= orderDetails.finalAmount.toFixed(2) %></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>            
+        </div>
+    </div>
+</section>
+
+<%-include('../../views/partials/user/footer.ejs')%>
+
+ 

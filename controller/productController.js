@@ -1,5 +1,6 @@
-const Product = require("../../models/productSchema");
-const Category = require("../../models/categorySchema");
+const Product = require("../models/productSchema");
+const Category = require("../models/categorySchema");
+const mongoose = require('mongoose')
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
@@ -62,7 +63,8 @@ const addProduct = async (req, res) => {
                     status: 'Available', 
                 });
                 await newProduct.save();
-
+             
+            req.flash('success','New Product Added')    
             return res.redirect("/admin/addProducts");
             } else {
                 const newProduct = new Product({
@@ -74,15 +76,17 @@ const addProduct = async (req, res) => {
                     quantity: quantity,
                     color: color,
                     productImage: images,
-                    status: 'Available', // Fixed typo here
+                    status: 'Available', 
                 });
                 await newProduct.save();
 
+            req.flash('success','New Product Added')    
             return res.redirect("/addProducts");
             }
             
         } else {
-            return res.status(400).json({ error: "Product already exists, please try with another name" });
+            req.flash('error','Product already exists, please try with another name')
+            return res.redirect('/admin/addProducts');
         }
     } catch (error) {
         console.error("Error saving product", error);
@@ -102,6 +106,7 @@ const getAllProducts = async (req, res) => {
 
       const productData = await Product.find(searchQuery)
           .limit(limit)
+          .sort({ createdAt: -1 })
           .skip((page - 1) * limit)
           .populate('category') 
           .exec();
@@ -118,12 +123,12 @@ const getAllProducts = async (req, res) => {
               cat: category,
           });
       } else {
-          res.render("admin/page-error");
+          res.render("admin/pageerror");
       }
 
   } catch (error) {
       console.error("Error fetching products:", error);
-      res.redirect("/admin/page-error");
+      res.redirect("/admin/pageerror");
   }
 };
 
@@ -135,7 +140,7 @@ const blockProduct = async(req,res) => {
       res.redirect("/admin/products");
   } catch (error) {
       console.error('Error blocking product:', error); 
-      res.redirect("/admin/page-error");
+      res.redirect("/admin/pageerror");
   }
 }
 
@@ -146,7 +151,7 @@ const unblockProduct = async (req,res) => {
       res.redirect("/admin/products");
   } catch (error) {
       console.error('Error unblocking product:', error); 
-      res.redirect("/admin/page-error");
+      res.redirect("/admin/pageerror");
   }
 }
 
@@ -168,14 +173,21 @@ const getEditProduct = async (req,res) => {
     }
 }
 
+
+
 const editProduct = async (req, res) => {
     try {
         const id = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "Invalid product ID." });
+        }
 
         const product = await Product.findById(id);
         if (!product) {
             return res.status(404).json({ error: "Product not found." });
         }
+
         const data = req.body;
 
         const existingProduct = await Product.findOne({
@@ -183,42 +195,56 @@ const editProduct = async (req, res) => {
             _id: { $ne: id }
         });
         if (existingProduct) {
-            return res.status(400).json({ error: "Product name already exists. Please try another name." });
+            req.flash('error','Product name already exists. Please try another name')
+            return res.redirect('/admin/editProduct')
         }
 
-        const images = [];
-        if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
-                images.push(file.filename);
-            });
+        let categoryId;
+        if (mongoose.Types.ObjectId.isValid(data.category)) {
+            categoryId = mongoose.Types.ObjectId(data.category);
+        } else {
+            const categoryDoc = await Category.findOne({ name: data.category });
+            if (!categoryDoc) {
+                req.flash('error','Invalid category name provided.')
+                return res.redirect('/admin/editProduct')
+            }
+            categoryId = categoryDoc._id;
         }
 
+        // Handle image upload
+        const images = req.files ? req.files.map(file => file.filename) : [];
 
+        // Update fields
         const updateFields = {
             productName: data.productName,
             description: data.description,
-            category: data.category,
+            category: categoryId, // use the ObjectId for category
             regularPrice: data.regularPrice,
             salePrice: data.salePrice,
             quantity: data.quantity,
             color: data.color
         };
-        
 
+        // Replace product images if new images are uploaded
         if (images.length > 0) {
-            updateFields.$push = { productImage: { $each: images } };
+            updateFields.productImage = images;
         }
 
-
-        await Product.findByIdAndUpdate(id, updateFields, { new: true });
-
-        res.redirect("/admin/products");
+        // Update product in database
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateFields, { new: true });
+        if (!updatedProduct) {
+            req.flash('error','Failed to update product.')
+            res.redirect("/admin/editProduct");
+        }
+         req.flash('success','product updated successfully')
+         res.redirect("/admin/products");
 
     } catch (error) {
         console.error("Error updating product:", error.message);
         res.redirect("/admin/pageerror");
     }
 };
+
 
 
 

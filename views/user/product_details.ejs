@@ -111,10 +111,110 @@
             transform: scale(1.2); /* Larger heart during the beat */
         }
     }
+    .breadcrumb-wrapper {
+        display: flex;
+        justify-content: flex-start; /* Adjust for horizontal alignment */
+        margin-bottom: 20px;
+    }
+
+    .bread-crumb {
+        background-color: #f8f9fa; /* Light background for better visibility */
+        padding: 10px 15px;
+        border-radius: 5px;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .bread-crumb a {
+        color: #04101d;
+        text-decoration: none;
+    }
+
+    .bread-crumb a:hover {
+        text-decoration: underline;
+    }
+
+    .bread-crumb span {
+        color: #6c757d; /* Grayish color for product name */
+    }
+    .product-card {
+    transition: transform 0.3s ease;
+    border: 1px solid #eee;
+}
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .recommendations-section {
+        background-color: #f8f9fa;
+    }
+
+    .section-title h3 {
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+    .section-title h3:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 2px;
+        background-color: #007bff;
+    }
 
     </style>
+    <!-- breadcrumb -->
+	 <!-- dynamically set cheyth -->
+	 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <% if (successMessage && successMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '<%= successMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+    
+    <% if (errorMessage && errorMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '<%= errorMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+
 <section>
-<div class="product_image_area section_padding">
+  <div class="container" style="margin-top: 150px; margin-bottom: 0px;">
+    <div class="breadcrumb-wrapper">
+        <div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
+            <a href="/" class="text-black cl8 hov-cl1 trans-04">
+                Home
+                <i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+            </a>
+
+            <a href="/productDetails/<%= product._id %>" class="text-black stext-109 cl8 hov-cl1 trans-04">
+                <%= category.name %>
+                <i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+            </a>
+
+            <span class="text-black stext-109 cl4">
+                <%= product.productName %>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="product_image_area ">
     <div class="container">
       <div class="row s_product_inner justify-content-between">
         <div class="col-lg-7 col-xl-7">
@@ -179,8 +279,12 @@
                 <input class="input-number" type="text" value="1" min="0" max="10">
                 <span class="number-increment"> <i class="ti-plus"></i></span>
               </div>
-              <a href="/addToCart?id=<%= product._id %>" class="btn btn-primary add_cart">+ Add to Cart</a>
-              <a href="/addToWhishlist?id=<%= product._id %>" class="btn  wishlist ms-3">
+              <form action="/addToCart" method="POST" style="display:inline;">
+                <input type="hidden" name="productId" value="<%= product._id %>">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-primary btn-sm">+ Add to Cart</button>
+            </form>               
+            <a href="/addToWhishlist?id=<%= product._id %>" class="btn  wishlist ms-3">
               <i class="ti-heart heart-icon"></i>
             </div>
           </div>
@@ -189,6 +293,61 @@
     </div>
   </div>
   <!--================End Single Product Area =================-->
+  <div class="recommendations-section py-5 bg-light">
+    <div class="container">
+        <div class="section-title text-center mb-4">
+            <h3>You May Also Like</h3>
+            <p class="text-muted">More products from <%= category.name %></p>
+        </div>
+
+        <% if (recommendedProducts && recommendedProducts.length > 0) { %>
+            <div class="row">
+                <% recommendedProducts.forEach(function(recommendedProduct) { %>
+                    <div class="col-md-3 col-6 mb-4">
+                        <div class="card product-card h-100 d-flex flex-column shadow-sm">
+                            <a href="/productDetails/<%= recommendedProduct._id %>">
+                                <img src="<%= recommendedProduct.productImage && recommendedProduct.productImage.length ? '/uploads/product-images/' + recommendedProduct.productImage[0] : '/images/placeholder.png' %>" 
+                                     class="card-img-top" 
+                                     alt="<%= recommendedProduct.productName %>"
+                                     style="object-fit: cover; height: 200px;">
+                            </a>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-truncate text-center">
+                                    <%= recommendedProduct.productName %>
+                                </h5>
+                                <div class="price-section text-center mb-3">
+                                    <% if (recommendedProduct.salePrice < recommendedProduct.regularPrice) { %>
+                                      <span class="text-danger" style="text-decoration: line-through;">
+                                        ₹<%= recommendedProduct.regularPrice %>
+                                    </span>
+                                      &nbsp;&nbsp;
+                                        <span class="text-success ms-2">
+                                            ₹<%= recommendedProduct.salePrice %>
+                                        </span>
+                                    <% } else { %>
+                                        <span class="text-success">₹<%= recommendedProduct.regularPrice %></span>
+                                    <% } %>
+                                </div>
+                                <!-- Add buttons at the bottom -->
+                                <div class="mt-auto d-flex justify-content-center">
+                                    <a href="/addToCart?id=<%= recommendedProduct._id %>" class="btn btn-sm btn-outline-primary me-2">
+                                        Add to Cart
+                                    </a>
+                                    <a href="/addToWhishlist?id=<%= recommendedProduct._id %>" class="btn btn-sm btn-outline-secondary">
+                                        <i class="ti-heart"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <p class="text-center">No similar products available at the moment.</p>
+        <% } %>
+    </div>
+</div> 
+
   <script>
     // Add this script to your existing JavaScript
     document.addEventListener('DOMContentLoaded', function() {

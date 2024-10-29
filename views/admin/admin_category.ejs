@@ -164,44 +164,79 @@
         });
     }
 
-    function validateForm() {
-        clearErrorMessages();
-
-        const name = document.getElementById("category_name").value.trim();
-        const description = document.getElementById("description").value.trim();
-
-        let isValid = true;
-
-        if (name === "") {
-            displayErrorMessage("name-error", "Please enter a name.");
-            isValid = false;
-        } else if (!/^[a-zA-Z\s]+$/.test(name)) {  // Allow spaces in category name
-            displayErrorMessage("name-error", "Category name should contain only alphabetic characters.");
+    async function validateForm() {
+    clearErrorMessages();
+    
+    const name = document.getElementById("category_name").value.trim();
+    const description = document.getElementById("description").value.trim();
+    
+    let isValid = true;
+    
+    // Basic validation
+    if (name === "") {
+        displayErrorMessage("name-error", "Please enter a name.");
+        isValid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(name)) {  // Allow spaces in category name
+        displayErrorMessage("name-error", "Category name should contain only alphabetic characters.");
+        isValid = false;
+    } else {
+        // Check if category already exists
+        try {
+            const exists = await checkCategoryExists(name);
+            if (exists) {
+                displayErrorMessage("name-error", "This category name already exists. Please choose a different name.");
+                isValid = false;
+            }
+        } catch (error) {
+            displayErrorMessage("name-error", "Error checking category name. Please try again.");
             isValid = false;
         }
-
-        if (description === "") {
-            displayErrorMessage("description-error", "Please enter a description.");
-            isValid = false;
-        }
-
-        return isValid;
     }
-
-    function displayErrorMessage(elementId, message) {
-        const errorElement = document.getElementById(elementId);
-        errorElement.innerText = message;
-        errorElement.style.display = "block";
+    
+    if (description === "") {
+        displayErrorMessage("description-error", "Please enter a description.");
+        isValid = false;
     }
+    
+    return isValid;
+}
 
-    function clearErrorMessages() {
-        const errorElements = document.getElementsByClassName("error-message");
-        Array.from(errorElements).forEach((element) => {
-            element.innerText = "";
-            element.style.display = "none";
+// Function to check if category exists
+async function checkCategoryExists(categoryName) {
+    try {
+        const response = await fetch('/api/check-category', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ categoryName })
         });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        return data.exists;
+    } catch (error) {
+        console.error('Error checking category:', error);
+        throw error;
     }
+}
 
+function displayErrorMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.innerText = message;
+    errorElement.style.display = "block";
+}
+
+function clearErrorMessages() {
+    const errorElements = document.getElementsByClassName("error-message");
+    Array.from(errorElements).forEach((element) => {
+        element.innerText = "";
+        element.style.display = "none";
+    });
+}
 
     ///addoffer
 

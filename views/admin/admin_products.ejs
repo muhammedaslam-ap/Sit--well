@@ -1,10 +1,36 @@
 <%- include('../../views/partials/admin/header.ejs') %>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <% if (successMessage && successMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '<%= successMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+    
+    <% if (errorMessage && errorMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '<%= errorMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+
 <section class="content-main">
     <div class="content-header">
         <div>
             <h2 class="content-title card-title">Products List</h2>
         </div>
     </div>
+    
   
     <div class="card mb-4">
         <header class="card-header">
@@ -19,6 +45,26 @@
                 </div>
             </div>
         </header> <!-- card-header end// -->
+        <div class="row align-items-center bg-light py-2 px-3 mb-3" style="border-bottom: 2px solid #ddd;">
+            <div class="col-lg-4 col-sm-4 col-8">
+                <strong>Product</strong>
+            </div>
+            <div class="col-lg-2 col-sm-2 col-4">
+                <strong>Regular Price</strong>
+            </div>
+            <div class="col-lg-2 col-sm-2 col-4">
+                <strong>Sales Price</strong>
+            </div>
+            <div class="col-lg-2 col-sm-2 col-4">
+                <strong>Category</strong>
+            </div>
+            <!-- <div class="col-lg-1 col-sm-2 col-4">
+                <strong>Created At</strong>
+            </div> -->
+            <!-- <div class="col-lg-2 col-sm-2 col-4 text-end">
+                <strong>Actions</strong>
+            </div> -->
+        </div>
         <div class="card-body">
             <% if (data.length > 0) { %>
                 <% data.forEach(data => { %>
@@ -54,7 +100,7 @@
                                 <span><%= data.createdAt.toDateString() %></span>
                             </div>
                             <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
-                                <a href="/admin/editProduct/?id=<%= data._id %>" class="btn btn-sm font-sm rounded btn-brand">
+                                <a href="/admin/editProduct?id=<%= data._id %>" class="btn btn-sm font-sm rounded btn-brand">
                                     <i class="material-icons md-edit"></i> Edit
                                 </a>&nbsp;&nbsp;&nbsp;&nbsp;
                                 <% if (data.isBlocked == true) { %>

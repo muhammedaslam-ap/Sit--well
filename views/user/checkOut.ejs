@@ -1,0 +1,293 @@
+<%-include('../../views/partials/user/header.ejs')%>
+
+<!--================Checkout Area =================-->
+<style>
+    .payment-option {
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        transition: all 0.3s ease;
+    }
+    .payment-option:hover {
+        background-color: #f8f9fa;
+    }
+    .payment-option.selected {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+    .payment-icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
+    @media (max-width: 576px) {
+        .payment-option .d-flex {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        .payment-option .btn {
+            margin-top: 1rem;
+            width: 100%;
+        }
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <% if (successMessage && successMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '<%= successMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+    
+    <% if (errorMessage && errorMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '<%= errorMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+
+
+<section class="checkout_area padding_top">
+    <div class="container">
+        <div class="row">
+            <!-- Order and Coupon Area -->
+            <div class="col-lg-8 mb-4">
+                <div class="returning_customer">
+                    <!-- Coupon Section -->
+                    <div class="cupon_area mb-4">
+                        <div class="check_title">
+                            <h2>
+                                Have a coupon? 
+                                <a href="/coupon">Click here to enter your code</a>
+                            </h2>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Enter coupon code" />
+                            <button class="btn btn-primary input-group-append" href="/coupon">Apply Coupon</button>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary Section -->
+                    <div class="order_box">
+                        <h2>Your Order</h2>
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-3">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for (let i = 0; i < cart.items.length; i++) { %>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <% 
+                                                        const imageUrl = cart.items[i].productImages && cart.items[i].productImages[0]
+                                                            ? `/uploads/product-images/${cart.items[i].productImages[0]}`
+                                                            : '/images/placeholder.jpg';
+                                                    %>
+                                                    <img 
+                                                        src="<%= imageUrl %>"
+                                                        alt="<%= cart.items[i].productId.productName %>"
+                                                        class="img-fluid rounded me-3"
+                                                        style="width: 80px; height: 80px;"
+                                                        onerror="this.src='/images/placeholder.jpg';"
+                                                    />
+                                                    <strong><%= cart.items[i].productId.productName %></strong>
+                                                </div>
+                                            </td>
+                                            <td><%= cart.items[i].quantity %></td>
+                                            <td>$<%= cart.items[i].totalPrice.toFixed(2) %></td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Subtotal</strong>
+                                <span>$<%= cart.items.reduce((total, item) => total + item.totalPrice, 0).toFixed(2) %></span>
+                            </li>
+                        </ul>
+
+                        <div class="container mt-5">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8 col-md-10">
+                                    <div class="payment_item mb-4">
+                                        <h2 class="text-center mb-4">Payment Methods</h2>
+                                        
+                                        <div class="payment-option mb-3 p-3" id="check-payment">
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-icon">💳</div>
+                                                <div class="flex-grow-1">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="payment" id="check-option" value="check">
+                                                        <label class="form-check-label" for="check-option">Check payments</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="payment-option mb-3 p-3" id="paypal-payment">
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-icon">💳</div>
+                                                <div class="flex-grow-1">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="payment" id="paypal-option" value="paypal">
+                                                        <label class="form-check-label" for="paypal-option">PayPal</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="payment-option mb-3 p-3" id="cash-payment">
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-icon">🚚</div>
+                                                <div class="flex-grow-1">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="payment" id="cash-option" value="cash">
+                                                        <label class="form-check-label" for="cash-option">Cash On Delivery</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                              
+                    
+                                        <div class="creat_account mt-3 mb-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="f-option4" name="terms">
+                                                <label class="form-check-label" for="f-option4">
+                                                    I've read and accept the <a href="#" class="text-primary">terms & conditions*</a>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <form action="/proceedToPayment" method="post" id="payment-form">
+                                            <input type="hidden" name="selectedAddress" id="selectedAddress" value="">
+                                            <input type="hidden" name="selectedPayment" id="selectedPayment" value="">
+                                            <button class="btn btn-primary w-100" id="proceed-btn" disabled>Proceed to Payment</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment and Address Area -->
+            <div class="col-lg-4">
+                <!-- Address Selection Section -->
+                <div class="mb-4">
+                    <h3>Choose Your Address</h3>
+                    <% if (address && address.address.length > 0) { %>
+                        <div class="row row-cols-1 g-4">
+                            <% address.address.forEach(addr => { %>
+                                <div class="col">
+                                    <div class="card shadow-sm h-100 border-0">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-primary"><%= addr.addressType %></h5>
+                                            <address class="text-secondary">
+                                                <p><strong>Name:</strong> <%= addr.name %></p>
+                                                <p><strong>City:</strong> <%= addr.city %></p>
+                                                <p><strong>Landmark:</strong> <%= addr.landMark %></p>
+                                                <p><strong>State:</strong> <%= addr.state %></p>
+                                                <p><strong>Pincode:</strong> <%= addr.pinCode %></p>
+                                                <p><strong>District:</strong> <%= addr.district %></p>
+                                                <p><strong>Address:</strong> <%= addr.addressLine1 %></p>
+                                                <p><strong>Phone:</strong> <%= addr.phone %></p>
+                                                <p><strong>Alt Phone:</strong> <%= addr.altPhone %></p>
+                                            </address>
+                                            <div class="form-check mt-3">
+                                                <input 
+                                                    class="form-check-input" 
+                                                    type="radio" 
+                                                    name="addressChoice" 
+                                                    id="address<%= addr._id %>" 
+                                                    value="<%= addr._id %>">
+                                                <label class="form-check-label" for="address<%= addr._id %>">
+                                                    Choose this address
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <p class="text-muted">No addresses found.</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--================End Checkout Area =================-->
+
+<!-- Bootstrap Script -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addressRadios = document.querySelectorAll('input[name="addressChoice"]');
+        const selectedAddressInput = document.getElementById('selectedAddress');
+
+        addressRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                selectedAddressInput.value = this.value;
+            });
+        });
+    });
+</script>
+<script>
+ document.addEventListener('DOMContentLoaded', function() {
+    const paymentOptions = document.querySelectorAll('.payment-option input[name="payment"]');
+    const addressOptions = document.querySelectorAll('input[name="addressChoice"]');
+    const selectedAddressInput = document.getElementById('selectedAddress');
+    const selectedPaymentInput = document.getElementById('selectedPayment');
+    const termsCheckbox = document.getElementById('f-option4');
+    const proceedButton = document.getElementById('proceed-btn');
+
+    document.getElementById('proceed-btn').addEventListener('click', (e) => {
+    console.log("Selected Address:", document.getElementById('selectedAddress').value);
+    console.log("Selected Payment:", document.getElementById('selectedPayment').value);
+    });
+
+    function updateProceedButton() {
+        const isPaymentSelected = document.querySelector('input[name="payment"]:checked');
+        proceedButton.disabled = !(isPaymentSelected && termsCheckbox.checked && selectedAddressInput.value);
+    }
+
+    // Update selected address value
+    addressOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            selectedAddressInput.value = this.value;
+            updateProceedButton();
+        });
+    });
+
+    // Update selected payment method value
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            selectedPaymentInput.value = this.value;
+            updateProceedButton();
+        });
+    });
+
+    // Enable button based on terms acceptance
+    termsCheckbox.addEventListener('change', updateProceedButton);
+});
+
+
+</script>
+
+
+<%-include('../../views/partials/user/footer.ejs')%>

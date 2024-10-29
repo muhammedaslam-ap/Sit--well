@@ -10,33 +10,40 @@ passport.use(new GoogleStrategy({
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
-        let user = await User.findOne({ googleId: profile.id });
+        // Look for the user in the database
+        let user = await User.findOne({ email: profile.emails[0].value });
 
         if (user) {
-            // Check if the user is already logged in with the Google ID
+            // Check if the user already has a Google ID
             if (user.googleId) {
-                return done(null, false, { message: "This Google account is already registered" });
+                return done(null, user);  // User is already registered with Google
+            } else {
+                // User exists but hasn't linked Google, let's update their record
+                user.googleId = profile.id;
+                await user.save();
+                return done(null, user);  // Return the updated user
             }
-            return done(null, user);
         } else {
-            // Register new user
+            // New user registration
             user = new User({
                 name: profile.displayName,
                 email: profile.emails[0].value,
                 googleId: profile.id,
             });
             await user.save();
-            return done(null, user);
+            return done(null, user);  // Return the newly registered user
         }
     } catch (error) {
-        return done(error, null);
+        return done(error);  // Handle error
     }
 }));
 
+// Serialize the user for the session
 passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
+// Deserialize the user from the session
 passport.deserializeUser((id, done) => {
     User.findById(id)
         .then(user => {

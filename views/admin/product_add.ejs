@@ -20,6 +20,29 @@
  
         }
  </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<body>
+    <% if (successMessage && successMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '<%= successMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+    
+    <% if (errorMessage && errorMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '<%= errorMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
     <section class="content-main">
         <div class="row">
             <div class="col-9">
@@ -88,19 +111,15 @@
                                     <div class="row gx-2">
                                         <div class="col-sm-6 mb-3 ">
                                             <label class="form-label">Category</label>
-                                            <select class="form-select border" style="width: 150px;" name="category">
-                                                
- 
-                                                <%for(i=0;i<cat.length;i++){%>
-                                               
-                                                    <option value="<%=cat[i].name%>">
-                                                        <%=cat[i].name%>
-                                                    </option>
-                                                   <%}%>
-                                                  
-                                                    
-                                            </select>
-                                            <div id="category-error" class="error-message"></div>
+                                                <select class="form-select border" style="width: 150px;" name="category" alt="Choose">
+                                                    <option value="" disabled selected>Choose a category</option>
+                                                    <% for (let i = 0; i < cat.length; i++) { %>
+                                                        <option value="<%= cat[i].name %>">
+                                                            <%= cat[i].name %>
+                                                        </option>
+                                                    <% } %>
+                                                </select>
+                                                <div id="category-error" class="error-message"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -290,52 +309,59 @@
  
  
      function validateForm() {
-    clearErrorMessages();
+    clearErrorMessages();  // Clear previous errors before validating again
+
     const name = document.getElementsByName('productName')[0].value;
     const description = document.getElementById('descriptionid').value;
     const regularPrice = document.getElementsByName('regularPrice')[0].value;
     const salePrice = document.getElementsByName('salePrice')[0].value;
     const category = document.getElementsByName('category')[0].value;
-    const images = document.getElementById('input1');
+    const images = document.getElementById('input1'); // Assuming only input1 for images validation
     const quantity = document.getElementsByName('quantity')[0].value;
     const color = document.getElementsByName('color')[0].value;
 
     let isValid = true;
 
+    // Validate Product Name
     if (name.trim() === "") {
         displayErrorMessage('productName-error', 'Please enter a product name.');
         isValid = false;
     }
 
+    // Validate Description
     if (description.trim() === "") {
         displayErrorMessage('description-error', 'Please enter a product description.');
         isValid = false;
     }
 
+    // Validate Quantity
     if (!quantity || isNaN(quantity) || parseInt(quantity) < 0) {
         displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
         isValid = false;
     }
 
+    // Validate Regular Price
     if (!/^\d+(\.\d{1,2})?$/.test(regularPrice) || parseFloat(regularPrice) <= 0) {
         displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
         isValid = false;
     }
 
+    // Validate Sale Price (optional field)
     if (salePrice && (!/^\d+(\.\d{1,2})?$/.test(salePrice) || parseFloat(salePrice) <= 0)) {
         displayErrorMessage('salePrice-error', 'Please enter a valid non-negative sale price.');
         isValid = false;
-    }
-    else if (salePrice && parseFloat(regularPrice) <= parseFloat(salePrice)) {
+    } else if (salePrice && parseFloat(regularPrice) <= parseFloat(salePrice)) {
         displayErrorMessage('salePrice-error', 'Sale price must be less than regular price.');
         isValid = false;
-    }ww
+    }
 
+    // Validate Color (if provided)
     if (color && !/^#([0-9A-Fa-f]{3}){1,2}$/.test(color)) {
         displayErrorMessage('color-error', 'Please enter a valid hex color code (e.g., #FFF or #FFFFFF).');
         isValid = false;
     }
 
+    // Validate Images (only input1, adjust if multiple images are required)
     if (images.files.length === 0) {
         displayErrorMessage("images-error", 'Please select at least one image.');
         isValid = false;
@@ -344,8 +370,9 @@
     return isValid;
 }
 
+// Helper functions to display and clear error messages
 function displayErrorMessage(elementId, message) {
-    var errorElement = document.getElementById(elementId);
+    const errorElement = document.getElementById(elementId);
     if (errorElement) {
         errorElement.innerText = message;
         errorElement.style.display = "block";
@@ -359,6 +386,7 @@ function clearErrorMessages() {
         element.style.display = "none";
     });
 }
+
  </script>
 
      

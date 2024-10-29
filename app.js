@@ -16,7 +16,7 @@
  app.use(session({
     secret:process.env.SESSION_SECRET,
     resave:false,
-    saveUninitialized:true,
+    saveUninitialized:false,
     cookie:{
         secure:false,
         httpOnly:true,
@@ -26,17 +26,17 @@
 
 
 
+
  app.use(passport.initialize())
  app.use(passport.session());
+
  
  app.use(flash());
-
- // Middleware to set flash messages in local variables
  app.use((req, res, next) => {
-     res.locals.success_msg = req.flash('success');
-     res.locals.error_msg = req.flash('error');
-     next();
- });
+   res.locals.successMessage = req.flash('success');
+   res.locals.errorMessage = req.flash('error');
+   next();
+});
 
  app.use((req,res,next)=>{
     res.set('cache-control','no-store')
@@ -44,16 +44,18 @@
  })
 
 
- 
+ app.set('view engine', 'ejs');
 
- app.set('view engine','ejs')
- app.set('views', [
-   path.join(__dirname, '/views/user'),
-   path.join(__dirname,'/views/partials/user'),
-   path.join(__dirname,'/views/partials/admin'),
-   path.join(__dirname, '/views/admin')
- ]);
- app.use(express.static(path.join(__dirname, 'public')));
+// Set multiple views directories
+app.set('views', [
+   path.join(__dirname, 'views/user'),
+   path.join(__dirname, 'views/partials/user'),
+   path.join(__dirname, 'views/partials/admin'),
+   path.join(__dirname, 'views/admin')
+]);
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 
  app.use('/',userRoute) 

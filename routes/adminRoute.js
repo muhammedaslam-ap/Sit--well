@@ -5,10 +5,11 @@ adminRoute.set('views','./views/admin');
 const multer = require('multer');
 const fs = require('fs')
 const {userAuth,adminAuth} = require('../middleware/auth')
-const adminController = require('../controller/admin/adminController')
-const costomerController = require('../controller/admin/costomerController')
-const categoryConroller  = require('../controller/admin/categoryController')
-const productController = require('../controller/admin/productController')
+const adminController = require('../controller/adminController')
+const userController = require('../controller/userController')
+const categoryConroller  = require('../controller/categoryController')
+const productController = require('../controller/productController')
+
 
 
 adminRoute.get('/admin/pageerror',adminController.pageError)
@@ -19,9 +20,9 @@ adminRoute.get('/logout',adminController.logout)
 
 
 ///costomers menagement
-adminRoute.get('/users',adminAuth,costomerController.costomerInfo)
-adminRoute.get('/blockCustomer',adminAuth,costomerController.costomerBlocked)
-adminRoute.get('/unblockCustomer',adminAuth,costomerController.costomerUnblocked)
+adminRoute.get('/users',adminAuth,userController.costomerInfo)
+adminRoute.get('/blockCustomer',adminAuth,userController.costomerBlocked)
+adminRoute.get('/unblockCustomer',adminAuth,userController.costomerUnblocked)
 
 
 ///category menagement
@@ -32,7 +33,7 @@ adminRoute.post('/addCategory',adminAuth,categoryConroller.addCategory)
 adminRoute.get('/listCategory',adminAuth,categoryConroller.listCategory)
 adminRoute.get('/unlistCategory',adminAuth,categoryConroller.unlistCategory)
 adminRoute.get('/editCategory',adminAuth,categoryConroller.editCategory)
-adminRoute.post('/editCategory/:id',adminAuth,categoryConroller.postEditCategory)
+adminRoute.post('admin/editCategory/:id',adminAuth,categoryConroller.postEditCategory)
 
 
 
@@ -58,14 +59,13 @@ const storage = multer.diskStorage({
 const uploads = multer({ storage: storage });
 //product menagement
 adminRoute.get("/addProducts", adminAuth, productController.getProductAddPage);
-adminRoute.post("/addProducts", adminAuth, uploads.array("images", 4), productController.addProduct); // Ensure the route uses uploads
+adminRoute.post("/addProducts", adminAuth, uploads.array("images", 4), productController.addProduct); 
 adminRoute.get("/products",adminAuth,productController.getAllProducts);
 adminRoute.get("/blockProduct",adminAuth,productController.blockProduct);
 adminRoute.get("/unblockProduct",adminAuth,productController.unblockProduct);
 adminRoute.get("/editProduct",adminAuth,productController.getEditProduct);
-adminRoute.post("/editProduct/:id",adminAuth, uploads.array("images", 4),productController.editProduct)
-adminRoute.post("/deleteImage",adminAuth,productController.deleteSingleImage);
-
+adminRoute.post("/editProduct/:id", adminAuth, uploads.array("images", 4), productController.editProduct)
+adminRoute.post("/deleteImage", adminAuth, productController.deleteSingleImage);
 
 
 

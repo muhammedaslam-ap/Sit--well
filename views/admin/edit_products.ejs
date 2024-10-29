@@ -1,5 +1,5 @@
 
-
+<%- include('../../views/partials/admin/header.ejs') %>
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
     <!DOCTYPE html>
@@ -13,148 +13,35 @@
         <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css">
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
         <script src="https://unpkg.com/cropperjs"></script>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background-color: #f1f5f9;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-            }
-        
-            .container {
-                width: 100%;
-                max-width: 800px;
-                padding: 40px;
-                background: #fff;
-                border-radius: 15px;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            }
-        
-            .content-header {
-                text-align: center;
-                margin-bottom: 40px;
-            }
-        
-            .content-title {
-                font-size: 30px;
-                font-weight: 700;
-                color: #2c3e50;
-                margin-bottom: 10px;
-            }
-        
-            .form-label {
-                font-weight: 600;
-                color: #2c3e50;
-                margin-bottom: 8px;
-                display: block;
-                font-size: 15px;
-            }
-        
-            .form-control {
-                border: 1px solid #dfe6e9;
-                border-radius: 10px;
-                padding: 12px;
-                width: 100%;
-                box-sizing: border-box;
-                margin-bottom: 25px;
-                transition: border-color 0.3s ease, box-shadow 0.3s ease;
-                font-size: 15px;
-                background-color: #f9f9f9;
-            }
-        
-            .form-control:focus {
-                border-color: #3498db;
-                box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-                outline: none;
-            }
-        
-            .btn {
-                background-color: #3498db;
-                color: white;
-                padding: 12px 20px;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-            }
-        
-            .btn:hover {
-                background-color: #2980b9;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            }
-        
-            .btn-danger {
-                background-color: #e74c3c;
-                color: white;
-            }
-        
-            .btn-danger:hover {
-                background-color: #c0392b;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            }
-        
-            .card-header h4 {
-                color: #2c3e50;
-                font-weight: 700;
-                margin-bottom: 15px;
-            }
-        
-            .error-message {
-                color: #e74c3c;
-                font-size: 14px;
-                margin-top: -10px;
-                margin-bottom: 15px;
-            }
-        
-            .thumbnails-container img {
-                margin-right: 15px;
-                border-radius: 8px;
-                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-            }
-        
-            .card-body {
-                padding: 15px 0;
-            }
-        
-            .cropped-image-container {
-                display: flex;
-                align-items: center;
-            }
-        
-            .cropped-image-container img {
-                margin-right: 10px;
-                border-radius: 8px;
-                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-            }
-        
-            @media (max-width: 768px) {
-                .container {
-                    padding: 25px;
-                    width: 95%;
-                }
-        
-                .form-control {
-                    font-size: 14px;
-                    padding: 10px;
-                }
-        
-                .btn {
-                    width: 100%;
-                }
-        
-                .content-title {
-                    font-size: 26px;
-                }
-            }
-        </style>
-        
-        <body>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <body>
+                <% if (locals.error) { %>
+                    <div class="alert alert-danger"><%= error %></div>
+                <% } %>
+                <% if (locals.success) { %>
+                    <div class="alert alert-success"><%= success %></div>
+                <% } %>
+                <% if (successMessage && successMessage.length) { %>
+                    <script>
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: '<%= successMessage %>',
+                            confirmButtonText: 'OK'
+                        });
+                    </script>
+                <% } %>
+                
+                <% if (errorMessage && errorMessage.length) { %>
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: '<%= errorMessage %>',
+                            confirmButtonText: 'OK'
+                        });
+                    </script>
+                <% } %>
             <section class="content-main">
                 <div class="content-header">
                     <h2 class="content-title">Edit Product</h2>
@@ -208,15 +95,14 @@
                                     <div class="row gx-2">
                                         <div class="col-sm-6 mb-3 ">
                                             <label class="form-label">Category</label>
-                                            <select class="form-select border" style="width: 150px;" name="category">
-                                                <% for(let i = 0; i < cat.length; i++) { %>
-                                                    <option value="<%= cat[i]._id %>" 
-                                                        <%= product.category && product.category.equals(cat[i]._id) ? 'selected' : '' %> >
+                                            <select class="form-select border" style="width: 150px;" name="category" alt="Choose">
+                                                <option value="" disabled selected>Choose a category</option>
+                                                <% for (i=0;i<cat.length;i++) { %>
+                                                    <option value="<%= cat[i].name %>">
                                                         <%= cat[i].name %>
                                                     </option>
                                                 <% } %>
                                             </select>
-                                            
                                             <div id="category-error" class="error-message"></div>
                                         </div>
                                     </div>
@@ -584,6 +470,7 @@
         });
     }
     
-    
-               
+              
            </script>
+           
+           <%- include('../../views/partials/admin/footer.ejs') %>

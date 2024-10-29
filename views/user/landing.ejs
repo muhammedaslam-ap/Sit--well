@@ -6,6 +6,61 @@
 
     <!--================Home Banner Area =================-->
     <!-- breadcrumb start-->
+    <style>
+        .carousel-section {
+            position: relative;
+            overflow: hidden;
+        }
+        .carousel-item img {
+            object-fit: cover;
+            height: 60vh;
+            width: 100%;
+        }
+        .breadcrumb_iner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            width: 100%;
+            padding: 0 15px;
+        }
+        .breadcrumb_iner h2 {
+            font-size: 3rem;
+            color: #ff0000;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .breadcrumb_iner p {
+            font-size: 1.2rem;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        @media (max-width: 768px) {
+            .carousel-item img {
+                height: 40vh;
+            }
+            .breadcrumb_iner h2 {
+                font-size: 2rem;
+            }
+            .breadcrumb_iner p {
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .carousel-item img {
+                height: 30vh;
+            }
+            .breadcrumb_iner h2 {
+                font-size: 1.5rem;
+            }
+            .breadcrumb_iner p {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
      <style>
         .breadcrumb.carousel_section {
             background-color: #000; 
@@ -85,22 +140,49 @@
  <!-- Carousel Section with Breadcrumb Overlay -->
 <!-- Include the viewport meta tag -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Carousel Section with Breadcrumb Overlay -->
-<section class="breadcrumb carousel_section position-relative">
+<!-- Add this right after your header include -->
+<% if (typeof successMessage !== 'undefined' && successMessage && successMessage.length > 0) { %>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: `<%- successMessage %>`,
+                confirmButtonText: 'OK'
+            });
+        });
+    </script>
+<% } %>
+
+<% if (typeof errorMessage !== 'undefined' && errorMessage && errorMessage.length > 0) { %>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `<%- errorMessage %>`,
+                confirmButtonText: 'OK'
+            });
+        });
+    </script>
+<% } %>
+
+<section class="carousel-section">
     <div id="carouselExampleAutoplaying" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
             <div class="carousel-item active">
-                <img src="/uploads/product-images/carousel-2.webp" class="d-block w-100" alt="...">
+                <img src="/uploads/product-images/carousel-2.webp" class="d-block w-100" alt="Carousel Image 1">
             </div>
             <div class="carousel-item">
-                <img src="/uploads/product-images/carousel-1.webp" class="d-block w-100" alt="...">
+                <img src="/uploads/product-images/carousel-1.webp" class="d-block w-100" alt="Carousel Image 2">
             </div>
             <div class="carousel-item">
-                <img src="/uploads/product-images/carousel-3.webp" class="d-block w-100" alt="...">
+                <img src="/uploads/product-images/carousel-3.webp" class="d-block w-100" alt="Carousel Image 3">
             </div>
         </div>
-        <!-- Carousel controls -->
+       
         <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
@@ -111,13 +193,11 @@
         </button>
     </div>
 
-    <!-- Breadcrumb text centered on top of the full-screen carousel -->
     <div class="breadcrumb_iner">
-        <h2 class="text-red display-3">Sit Well</h2>
-        <p class="text-white">Home <span></span></p>
+        <h2>Sit Well</h2>
+        <p>Home <span></span></p>
     </div>
 </section>
-
 
 <!-- Category Product Area -->
 <section class="cat_product_area section_padding">
@@ -154,10 +234,7 @@
                                     &nbsp;&nbsp;
                                     <span class="indian-rupee"></span><%= products[i].salePrice %>
                                 </h3>
-                                <div class="product-actions mt-2">
-                                    <a href="/addToCart?id=<%= products[i]._id %>" class="btn btn-primary btn-sm">+ Add to cart</a>
-                                    <a href="/addToWhishlist?id=<%= products[i]._id %>" class="btn btn-outline-secondary btn-sm ms-2"><i class="ti-heart"></i></a>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -210,7 +287,32 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    
+   <script>
+   async function handleAddToCart(productId) {
+    const response = await fetch('/addToCart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId }),
+    });
+
+    const result = await response.json(); // Assuming the server returns a JSON response
+
+    if (result.success) {
+        // If the product was already in the cart, change the button
+        const button = document.getElementById(`add-to-cart-button-${productId}`);
+        if (result.alreadyInCart) {
+            button.textContent = 'Go to Cart';
+            button.onclick = () => window.location.href = '/cart'; // Redirect to cart
+        } else {
+            button.textContent = 'Added to Cart';
+        }
+    } else {
+        alert(result.error); // Show any error messages
+    }
+}
+</script>
     <!-- product_list part end-->
 
     <!--::footer_part start::-->
