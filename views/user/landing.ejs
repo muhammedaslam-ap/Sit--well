@@ -2,10 +2,10 @@
     <!-- Header part end-->
     <%-include('../../views/partials/user/header.ejs')%>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include the viewport meta tag -->
+   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-    <!--================Home Banner Area =================-->
-    <!-- breadcrumb start-->
     <style>
         .carousel-section {
             position: relative;
@@ -125,51 +125,73 @@
             font-weight: 300; 
             color: #666;
         }
-        .category-container {
-            display: flex;
-            gap: 20px; 
-            flex-wrap: wrap;
-            align-items: center;
-        }
+        .form-label {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #333;
+    }
 
-        .single_product_menu p {
-            margin: 0; 
-            padding: 0; 
-        }
+    /* General Styles */
+    .form-label {
+        margin-top: 30px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #333;
+    }
+    .form-group div {
+        padding: 5px 0;
+    }
+    .form-group div input[type="radio"] {
+        margin-right: 10px;
+    }
+    #sortForm {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .product-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+    }
+    .product-item {
+        background-color: #fff;
+        border: 1px solid #e3e3e3;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        transition: box-shadow 0.3s ease;
+        width: 100%;
+    }
+    .product-item:hover {
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .product-item img {
+        border-radius: 8px;
+        max-width: 100%;
+        height: auto;
+    }
+    .product-item h4 {
+        font-size: 1.2rem;
+        margin-top: 10px;
+        color: #333;
+    }
+    .product-item h3 {
+        font-size: 1rem;
+        color: #007bff;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+    .product-item .original-price {
+        color: #a0a0a0;
+        text-decoration: line-through;
+        margin-right: 5px;
+    }
      </style>
- <!-- Carousel Section with Breadcrumb Overlay -->
-<!-- Include the viewport meta tag -->
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Add this right after your header include -->
-<% if (typeof successMessage !== 'undefined' && successMessage && successMessage.length > 0) { %>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: `<%- successMessage %>`,
-                confirmButtonText: 'OK'
-            });
-        });
-    </script>
-<% } %>
 
-<% if (typeof errorMessage !== 'undefined' && errorMessage && errorMessage.length > 0) { %>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: `<%- errorMessage %>`,
-                confirmButtonText: 'OK'
-            });
-        });
-    </script>
-<% } %>
-
-<section class="carousel-section">
+<!-- <section class="carousel-section">
     <div id="carouselExampleAutoplaying" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -197,54 +219,176 @@
         <h2>Sit Well</h2>
         <p>Home <span></span></p>
     </div>
-</section>
+</section> -->
 
 <!-- Category Product Area -->
-<section class="cat_product_area section_padding">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <!-- Category List -->
-                <div class="row mb-4">
-                    <div class="col-lg-12">
-                        <div class="category-container d-flex flex-wrap justify-content-start"> 
-                            <% for (i = 0; i < category.length; i++) { %>
-                            <div class="single_product_menu me-3 mb-2">
-                                <p class="btn btn-outline-secondary"><%= category[i].name %></p>
-                            </div>
-                            <% } %>
-                        </div>
-                    </div>
+<div class="container-fluid mt-4">
+    <form id="sortForm" action="/" method="get">
+        <div class="row gx-4 gy-3 align-items-center">
+            <!-- Search Area -->
+            <div class="col-md-3">
+                <label class="form-label">Search Products</label>
+                <input type="text" name="search" class="form-control" placeholder="Search by product name" 
+                       value="<%= searchQuery || '' %>" oninput="debounceSubmit()">
+            </div>
+
+            <!-- Sort by Section -->
+            <div class="col-md-4 col-lg-3 mb-3">
+                <label class="form-label">Sort by</label>
+                <div class="btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-primary <%= sortOption === 'newArrivals' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="sort" value="newArrivals" <%= sortOption === 'newArrivals' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> New Arrivals
+                    </label>
+                    <label class="btn btn-outline-primary <%= sortOption === 'popularity' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="sort" value="popularity" <%= sortOption === 'popularity' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Popularity
+                    </label>
+                    <label class="btn btn-outline-primary <%= sortOption === 'priceLowHigh' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="sort" value="priceLowHigh" <%= sortOption === 'priceLowHigh' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Price: Low to High
+                    </label>
+                    <label class="btn btn-outline-primary <%= sortOption === 'priceHighLow' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="sort" value="priceHighLow" <%= sortOption === 'priceHighLow' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Price: High to Low
+                    </label>
+                    <label class="btn btn-outline-primary <%= sortOption === 'aToZ' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="sort" value="aToZ" <%= sortOption === 'aToZ' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> A - Z
+                    </label>
+                    <label class="btn btn-outline-primary <%= sortOption === 'zToA' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="sort" value="zToA" <%= sortOption === 'zToA' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Z - A
+                    </label>
                 </div>
-                <!-- Product Grid -->
-                <div class="row align-items-center latest_product_inner">
-                    <% for(i = 0; i < products.length; i++) { %>
-                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                        <div class="single_product_item">
-                            <a href="/productDetails/<%= products[i]._id %>">
-                                <img class="default-img img-fluid" src="/uploads/product-images/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
-                            </a>
-                            <div class="single_product_text text-center mt-3">
-                                <h4><%= products[i].productName %></h4>
-                                <h3>
-                                    <span class="indian-rupee"></span>
-                                    <span style="text-decoration: line-through; color: #a0a0a0;">
-                                        <%= products[i].regularPrice %>
-                                    </span>
-                                    &nbsp;&nbsp;
-                                    <span class="indian-rupee"></span><%= products[i].salePrice %>
-                                </h3>
-                               
-                            </div>
-                        </div>
-                    </div>
-                    <% } %>
+            </div>
+
+            <!-- Stock Status Section -->
+            <div class="col-md-4 col-lg-3 mb-3">
+                <label class="form-label">Stock Status</label>
+                <div class="btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-primary <%= stockOption === 'all' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="stock" value="all" <%= stockOption === 'all' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> All
+                    </label>
+                    <label class="btn btn-outline-primary <%= stockOption === 'inStock' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="stock" value="inStock" <%= stockOption === 'inStock' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> In Stock
+                    </label>
+                    <label class="btn btn-outline-primary <%= stockOption === 'outOfStock' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="stock" value="outOfStock" <%= stockOption === 'outOfStock' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Out of Stock
+                    </label>
+                </div>
+            </div>
+
+            <!-- Category Section -->
+            <div class="col-md-4 col-lg-3 mb-3">
+                <label class="form-label">Category</label>
+                <div class="btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-primary <%= selectedCategory === 'all' ? 'active' : '' %>" onclick="setActive(this)">
+                        <input type="radio" name="category" value="all" <%= selectedCategory === 'all' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> All Categories
+                    </label>
+                    <% category.forEach(cat => { %>
+                        <label class="btn btn-outline-primary <%= selectedCategory === cat.id ? 'active' : '' %>" onclick="setActive(this)">
+                            <input type="radio" name="category" value="<%= cat.id %>" <%= selectedCategory === cat.id ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> <%= cat.name %>
+                        </label>
+                    <% }); %>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </form>
+</div>
 
+<!-- CSS Styles -->
+<style>
+    .form-label {
+        font-weight: bold;
+        color: #333; 
+    }
+
+    .btn-group-toggle .btn {
+        margin: 0 5px; 
+    }
+
+    .btn-group-toggle .btn.active {
+        background-color: #007bff; 
+        color: white; 
+        border-color: #0056b3; 
+    }
+
+    .btn-group-toggle .btn {
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-group-toggle .btn:hover {
+        background-color: #0056b3; 
+        color: white; 
+    }
+
+    @media (max-width: 576px) {
+        .form-control {
+            font-size: 14px; 
+        }
+
+        .form-label {
+            font-size: 16px; 
+        }
+    }
+</style>
+
+<!-- JavaScript for Active Button State -->
+<script>
+    function setActive(label) {
+        const buttons = label.closest('.btn-group-toggle').querySelectorAll('.btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+        label.classList.add('active');
+    }
+    let searchTimeout;
+    const searchInput = document.getElementById('searchInput');
+
+    let debounceTimeout;
+    
+    function debounceSubmit() {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            document.getElementById('sortForm').submit();
+        }, 1500);  
+    }
+
+    function selectSortOption(value) {
+        document.querySelector(`input[name="sort"][value="${value}"]`).checked = true;
+        document.getElementById('sortForm').submit();
+    }
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+    });
+</script>
+
+
+<!-- Products Section -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="product-container">
+                <% if (products.length === 0) { %>
+                    <div class="col-12 text-center">
+                        <p>No products available for the selected filters.</p>
+                    </div>
+                <% } else { %>
+                    <% products.forEach(product => { %>
+                    <div class="product-item  col-12 col-md-6 col-lg-3">
+                        <a href="/productDetails/<%= product._id %>">
+                            <img src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>" loading="lazy">
+                        </a>
+                        <div class="single_product_text mt-3">
+                            <h4><%= product.productName %></h4>
+                            <h3>
+                                <span class="original-price"> ₹<%= product.regularPrice %></span>
+                                <span> ₹<%= product.salePrice %></span>
+                            </h3>
+                        </div>
+                    </div>
+                    <% }); %>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Best Seller Section -->
 <section class="product_list best_seller section_padding">
     <div class="container">
@@ -288,6 +432,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <script>
+
+ let submitTimeout;
+    function submitSortForm() {
+        clearTimeout(submitTimeout);
+        submitTimeout = setTimeout(() => {
+            document.getElementById('sortForm').submit();
+        }, 300); 
+    }
+
    async function handleAddToCart(productId) {
     const response = await fetch('/addToCart', {
         method: 'POST',

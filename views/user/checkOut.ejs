@@ -81,6 +81,7 @@
                                 <thead>
                                     <tr>
                                         <th>Product</th>
+                                        <th>Unit Price</th>
                                         <th>Quantity</th>
                                         <th>Total</th>
                                     </tr>
@@ -104,6 +105,9 @@
                                                     />
                                                     <strong><%= cart.items[i].productId.productName %></strong>
                                                 </div>
+                                                <td> 
+                                                    <%= cart.items[i].price %>
+                                                </td>
                                             </td>
                                             <td><%= cart.items[i].quantity %></td>
                                             <td>$<%= cart.items[i].totalPrice.toFixed(2) %></td>

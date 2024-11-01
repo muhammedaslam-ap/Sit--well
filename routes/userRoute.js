@@ -50,12 +50,14 @@ userRoute.post('/addToCart',userAuth,cartController.addToCart)
 userRoute.patch('/cart/updateQuantity', userAuth, cartController.updateCartItemQuantity);
 userRoute.delete('/cart/remove',userAuth,cartController.removeCartProduct)
 userRoute.post("/update-product-quantity",cartController.updateProductQuantity);
-
-
 userRoute.get('/checkout',userAuth,cartController.getCheckOut)
+
+
+
 userRoute.get('/orderSuccess',userAuth,orderController.getOrderSuccess)
 userRoute.post('/proceedToPayment',userAuth,orderController.proceedTopayment)
-
+userRoute.get('/order',userAuth,orderController.getYourOrder)
+userRoute.post('/orderCancel/:orderId',userAuth,orderController.orderCancelorRturn)
 
        
 

@@ -1,0 +1,276 @@
+<%- include('../../views/partials/user/profileHeader.ejs') %>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <% if (successMessage && successMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '<%= successMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+    
+    <% if (errorMessage && errorMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '<%= errorMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+
+
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Typography */
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        /* Order styles */
+        .order-area {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .order-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 0.9em;
+        }
+        .badge-status {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .bg-warning { background-color: #ffeeba; color: #856404; }
+        .bg-success { background-color: #d4edda; color: #155724; }
+        .bg-info { background-color: #d1ecf1; color: #0c5460; }
+        .bg-primary { background-color: #cce5ff; color: #004085; }
+        .bg-danger { background-color: #f8d7da; color: #721c24; }
+        .bg-secondary { background-color: #e2e3e5; color: #383d41; }
+        .bg-dark { background-color: #d6d8d9; color: #1b1e21; }
+
+        /* Table styles */
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-table th,
+        .order-table td {
+            padding: 12px;
+            text-align: left;
+        }
+        .order-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            color: #495057;
+        }
+        .order-table tr:not(:last-child) {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Product info styles */
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .product-name {
+            font-weight: bold;
+        }
+
+        /* Action button styles */
+        .action-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.9em;
+        }
+        .action-btn:hover {
+            background-color: #c82333;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .order-table, .order-table tbody, .order-table tr, .order-table td {
+                display: block;
+            }
+            .order-table thead {
+                display: none;
+            }
+            .order-table tr {
+                margin-bottom: 15px;
+            }
+            .order-table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            .order-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                text-align: left;
+            }
+            .product-info {
+                flex-direction: column;
+                align-items: flex-end;
+            }
+            .order-total td:first-child {
+                text-align: left;
+                padding-left: 6px;
+            }
+            .order-total td:last-child {
+                text-align: right;
+            }
+            .order-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>My Orders</h2>
+        <% if (orders.length > 0) { %>
+            <% orders.forEach(order => { %>
+                <div class="order-area">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <span><strong>Order ID:</strong> <%= order._id %></span>
+                            <span><strong>Date:</strong> <%= order.createdOn ? order.createdOn.toDateString() : 'Date not available' %></span>
+                        </div>
+                    </div>
+                    <table class="order-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% order.orderedItems.forEach(item => { %>
+                                <tr>
+                                    <td data-label="Product">
+                                        <div class="product-info">
+                                            <img class="product-image" src="/uploads/product-images/<%= item.productImage %>" alt="<%= item.productName %>">
+                                            <span class="product-name"><%= item.product.productName %></span>
+                                        </div>
+                                    </td>
+                                    <td data-label="Price">₹<%= item.price.toFixed(2) %></td>
+                                    <td data-label="Quantity"><%= item.quantity %></td>
+                                    <td data-label="Total">₹<%= (item.price * item.quantity).toFixed(2) %></td>
+                                </tr>
+                            <% }) %>
+                            <tr class="order-total">
+                                <td colspan="3"><strong>Order Total:</strong></td>
+                                <td>₹<%= order.totalPrice.toFixed(2) %></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="order-footer">
+                        <span class="badge-status <%= 
+                            order.status === 'Pending' ? 'bg-warning' :
+                            order.status === 'Delivered' ? 'bg-success' :
+                            order.status === 'Processing' ? 'bg-info' :
+                            order.status === 'Shipped' ? 'bg-primary' :
+                            order.status === 'Cancelled' ? 'bg-danger' :
+                            order.status === 'Return Request' ? 'bg-secondary' :
+                            order.status === 'Returned' ? 'bg-dark' : 'bg-secondary'
+                        %>">
+                            Status: <%= order.status %>
+                        </span>
+                        <form action="/orderCancel/<%= order._id %>" method="post" onsubmit="return confirmCancel()">
+                            <% if(order.status === 'Delivered' || order.status === 'Shipped') { %>
+                                <button type="submit" class="action-btn btn-primary">Return Order</button>
+                            <% } else if(order.status === 'Cancelled') { %>
+                                <p style="color: #721c24;"><b>Cancelled</b></p>
+                            <% } else if(order.status === 'Returned') { %>
+                                <p style="color: #383a38; "><b>Returned</b></p>
+                            <% } else { %>
+                                <button type="submit" class="action-btn btn-primary">Cancel Order</button>
+                            <% } %>
+                        </form>
+                        
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p class="text-center no-orders-message">You have no orders yet.</p>
+        <% } %>
+    </div>
+</body>
+<%- include('../../views/partials/user/profileFooter.ejs') %>
+<script>
+    function confirmCancel() {
+        return confirm("Are you sure you want to cancel this order?");
+    }
+    </script>
+    
+    

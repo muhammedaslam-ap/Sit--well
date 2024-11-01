@@ -81,7 +81,12 @@ const orderSchema = new Schema({
         productImage: {
             type: [String],
             default: []
-        }
+        },
+        status: {
+            type: String,
+            required: false,
+            enum: ['Pending', 'Delivered', 'Processing', 'Shipped', 'Cancelled', 'Return Request', 'Returned']
+        },
     }],
     totalPrice: {
         type: Number,
@@ -105,7 +110,7 @@ const orderSchema = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Pending', 'Delivered', 'Processing', 'Shipped', 'Cancelled', 'Return Request', 'Returned']
+        enum: ['Pending',  'Processing', 'Shipped','Delivered', 'Cancelled', 'Return Request', 'Returned']
     },
     createdOn: {
         type: Date,

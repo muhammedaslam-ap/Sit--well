@@ -1,0 +1,275 @@
+<%-include('../../views/partials/admin/header.ejs')%>
+<style>
+    body {
+        background-color: #f8f9fa;
+        padding: 20px;
+    }
+    .order-details-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+    .icon-container {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        margin-right: 10px;
+    }
+    .material-icons {
+        font-size: 20px;
+        color: #007bff;
+    }
+    .product-image {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .table {
+        font-size: 0.9rem;
+    }
+    .badge.badge-sm {
+            font-size: 0.55rem;
+            margin-left:0;
+            /* padding: 0; */
+            line-height: 1;
+        }
+    .table th, .table td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+    .total-row {
+        font-weight: bold;
+        background-color: #e9ecef;
+    }
+    .btn-tracking {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    @media (max-width: 768px) {
+        .order-details-container {
+            padding: 15px;
+        }
+        .table {
+            font-size: 0.8rem;
+        }
+        .product-image {
+            width: 30px;
+            height: 30px;
+        }
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <% if (successMessage && successMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '<%= successMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+    
+    <% if (errorMessage && errorMessage.length) { %>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '<%= errorMessage %>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    <% } %>
+
+<section class="content-main">
+    <% if (orders) { %> 
+        <div class="content-header">
+            <h2 class="content-title card-title">Order Detail</h2>
+            <p>Details for Order ID:<p>Order ID: <%= orders.orderId %></p>
+            
+        </div>
+
+    <% } else { %>
+        <div class="alert alert-warning">
+            <p>Order details could not be found.</p>
+        </div>
+    <% } %>
+    <% orders.forEach(order => { %>
+    <div class="card">
+        <header class="card-header">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-6 mb-lg-0 mb-15">
+                    <span>
+                        <i class="material-icons md-calendar_today"></i>
+                        <b><%= new Date(order.createdOn).toLocaleString() %></b>
+                    </span>
+                    <br>
+                    <small class="text-muted">Order ID: <%= order.orderId %></small>
+                </div>
+                <div class="col-lg-6 col-md-6 ms-auto text-md-end">
+                    <form method="POST" action="/admin/order/updateStatus/<%= order._id %>">
+                        <select class="form-select d-inline-block mb-lg-0 mb-15 mw-200" name="status">
+                            <% statusOptions.forEach(option => { %>
+                                <option value="<%= option %>" 
+                                    <%= order.status === option ? 'selected' : '' %> 
+                                    style="color: 
+                                        <% if (option === 'Pending') { %>#856404; 
+                                        <% } else if (option === 'Delivered') { %>#155724; 
+                                        <% } else if (option === 'Processing') { %>#0c5460; 
+                                        <% } else if (option === 'Shipped') { %>#004085; 
+                                        <% } else if (option === 'Cancelled') { %>#721c24; 
+                                        <% } else if (option === 'Return Request') { %>#6c757d; 
+                                        <% } else if (option === 'Returned') { %>#f8f9fa; 
+                                        <% } else { %>black; <% } %>">
+                                    <%= option %>
+                                </option>
+                            <% }) %>
+                        </select>
+                        
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                    
+                </div>
+            </div>
+        </header>
+
+        <div class="card-body">
+            <!-- Customer, Order Info, and Address -->
+            <div class="row mb-50 mt-20 order-info-wrap">
+                <div class="col-md-4">
+                    <article class="icontext align-items-start">
+                        <span class="icon icon-sm rounded-circle bg-primary-light">
+                            <i class="text-primary material-icons md-person"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1">Customer</h6>
+                            <p class="mb-1">
+                                <%= order.userId.name %> <br> <%= order.userId.email %> <br> <%= order.userId.phone %>
+                            </p>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="col-md-4">
+                    <article class="icontext align-items-start">
+                        <span class="icon icon-sm rounded-circle bg-primary-light">
+                            <i class="text-primary material-icons md-local_shipping"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1">Order Info</h6>
+                            <p>
+                                Status: 
+                                <span class="badge badge-sm <%= 
+                                    order.status === 'Pending' ? 'bg-warning text-dark' :
+                                    order.status === 'Delivered' ? 'bg-success' :
+                                    order.status === 'Processing' ? 'bg-info' :
+                                    order.status === 'Shipped' ? 'bg-primary' :
+                                    order.status === 'Cancelled' ? 'bg-danger' :
+                                    order.status === 'Return Request' ? 'bg-secondary' :
+                                    order.status === 'Returned' ? 'bg-dark' : 'bg-secondary'
+                                %>">
+                                    <%= order.status %>
+                                </span>
+                            </p>
+                             <p>Payment Method: <%= order.paymentMethod %></p>
+                            </p>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="col-md-4">
+                    <article class="icontext align-items-start">
+                        <span class="icon icon-sm rounded-circle bg-primary-light">
+                            <i class="text-primary material-icons md-place"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1">Deliver To</h6>
+                            <p class="mb-1">
+                                <%= order.address[0].city %>, <%= order.address[0].state %> <br>
+                                <%= order.address[0].addressLine1 %>, <%= order.address[0].pinCode %>
+                            </p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <!-- Ordered Items Table -->
+            <div class="container-fluid order-details-container">
+                <h4 class="mb-3">Order Details</h4>       
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% order.orderedItems.forEach(item => { %>
+                        <tr>
+                            <td>
+                                <img class="product-image" 
+                                     src="/uploads/product-images/<%= item.productImage %>" 
+                                     alt="<%= item.product.productName %>" />
+                            </td>
+                            <td><%= item.product.productName %></td>
+                            <td>$<%= item.price.toFixed(2) %></td>
+                            <td><%= item.quantity %></td>
+                            <td class="text-end">$<%= (item.price * item.quantity).toFixed(2) %></td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="4" class="text-end">Sub-Total:</td>
+                            <td class="text-end">$<%= order.totalPrice.toFixed(2) %></td>
+                        </tr>
+                    </tfoot>
+                </table>
+        
+                <!-- <div class="text-end mt-3">
+                    <a class="btn btn-primary btn-sm btn-tracking" href="/admin/order/tracking/<%= order.orderId %>">View Order Tracking</a>
+                </div> -->
+            </div>
+        
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        </div>
+    </div>
+    <%});%>
+    <div class="pagination-area mt-15 mb-50">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+                    </li>
+                <% } %>
+    
+                <% if (totalPages > 3 && currentPage < totalPages) { %>
+                    <li class="page-item"><a class="page-link dot" href="#">...</a></li>
+                    <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>&search=<%= search %>"><%= totalPages %></a></li>
+                <% } %>
+    
+                <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search %>">
+                            <i class="material-icons md-chevron_right"></i>
+                        </a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+    
+</section>
+
+<%-include('../../views/partials/admin/footer.ejs')%>

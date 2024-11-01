@@ -7,12 +7,14 @@ const Address = require('../models/addressSchema');
 
 const getAddToCart = async (req, res) => {
     try {
+        const userId = req.session.user._id;
+
+        const userData = await User.findOne({_id:userId})
         if (!req.session.user) {
             req.flash('error', 'You need to log in to access the cart');
             return res.redirect('/login');
         }
 
-        const userId = req.session.user._id;
         const cart = await Cart.findOne({ userId })
             .populate({
                 path: 'items.productId',
@@ -21,6 +23,7 @@ const getAddToCart = async (req, res) => {
 
         if (!cart) {
             return res.render('cart', { 
+                user: userData,
                 cart: { items: [] },
                 successMessage: req.flash('success'),
                 errorMessage: req.flash('error')
@@ -33,7 +36,7 @@ const getAddToCart = async (req, res) => {
                     ? item.productId.productImage[0]
                     : 'placeholder.jpg'; // Fallback image if empty or undefined
 
-                console.log("Product Image:", productImage); // Debug log
+                // console.log("Product Image:", productImage); // Debug log
 
                 return {
                     productId: item.productId._id,
@@ -48,8 +51,7 @@ const getAddToCart = async (req, res) => {
 
         res.render('cart', { 
             cart: cartData,
-            successMessage: req.flash('success'),
-            errorMessage: req.flash('error')
+           
         });
     } catch (error) {
         console.error("Error retrieving cart:", error);
@@ -76,10 +78,16 @@ const addToCart = async (req, res) => {
             return res.redirect(`/productDetails/${productId}`);
         }
 
+        
+       
         const product = await Product.findById(productId);
         if (!product) {
             req.flash('error', 'Product not found');
             return res.redirect(`/productDetails/${productId}`);
+        }
+        if(product.quantity === 0){
+            req.flash('error','This product is OutOfStock!!')
+            return res.redirect(`/productDetails/${productId}`)
         }
 
         const productPrice = parseFloat(product.salePrice || product.regularPrice);
@@ -264,8 +272,8 @@ const getCheckOut = async (req, res) => {
 
 
         if(!userAddress || userAddress.address.length===0){
-            req.flash('error', 'No addresses found.');
-            return res.redirect('/checkOut');
+            req.flash('error', 'add new  addresses for buy.');
+            return res.redirect('/cart');
         }
         
         if (!userCart || userCart.items.length === 0) {

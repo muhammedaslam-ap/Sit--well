@@ -24,12 +24,55 @@ const landing = async (req, res) => {
         const user = req.session.user;
 
         const categories = await Category.find({ isListed: true });
+        const { search,sort, stock, category } = req.query;
+
+        let sortCriteria = { createdOn: -1 }; 
+        
+        switch (sort) {
+            case 'popularity':
+                sortCriteria = { popularity: -1 };
+                break;
+            case 'priceLowHigh':
+                sortCriteria = { salePrice: 1 };
+                break;
+            case 'priceHighLow':
+                sortCriteria = { salePrice: -1 };
+                break;
+            case 'aToZ':
+                sortCriteria = { productName: 1 };
+                break;
+            case 'zToA':
+                sortCriteria = { productName: -1 };
+                break;
+        }
+        
+        let stockFilter = {};
+        if (stock === 'inStock') {
+            stockFilter = { quantity: { $gt: 0 } }; 
+        } else if (stock === 'outOfStock') {
+            stockFilter = { quantity: 0 }; 
+        }
+        
+        let categoryFilter = {};
+        if (category && category !== 'all') {
+            categoryFilter = { category: category }; 
+        }
+
+        const filter = {};
+
+        if (search) {
+            filter.productName = { $regex: `^${search}`, $options: 'i' }; // Case insensitive search
+        }
+        
         let productData = await Product.find({
             isBlocked: false,
-            category: { $in: categories.map(category => category._id) }
+            ...stockFilter,
+            ...categoryFilter,
+            ...filter
         })
-        .sort({ createdOn: -1 }) 
-        .limit(8); 
+        .sort(sortCriteria)
+        .limit(8);
+        
 
         const successMessage = req.flash('success'); 
         const errorMessage = req.flash('error'); 
@@ -43,24 +86,37 @@ const landing = async (req, res) => {
                     user: userData,
                     products: productData,
                     category: categories,
-                    successMessage: successMessage, 
-                    errorMessage: errorMessage
+                    sortOption: sort,
+                    stockOption: stock,
+                    selectedCategory:category,
+                    searchQuery: search
+
+                 
                 });
             } else {
                 delete req.session.user; 
                 return res.render("landing", {
                     products: productData,
                     category: categories,
-                    successMessage: successMessage, 
-                    errorMessage: errorMessage
+                    sortOption: sort,
+                    stockOption: stock,
+                    selectedCategory:category,
+                    searchQuery: search
+
+                    
                 });
             }
         } else {
             return res.render("landing", {
                 products: productData,
                 category: categories,
-                successMessage: successMessage, 
-                errorMessage: errorMessage
+                sortOption: sort,
+                stockOption: stock,
+                selectedCategory:category,
+                searchQuery: search
+
+
+               
             });
         }
     } catch (error) {
@@ -90,19 +146,71 @@ const shop  = async(req,res)=>{
     try {
         const user = req.session.user
         const categories = await Category.find({isListed:true})
-        let productData = await Product.find({
-            isBlocked:false,
-            category:{$in:categories.map(category=>category._id)},quantity:{$gte:0}
-        })
+        const { search,sort, stock, category } = req.query;
+
+        let sortCriteria = { createdOn: -1 }; 
         
+        switch (sort) {
+            case 'popularity':
+                sortCriteria = { popularity: -1 };
+                break;
+            case 'priceLowHigh':
+                sortCriteria = { salePrice: 1 };
+                break;
+            case 'priceHighLow':
+                sortCriteria = { salePrice: -1 };
+                break;
+            case 'aToZ':
+                sortCriteria = { productName: 1 };
+                break;
+            case 'zToA':
+                sortCriteria = { productName: -1 };
+                break;
+        }
+        
+        let stockFilter = {};
+        if (stock === 'inStock') {
+            stockFilter = { quantity: { $gt: 0 } }; 
+        } else if (stock === 'outOfStock') {
+            stockFilter = { quantity: 0 }; 
+        }
+        
+        let categoryFilter = {};
+        if (category && category !== 'all') {
+            categoryFilter = { category: category }; 
+        }
+
+        const filter = {};
+
+        if (search) {
+            filter.productName = { $regex: search, $options: 'i' }; 
+        }
+        
+        let productData = await Product.find({
+            isBlocked: false,
+            ...stockFilter,
+            ...categoryFilter,
+            ...filter
+        })
+        .sort(sortCriteria)
+        .limit(100);
+     
         productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn))
-        productData = productData.slice(0,10)
+        productData = productData.slice(0,100)
 
         if(user){
             const userData = await User.findOne({_id: user._id})
-            return res.render('shop',{user:userData,products:productData,category:categories})
+            return res.render('shop',{user:userData,products:productData,category:categories, sortOption: sort,
+                stockOption: stock,
+                selectedCategory:category,
+                searchQuery: search
+})
         }else{
-            return res.render('shop',{products:productData,category:categories})
+            return res.render('shop',{products:productData,category:categories, sortOption: sort,
+                stockOption: stock,
+                selectedCategory:category,
+                searchQuery: search
+})
 
         }
     } catch (error) {

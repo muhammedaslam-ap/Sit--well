@@ -9,6 +9,7 @@ const adminController = require('../controller/adminController')
 const userController = require('../controller/userController')
 const categoryConroller  = require('../controller/categoryController')
 const productController = require('../controller/productController')
+const orderController = require('../controller/orderController')
 
 
 
@@ -66,6 +67,10 @@ adminRoute.get("/unblockProduct",adminAuth,productController.unblockProduct);
 adminRoute.get("/editProduct",adminAuth,productController.getEditProduct);
 adminRoute.post("/editProduct/:id", adminAuth, uploads.array("images", 4), productController.editProduct)
 adminRoute.post("/deleteImage", adminAuth, productController.deleteSingleImage);
+
+
+adminRoute.get('/orderDetails',adminAuth,orderController.getOrderDetails)
+adminRoute.post('/order/updateStatus/:orderId', adminAuth, orderController.updateOrderStatus);
 
 
 
