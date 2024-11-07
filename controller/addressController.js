@@ -51,16 +51,17 @@ const getaddAddress = async (req, res) => {
 
 const postAddAddress = async (req, res) => {
     console.log("postAddAddress function called");
-    console.log('session.data:',req.session)
+    console.log('session.data:', req.session);
+    
     try {
-        const { addressType, name, city, district, addressLine1,landMark, state, pinCode, phone, altPhone } = req.body;
-        console.log(req.body)
-        const user = req.session.user;
-       
-
+        const { addressType, name, city, district, addressLine1, landMark, state, pinCode, phone, altPhone } = req.body;
+        console.log(req.body);
         
+        const user = req.session.user;
+        
+        // Check for user session
         if (!user || !user._id) {
-            req.flash('error', 'User session not found.!');
+            req.flash('error', 'User session not found!');
             return res.redirect('/addAddress');
         }
         console.log("User session found:", user._id);
@@ -69,13 +70,14 @@ const postAddAddress = async (req, res) => {
         if (!existingUser) {
             console.log("User not found in database");
             req.flash('error', 'User not found!');
-            return res.redirect('/addAdress');
+            return res.redirect('/addAddress');
         }
 
         const existingAddress = await Address.findOne({ userId: existingUser._id });
         console.log("Existing address:", existingAddress);
 
         if (!existingAddress) {
+            // Save a new address document for the user
             const addAddress = new Address({
                 userId: existingUser._id,
                 address: [{
@@ -95,10 +97,8 @@ const postAddAddress = async (req, res) => {
             await addAddress.save();
             console.log("New address saved");
             req.flash('success', 'Address added successfully!');
-
-            return res.redirect('/addAddress')
-
         } else {
+            // Update existing address array
             await Address.updateOne(
                 { userId: existingUser._id },
                 {
@@ -118,14 +118,15 @@ const postAddAddress = async (req, res) => {
                     }
                 }
             );
-            
-            req.flash('success', 'existing Address updated successfully!');
-            return res.redirect('/addAddress')        }
+            req.flash('success', 'Address added to your existing addresses.');
+        }
+
+        return res.redirect('/addAddress'); // Stay on add address page
 
     } catch (error) {
         console.error("Error in postAddAddress:", error);
-        req.flash('error', 'An error occurred. Please try again!');
-        return res.redirect('/addAddress')
+        req.flash('error', 'An error occurred while adding the address.');
+        return res.redirect('/addAddress'); // Stay on add address page in case of error
     }
 };
 
@@ -246,10 +247,98 @@ const deleteAddress = async (req,res)=>{
 
 
 
+const addAddressFromCheckout = async (req, res) => {
+    try {
+        const { addressType, name, city, district, addressLine1, landMark, state, pinCode, phone, altPhone } = req.body;
+        console.log("Request body:", req.body);
+
+        // Check if the user is in session
+        const user = req.session.user;
+        if (!user || !user._id) {
+            console.log("User session not found.");
+            req.flash('error', 'User session not found.');
+            return res.redirect('/checkout');
+        }
+        console.log("User session found:", user._id);
+
+        // Find the user in the database
+        const existingUser = await User.findById(user._id);
+        if (!existingUser) {
+            console.log("User not found in database");
+            req.flash('error', 'User not found in the database.');
+            return res.redirect('/checkout');
+        }
+
+        // Check if an address already exists for this user
+        const existingAddress = await Address.findOne({ userId: existingUser._id });
+        console.log("Existing address found:", existingAddress);
+
+        if (!existingAddress) {
+            // Create a new address if none exists
+            const newAddress = new Address({
+                userId: existingUser._id,
+                address: [{
+                    addressType,
+                    name,
+                    city,
+                    district,
+                    landMark,
+                    addressLine1,
+                    state,
+                    pinCode,
+                    phone,
+                    altPhone
+                }]
+            });
+
+            await newAddress.save();
+            console.log("New address saved for user ID:", existingUser._id);
+            req.flash('success', 'Address added successfully!');
+            return res.redirect('/checkout');  // Redirect back to checkout
+
+        } else {
+            // Add to existing address array
+            await Address.updateOne(
+                { userId: existingUser._id },
+                {
+                    $push: {
+                        address: {
+                            addressType,
+                            name,
+                            city,
+                            district,
+                            landMark,
+                            addressLine1,
+                            state,
+                            pinCode,
+                            phone,
+                            altPhone
+                        }
+                    }
+                }
+            );
+
+            console.log("New address added to existing addresses for user ID:", existingUser._id);
+            req.flash('success', 'New address added to your account.');
+            return res.redirect('/checkout');  // Redirect back to checkout
+        }
+
+    } catch (error) {
+        console.error("Error in addAddressFromCheckout:", error);
+        req.flash('error', 'An error occurred while adding the address. Please try again.');
+        return res.redirect('/checkout');
+    }
+};
+
+
+
+
+
 module.exports = {
     getaddAddress,
     postAddAddress,
     getEditAddress,
     updateAddress,
-    deleteAddress
+    deleteAddress,
+    addAddressFromCheckout
 }

@@ -3,12 +3,12 @@ const Cart = require('../models/cartSchema')
 const Address = require('../models/addressSchema');
 const Order = require('../models/orderSchema');
 const Product  = require('../models/productSchema')
+const Coupon = require('../models/couponSchema')
 const User = require('../models/userSchema')
 
 
 const getOrderSuccess = async (req, res) => {
     try {
-        
         const userId = req.session.user._id; 
 
         if (!userId) {
@@ -16,19 +16,62 @@ const getOrderSuccess = async (req, res) => {
             return res.redirect('/checkout');
         }
 
-        const orderDetails = await Order.findOne({ userId }).sort({ createdOn: -1 }).populate('orderedItems.product') 
-        .exec(); // Get the latest order
+        // Retrieve the latest order details
+        const orderDetails = await Order.findOne({ userId })
+            .sort({ createdOn: -1 })
+            .populate('orderedItems.product')
+            .exec(); 
 
         if (!orderDetails) {
             req.flash('error', 'Order details not found');
             return res.redirect('/checkout'); 
         }
 
+        // Retrieve user cart and address details
+        const userCart = await Cart.findOne({ userId }).populate('items.productId');
+        const userAddress = await Address.findOne({ userId }); // Fetch the user's address
+
+        if (!userAddress) {
+            req.flash('error', 'Invalid address selected.');
+            return res.redirect('/checkout');
+        }
+
+        if (!userCart || userCart.items.length === 0) {
+            req.flash('error', 'No items found in cart.');
+            return res.redirect('/checkout');
+        }
+
+        // Calculate the total price of items in the cart
+        const totalPrice = userCart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+        const finalAmount = totalPrice;
+
+        let isCoupon = false;
+
+        let discount = 0;
+        const sessiocoupon = req.session.coupon;
+        console.log(sessiocoupon)
+        if (sessiocoupon) {
+            isCoupon = true
+            const validCoupon = await Coupon.findOne({ couponCode: sessiocoupon.couponCode, islist: true });
+            if (validCoupon) {
+                discount = (finalAmount * validCoupon.discount) / 100;
+            }
+        } else {
+            console.log('No coupons applied');
+        }
+
+        const newPrice = finalAmount - discount;
+
         await Cart.deleteOne({ userId });
         
+        req.session.coupon = null;
+
         return res.render('orderSuccess', {
             orderDetails: orderDetails,
-            userId: userId
+            userId: userId,
+            newPrice,
+            isCoupon,
+            userAddress 
         });
 
     } catch (error) {
@@ -36,6 +79,7 @@ const getOrderSuccess = async (req, res) => {
         return res.redirect('/pageNotFound'); 
     }
 };
+
 
 
 const proceedTopayment = async (req, res) => {
@@ -281,12 +325,37 @@ const updateOrderStatus = async (req, res) => {
 
 const getYourOrder = async (req, res) => {
     try {
+
+        const search = req.query.search || ""; 
+        let page = 1;
+        if (req.query.page) {
+            page = parseInt(req.query.page);
+        }
+
+        const limit = 3; 
         const userId = req.session.user._id;
 
-        const orders = await Order.find({ userId: userId })
+        const orders = await Order.find({ userId: userId,
+            $or: [
+                { orderId: { $regex: ".*" + search + ".*", $options: 'i' } },
+                { productName: { $regex: ".*" + search + ".*", $options: 'i' } }
+                ]
+         })
+      
             .populate('userId', 'name email phone')
             .populate('orderedItems.product', 'productName price productImages')
+            .limit(limit)
+            .skip((page - 1) * limit)
             .exec();
+
+         
+            const totalOrders = await Order.countDocuments({
+                $or: [
+                    { orderId: { $regex: ".*" + search + ".*", $options: 'i' } },
+                    { productName: { $regex: ".*" + search + ".*", $options: 'i' } }
+                ]
+            });
+            const totalPages = Math.ceil(totalOrders / limit);
 
         if (!orders || orders.length === 0) {
             req.flash('error', 'No orders found for this user');
@@ -298,13 +367,36 @@ const getYourOrder = async (req, res) => {
         return res.render('userOrder', { 
             orders,
             statusOptions,      
-            userId
+            userId,
+            currentPage: page,
+            totalPages, 
+            search
         });
         
     } catch (error) {
         console.error('Error fetching user orders:', error);
         req.flash('error', 'An error occurred while fetching orders');
         return res.redirect('/'); 
+    }
+};
+
+const retrieveOrderDetails = async (req, res) => {
+    try {
+        const userId = req.session.user._id;
+        const orderId = req.params.orderId; 
+        const orderDetails = await Order.findOne({ userId, _id: orderId })
+            .populate('orderedItems.product')
+            .exec();
+
+        if (!orderDetails) {
+            return res.status(404).json({ error: 'Order details not found.' });
+        }
+
+        res.json(orderDetails); 
+
+    } catch (error) {
+        console.error('Error retrieving order details:', error);
+        res.status(500).json({ error: 'Error loading order details.' });
     }
 };
 
@@ -385,5 +477,6 @@ module.exports={
     getOrderDetails,
     updateOrderStatus,
     getYourOrder,
-    orderCancelorRturn
+    orderCancelorRturn,
+    retrieveOrderDetails
 }

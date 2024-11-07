@@ -21,6 +21,5 @@ const whishlistSchema = new Schema({
 })
 
 const Whishlist = mongoose.model('Whishlist',whishlistSchema)
-module.exports = {
-    Whishlist
-}
+module.exports = Whishlist
+

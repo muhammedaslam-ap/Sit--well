@@ -1,0 +1,272 @@
+<%- include('../../views/partials/admin/header.ejs') %> 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<% if (successMessage && successMessage.length) { %>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '<%= successMessage %>',
+            confirmButtonText: 'OK'
+        });
+    </script>
+<% } %>
+    
+<% if (errorMessage && errorMessage.length) { %>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '<%= errorMessage %>',
+            confirmButtonText: 'OK'
+        });
+    </script>
+<% } %>
+
+
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+    body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1 {
+    color: #2c3e50;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+form {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+form:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.form-select,
+.form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+    outline: none;
+}
+
+.submit-btn {
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    form {
+        padding: 20px;
+    }
+}
+</style>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen   ">
+<div class="container mx-auto p-8">
+    <h1 class="text-4xl font-bold mb-8 text-center text-gray-800">Add New Offer</h1>
+    
+    <form action="/admin/addOffer" method="post" id="offerForm" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" novalidate>
+    
+        <!-- Offer Type -->
+        <div class="mb-4">
+            <label for="offerType">Offer Type</label>
+            <select name="offerType" id="offerType" class="form-select w-full" required>
+                <option value="">Select Offer Type</option>
+                <option value="product">Product</option>
+                <option value="category">Category</option>
+            </select>
+            <span class="error-message" id="offerTypeError"></span>
+        </div>
+    
+        <!-- Product Name (conditional) -->
+        <div class="mb-4" id="productField">
+            <label for="productName">Product Name</label>
+            <select name="productName" id="productName" class="form-select w-full" required>
+                <option value="">Select a Product</option>
+                <% product.forEach(p => { %>
+                    <option value="<%= p._id %>"><%= p.productName %></option>
+                <% }); %>
+            </select>
+            <span class="error-message" id="productNameError"></span>
+        </div>
+    
+        <!-- Category Name (conditional) -->
+        <div class="mb-4 hidden" id="categoryField">
+            <label for="categoryName">Category Name</label>
+            <select name="categoryName" id="categoryName" class="form-select w-full">
+                <option value="">Select a Category</option>
+                <% category.forEach(c => { %>
+                    <option value="<%= c._id %>"><%= c.name %></option>
+                <% }); %>
+            </select>
+            <span class="error-message" id="categoryNameError"></span>
+        </div>
+    
+        <!-- Discount Percentage -->
+        <div class="mb-4">
+            <label for="discountPercentage">Discount Percentage</label>
+            <input type="number" name="discountPercentage" id="discountPercentage" class="form-control w-full"
+                   required min="0" max="100" placeholder="Enter 0-100" step="1">
+            <span class="error-message" id="discountPercentageError"></span>
+        </div>
+    
+        <!-- Price -->
+        <!-- <div class="mb-4">
+            <label for="price">Price</label>
+            <input type="number" name="price" id="price" class="form-control w-full" required min="1" placeholder="Enter price">
+            <span class="error-message" id="priceError"></span>
+        </div> -->
+    
+        <!-- Valid Until Date -->
+        <div class="mb-4">
+            <label for="validUntil">Valid Until</label>
+            <input type="date" name="validUntil" id="validUntil" class="form-control w-full" required>
+            <span class="error-message" id="validUntilError"></span>
+        </div>
+    
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-full mt-4">Add Offer</button>
+    </form>    
+</div>
+
+<script>
+    document.getElementById('offerType').addEventListener('change', function() {
+        var productField = document.getElementById('productField');
+        var categoryField = document.getElementById('categoryField');
+        if (this.value === 'product') {
+            productField.classList.remove('hidden');
+            categoryField.classList.add('hidden');
+        } else {
+            productField.classList.add('hidden');
+            categoryField.classList.remove('hidden');
+        }
+    });
+
+
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+    const offerForm = document.getElementById('offerForm');
+    const offerType = document.getElementById('offerType');
+    const productName = document.getElementById('productName');
+    const categoryName = document.getElementById('categoryName');
+    const discountPercentage = document.getElementById('discountPercentage');
+    const price = document.getElementById('price');
+    const validUntil = document.getElementById('validUntil');
+
+    // Show/hide fields based on offer type
+    offerType.addEventListener('change', function () {
+        const productField = document.getElementById('productField');
+        const categoryField = document.getElementById('categoryField');
+        if (offerType.value === 'product') {
+            productField.classList.remove('hidden');
+            categoryField.classList.add('hidden');
+            productName.setAttribute('required', 'true');
+            categoryName.removeAttribute('required');
+        } else if (offerType.value === 'category') {
+            categoryField.classList.remove('hidden');
+            productField.classList.add('hidden');
+            categoryName.setAttribute('required', 'true');
+            productName.removeAttribute('required');
+        }
+    });
+
+    // Validate each field and show error messages
+    function validateField(field, messageElementId, message) {
+        const messageElement = document.getElementById(messageElementId);
+        if (!field.checkValidity()) {
+            messageElement.textContent = message;
+            field.classList.add('border-red-500');
+            return false;
+        } else {
+            messageElement.textContent = '';
+            field.classList.remove('border-red-500');
+            return true;
+        }
+    }
+
+    // Custom validation for discount percentage
+    function validateDiscount() {
+        return validateField(discountPercentage, 'discountPercentageError', 'Enter a discount between 0 and 100.');
+    }
+
+    // Custom validation for price
+    function validatePrice() {
+        return validateField(price, 'priceError', 'Price must be at least 1.');
+    }
+
+    // Custom validation for validUntil date
+    function validateDate() {
+        const today = new Date().toISOString().split('T')[0];
+        if (validUntil.value < today) {
+            document.getElementById('validUntilError').textContent = 'Date must be in the future.';
+            validUntil.classList.add('border-red-500');
+            return false;
+        } else {
+            document.getElementById('validUntilError').textContent = '';
+            validUntil.classList.remove('border-red-500');
+            return true;
+        }
+    }
+
+    // Form submission
+    offerForm.addEventListener('submit', function (e) {
+        const isOfferTypeValid = validateField(offerType, 'offerTypeError', 'Offer type is required.');
+        const isDiscountValid = validateDiscount();
+        const isPriceValid = validatePrice();
+        const isDateValid = validateDate();
+
+        // Check offerType and validate productName or categoryName accordingly
+        let isProductOrCategoryValid = true;
+        if (offerType.value === 'product') {
+            isProductOrCategoryValid = validateField(productName, 'productNameError', 'Select a product.');
+        } else if (offerType.value === 'category') {
+            isProductOrCategoryValid = validateField(categoryName, 'categoryNameError', 'Select a category.');
+        }
+
+        // Prevent form submission if any validation fails
+        if (!isOfferTypeValid || !isDiscountValid || !isPriceValid || !isDateValid || !isProductOrCategoryValid) {
+            e.preventDefault();
+        }
+    });
+});
+
+</script>
+
+</body>
+    
+<%- include('../../views/partials/admin/footer.ejs') %>

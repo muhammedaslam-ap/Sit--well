@@ -138,7 +138,7 @@
     }
     .product-card {
     transition: transform 0.3s ease;
-    border: 1px solid #eee;
+    border: 0 solid #eee;
 }
 
     .product-card:hover {
@@ -165,6 +165,26 @@
         height: 2px;
         background-color: #007bff;
     }
+    .heart-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.heart-icon {
+    color: red;           /* Red fill color */
+    font-size: 1.5rem;    /* Adjust size */
+    transition: color 0.3s;
+    padding-left: 15px;
+}
+
+.heart-button:hover .heart-icon {
+    color: darkred;       /* Darker red on hover */
+}
 
     </style>
     <!-- breadcrumb -->
@@ -296,8 +316,14 @@
                 </form>
             
                 <!-- Wishlist Button -->
-                <a href="/addToWhishlist?id=<%= product._id %>" class="btn btn-sm wishlist d-flex align-items-center px-3 py-2">
-                    <i class="ti-heart heart-icon me-1"></i>
+                <form action="/addWhishlistItem" method="POST">
+                  <input type="hidden" name="productId" value="<%= product._id %>">
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="heart-button">
+                      <i class="ti-heart heart-icon me-1"></i>
+                  </button>
+              </form>
+                                           
                 </a>
             </div>
             

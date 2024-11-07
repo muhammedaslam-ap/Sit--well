@@ -49,6 +49,10 @@ const productSchema = new Schema({
         required: true,
         default: "Available",
     },
+    popularity:{
+        type:[String],
+        required:false
+    }
 }, { timestamps: true });
 
 

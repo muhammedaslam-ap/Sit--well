@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+
     <% if (successMessage && successMessage.length) { %>
         <script>
             Swal.fire({
@@ -85,8 +87,8 @@
         .bg-info { background-color: #d1ecf1; color: #0c5460; }
         .bg-primary { background-color: #cce5ff; color: #004085; }
         .bg-danger { background-color: #f8d7da; color: #721c24; }
-        .bg-secondary { background-color: #e2e3e5; color: #383d41; }
-        .bg-dark { background-color: #d6d8d9; color: #1b1e21; }
+        .bg-secondary { background-color: #e2e3e5; color: #444547; }
+        .bg-dark { background-color: #d6d8d9; color: #f2f2f7; }
 
         /* Table styles */
         .order-table {
@@ -191,21 +193,52 @@
                 gap: 10px;
             }
         }
+        
     </style>
+    <style>
+        .order-card {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 0.5rem;
+        }
+        .order-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+        }
+        .product-image {
+            max-width: 80px;
+            max-height: 80px;
+            object-fit: cover;
+           }
+       </style>
 </head>
 <body>
     <div class="container">
         <h2>My Orders</h2>
         <% if (orders.length > 0) { %>
             <% orders.forEach(order => { %>
-                <div class="order-area">
-                    <div class="order-header">
+                <div class="order-area mb-4 p-3 border rounded shadow-sm">
+                    <div class="order-header d-flex justify-content-between align-items-center">
                         <div class="order-info">
-                            <span><strong>Order ID:</strong> <%= order._id %></span>
+                            <span><strong>Order ID:</strong> <%= order.orderId %></span><br>
                             <span><strong>Date:</strong> <%= order.createdOn ? order.createdOn.toDateString() : 'Date not available' %></span>
                         </div>
+                        <span class="badge-status <%= 
+                            order.status === 'Pending' ? 'bg-warning' :
+                            order.status === 'Delivered' ? 'bg-success' :
+                            order.status === 'Processing' ? 'bg-info' :
+                            order.status === 'Shipped' ? 'bg-primary' :
+                            order.status === 'Cancelled' ? 'bg-danger' :
+                            order.status === 'Return Request' ? 'bg-secondary' :
+                            order.status === 'Returned' ? 'bg-dark' : 'bg-secondary'
+                        %>">
+                            <strong>Status:</strong> <%= order.status %>
+                        </span>
                     </div>
-                    <table class="order-table">
+                    
+                    <table class="table order-table mt-3">
                         <thead>
                             <tr>
                                 <th>Product</th>
@@ -218,8 +251,8 @@
                             <% order.orderedItems.forEach(item => { %>
                                 <tr>
                                     <td data-label="Product">
-                                        <div class="product-info">
-                                            <img class="product-image" src="/uploads/product-images/<%= item.productImage %>" alt="<%= item.productName %>">
+                                        <div class="product-info d-flex align-items-center">
+                                            <img class="product-image me-2" src="/uploads/product-images/<%= item.productImage %>" alt="<%= item.productName %>">
                                             <span class="product-name"><%= item.product.productName %></span>
                                         </div>
                                     </td>
@@ -234,29 +267,24 @@
                             </tr>
                         </tbody>
                     </table>
-                    <div class="order-footer">
-                        <span class="badge-status <%= 
-                            order.status === 'Pending' ? 'bg-warning' :
-                            order.status === 'Delivered' ? 'bg-success' :
-                            order.status === 'Processing' ? 'bg-info' :
-                            order.status === 'Shipped' ? 'bg-primary' :
-                            order.status === 'Cancelled' ? 'bg-danger' :
-                            order.status === 'Return Request' ? 'bg-secondary' :
-                            order.status === 'Returned' ? 'bg-dark' : 'bg-secondary'
-                        %>">
-                            Status: <%= order.status %>
-                        </span>
-                        <form action="/orderCancel/<%= order._id %>" method="post" onsubmit="return confirmCancel()">
+    
+                    <div class="order-footer d-flex justify-content-between align-items-center mt-3">
+                        <form action="/orderCancel/<%= order._id %>" method="post" onsubmit="return confirmCancel(event)">
                             <% if(order.status === 'Delivered' || order.status === 'Shipped') { %>
-                                <button type="submit" class="action-btn btn-primary">Return Order</button>
+                                <button type="submit" class="action-btn btn btn-primary">Return Order</button>
                             <% } else if(order.status === 'Cancelled') { %>
-                                <p style="color: #721c24;"><b>Cancelled</b></p>
+                                <span class="text-danger"><strong>Cancelled</strong></span>
                             <% } else if(order.status === 'Returned') { %>
-                                <p style="color: #383a38; "><b>Returned</b></p>
+                                <span class="text-muted"><strong>Returned</strong></span>
                             <% } else { %>
-                                <button type="submit" class="action-btn btn-primary">Cancel Order</button>
+                                <button type="submit" class="action-btn btn btn-primary">Cancel Order</button>
                             <% } %>
                         </form>
+    
+                        <!-- View Order Details Button -->
+                        <button type="button" class="btn btn-outline-secondary view-details-btn" onclick="loadOrderDetails('<%= order._id %>')">
+                            View Order Details
+                        </button>
                         
                     </div>
                 </div>
@@ -265,12 +293,273 @@
             <p class="text-center no-orders-message">You have no orders yet.</p>
         <% } %>
     </div>
+    
+
+    <!-- Order Details Modal -->
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fs-6 " id="orderDetailsModalLabel">Order Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="orderDetailsContent">
+                <style>
+                    .modal-content {
+                        border-radius: 0.5rem;
+                    }
+                    .card {
+                        transition: box-shadow 0.3s ease-in-out;
+                    }
+                    .card:hover {
+                        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+                    }
+                    .table th, .table td {
+                        padding: 1rem;
+                    }
+                    .btn-close:focus {
+                        box-shadow: none;
+                    }
+                    .order-card {
+                        background-color: #fff;
+                        border-radius: 0.5rem;
+                        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                        margin-bottom: 1.5rem;
+                    }
+                    .order-header {
+                        background-color: #f8f9fa;
+                        border-bottom: 1px solid #e9ecef;
+                        padding: 1rem;
+                        border-top-left-radius: 0.5rem;
+                        border-top-right-radius: 0.5rem;
+                    }
+                    .order-header h2 {
+                        margin-bottom: 0;
+                        color: #4d5e77;
+                    }
+                    .product-image {
+                        object-fit: cover;
+                    }
+                </style>
+                
+                <script>
+                function loadOrderDetails(orderId) {
+                    $('#orderDetailsModal').modal('show');
+                
+                    document.getElementById('orderDetailsContent').innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>`;
+                
+                    fetch(`/orderDetails/${orderId}`)
+                        .then(response => response.json())
+                        .then(orderDetails => {
+                            if (!orderDetails || orderDetails.error) {
+                                document.getElementById('orderDetailsContent').innerHTML = `
+                                    <div class="alert alert-danger" role="alert">
+                                        Order not found.
+                                    </div>`;
+                            } else {
+                                // Safely access the first address if it exists
+                                const address = orderDetails.address.length > 0 ? orderDetails.address[0] : null;
+                
+                                document.getElementById('orderDetailsContent').innerHTML = `
+                                    <div class="container-fluid px-0">
+                                        <div class="row g-4">
+                                            <div class="col-md-6">
+                                                <div class="card h-100 border-0 shadow-sm">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title text-primary mb-4">Order Information</h5>
+                                                        <p class="mb-2"><strong>Order Number:</strong> ${orderDetails.orderId}</p>
+                                                        <p class="mb-2"><strong>Date:</strong> ${new Date(orderDetails.createdOn).toLocaleDateString()}</p>
+                                                        <p class="mb-2"><strong>Total:</strong> ₹${orderDetails.finalAmount.toFixed(2)}</p>
+                                                        <p class="mb-0"><strong>Payment Method:</strong> ${orderDetails.paymentMethod}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card h-100 border-0 shadow-sm">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title text-primary mb-4">Billing Address</h5>
+                                                        ${address ? `
+                                                            <p class="mb-2"><strong>Street:</strong> ${address.addressLine1}</p>
+                                                            <p class="mb-2"><strong>City:</strong> ${address.city}</p>
+                                                            <p class="mb-2"><strong>District:</strong> ${address.district}</p>
+                                                            <p class="mb-2"><strong>State:</strong> ${address.state}</p>
+                                                            <p class="mb-2"><strong>Postcode:</strong> ${address.pinCode}</p>
+                                                            <p class="mb-0"><strong>Phone:</strong> ${address.phone}</p>
+                                                        ` : `
+                                                            <div class="alert alert-warning" role="alert">
+                                                                No address information available.
+                                                            </div>
+                                                        `}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="card border-0 shadow-sm">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title text-primary mb-4">Order Items</h5>
+                                                        <div class="table-responsive">
+                                                            <table class="table table-hover">
+                                                                <thead class="table-light">
+                                                                    <tr>
+                                                                        <th scope="col">Product</th>
+                                                                        <th scope="col">Name</th>
+                                                                        <th scope="col">Price</th>
+                                                                        <th scope="col">Quantity</th>
+                                                                        <th scope="col">Total</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    ${orderDetails.orderedItems.map(item => `
+                                                                        <tr>
+                                                                            <td class="align-middle">
+                                                                                <img src="/uploads/product-images/${item.productImage}" alt="${item.productName}" class="product-image rounded" style="width: 50px; height: 50px;">
+                                                                            </td>
+                                                                            <td class="align-middle">${item.product.productName}</td>
+                                                                            <td class="align-middle">₹${item.price.toFixed(2)}</td>
+                                                                            <td class="align-middle">${item.quantity}</td>
+                                                                            <td class="align-middle">₹${(item.price * item.quantity).toFixed(2)}</td>
+                                                                        </tr>`).join('')}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching order details:', error);
+                            document.getElementById('orderDetailsContent').innerHTML = `
+                                <div class="alert alert-danger" role="alert">
+                                    Error loading order details. Please try again later.
+                                </div>`;
+                        });
+                }
+                
+                setTimeout(() => {
+                    if (document.getElementById('orderDetailsContent').innerHTML.includes('spinner-border')) {
+                        document.getElementById('orderDetailsContent').innerHTML = `<p class="text-warning">Loading taking longer than expected...</p>`;
+                    }
+                }, 5000);
+                
+                
+                
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
+
+<div class="pagination-area mt-15 mb-50">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-start">
+            <!-- Previous Button -->
+            <% if (currentPage > 1) { %>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search %>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            <% } else { %>
+                <li class="page-item disabled">
+                    <a class="page-link" aria-label="Previous" tabindex="-1">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            <% } %>
+
+            <!-- Page Numbers -->
+            <% let startPage = Math.max(1, currentPage - 2); %>
+            <% let endPage = Math.min(totalPages, currentPage + 2); %>
+            
+            <% if (startPage > 1) { %>
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&search=<%= search %>">1</a>
+                </li>
+                <% if (startPage > 2) { %>
+                    <li class="page-item disabled"><a class="page-link">...</a></li>
+                <% } %>
+            <% } %>
+
+            <% for (let i = startPage; i <= endPage; i++) { %>
+                <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+                </li>
+            <% } %>
+
+            <% if (endPage < totalPages) { %>
+                <% if (endPage < totalPages - 1) { %>
+                    <li class="page-item disabled"><a class="page-link">...</a></li>
+                <% } %>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<%= totalPages %>&search=<%= search %>"><%= totalPages %></a>
+                </li>
+            <% } %>
+
+            <!-- Next Button -->
+            <% if (currentPage < totalPages) { %>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search %>" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            <% } else { %>
+                <li class="page-item disabled">
+                    <a class="page-link" aria-label="Next" tabindex="-1">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+    </nav>
+</div>
+
+
 <%- include('../../views/partials/user/profileFooter.ejs') %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- jQuery and Bootstrap Bundle (including Popper) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+
+
+
+
+
+ 
+
 <script>
-    function confirmCancel() {
-        return confirm("Are you sure you want to cancel this order?");
+ function confirmCancel(event) {
+        event.preventDefault(); // Prevents the form from submitting immediately
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes,  ok!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                event.target.submit(); // Submits the form if confirmed
+            }
+        });
     }
+    
     </script>
     
+    <style>
+        
+    </style>
     

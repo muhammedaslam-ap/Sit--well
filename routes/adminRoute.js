@@ -10,6 +10,8 @@ const userController = require('../controller/userController')
 const categoryConroller  = require('../controller/categoryController')
 const productController = require('../controller/productController')
 const orderController = require('../controller/orderController')
+const offerController = require('../controller/offerController')
+const couponController = require('../controller/couponController')
 
 
 
@@ -71,6 +73,17 @@ adminRoute.post("/deleteImage", adminAuth, productController.deleteSingleImage);
 
 adminRoute.get('/orderDetails',adminAuth,orderController.getOrderDetails)
 adminRoute.post('/order/updateStatus/:orderId', adminAuth, orderController.updateOrderStatus);
+
+
+adminRoute.get('/addOffer',adminAuth,offerController.getAddOffer)
+adminRoute.post('/addOffer',adminAuth,offerController.addOffer)
+
+
+
+adminRoute.get('/coupon',adminAuth,couponController.getCoupon)
+adminRoute.post('/coupon',adminAuth,couponController.createCoupon)
+adminRoute.get('/couponMenage',adminAuth,couponController.couponMenagent)
+adminRoute.put('/couponManage/toggle/:id',adminAuth,couponController.couponListing)
 
 
 

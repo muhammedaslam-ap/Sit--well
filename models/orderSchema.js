@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto')
 
 const addressSchema = new Schema({
     userId: {
@@ -50,7 +50,6 @@ const addressSchema = new Schema({
 const orderSchema = new Schema({
     orderId: {
         type: String,
-        default: () => uuidv4(),
         unique: true
     },
     userId: {
@@ -126,6 +125,15 @@ const orderSchema = new Schema({
         default: false
     }
 });
+
+orderSchema.pre('save', function (next) {
+    if (!this.orderId) {
+        const uniqueId = `SIW${Date.now()}${Math.floor(Math.random() * 1000)}`; 
+        this.orderId = uniqueId;
+    }
+    next();
+});
+
 
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

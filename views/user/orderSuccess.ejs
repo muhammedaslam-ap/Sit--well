@@ -84,7 +84,9 @@
                     <ul>
                         <li><p>Order Number</p><span>: <%= orderDetails.orderId %></span></li>
                         <li><p>Date</p><span>: <%= orderDetails.createdOn.toLocaleDateString() %></span></li>
-                        <li><p>Total</p><span>: RS :<%= orderDetails.finalAmount.toFixed(2) %></span></li>
+                        <li><p>Total</p><span>Rs: <% if(!isCoupon){ %>₹
+                          <%= orderDetails.finalAmount.toFixed(2) %> <% }else{ %>₹
+                            <%=newPrice.toFixed(2)%><% } %></span></li>
                         <li><p>Payment Method</p><span>: <%= orderDetails.paymentMethod %></span></li>
                     </ul>
                 </div>
@@ -130,23 +132,42 @@
                             <td><span><%= item.productName %></span></td>
                             <td><span><%= item.price %></span></td>
                             <td>x<%= item.quantity %></td>
-                            <td class="text-end">$<%= (item.price * item.quantity).toFixed(2) %></td>
+                            <td class="text-end">₹
+                              <%= (item.price * item.quantity).toFixed(2) %></td>
                           </tr>
                         <% }) %>
                       </tbody>
                       <tfoot class="table-light">
                         <tr>
                           <td colspan="2">Subtotal</td>
-                          <td class="text-end">$<%= orderDetails.totalPrice.toFixed(2) %></td>
+                          <td class="text-end">₹
+                            <%= orderDetails.totalPrice.toFixed(2) %></td>
                         </tr>
                         <tr>
                           <td colspan="2">Shipping</td>
                           <td class="text-end">Free</td>
                         </tr>
                         <tr class="fw-bold">
-                          <td colspan="2">Total</td>
-                          <td class="text-end">$<%= orderDetails.finalAmount.toFixed(2) %></td>
-                        </tr>
+                          <td class="order-summary">
+                            <p>Total Price: ₹
+
+                              <% if(!isCoupon){ %>
+                                
+                                <%= orderDetails.finalAmount.toFixed(2) %>
+                              <% } else { %>
+                              
+                                <%= newPrice.toFixed(2) %>
+                              <% } %>
+                            </p>
+                            
+                            <% if(isCoupon){ %>
+                              <p class="text-success">Coupon applied!</p>
+                              <p>Original Price: ₹
+                                <s><%= orderDetails.finalAmount.toFixed(2) %></s></p>
+                              <p>You saved: ₹
+                                <%= (orderDetails.finalAmount - newPrice).toFixed(2) %></p>
+                            <% } %>
+                            </td>
                       </tfoot>
                     </table>
                   </div>

@@ -4,6 +4,8 @@ const passport=require('passport')
 const {userAuth,adminAuth} = require('../middleware/auth')
 userRoute.set('view engine','ejs')
 userRoute.set('views','./views/user')
+const Order = require('../models/orderSchema'); 
+
 
 
 const userController=require('../controller/userController') 
@@ -11,6 +13,9 @@ const profileController = require('../controller/profileController')
 const addressConroller = require('../controller/addressController')
 const cartController = require('../controller/cartController')
 const orderController = require('../controller/orderController')
+const whishlistController = require('../controller/whishlistController')
+const paymentController = require('../controller/paypalController')
+const couponController = require('../controller/couponController')
 
 userRoute.get('/',userController.landing)
 
@@ -44,6 +49,7 @@ userRoute.post('/addAddress',userAuth,addressConroller.postAddAddress)
 userRoute.get('/editAddress/:id',userAuth,addressConroller.getEditAddress)
 userRoute.post('/updateAddress/:id',userAuth,addressConroller.updateAddress)
 userRoute.post('/deleteAddress/:id',userAuth,addressConroller.deleteAddress)
+userRoute.post('/checkout/addAddressFromCheckout',userAuth,addressConroller.addAddressFromCheckout)
 
 userRoute.get('/cart',userAuth,cartController.getAddToCart)
 userRoute.post('/addToCart',userAuth,cartController.addToCart)
@@ -57,7 +63,29 @@ userRoute.get('/checkout',userAuth,cartController.getCheckOut)
 userRoute.get('/orderSuccess',userAuth,orderController.getOrderSuccess)
 userRoute.post('/proceedToPayment',userAuth,orderController.proceedTopayment)
 userRoute.get('/order',userAuth,orderController.getYourOrder)
+userRoute.get('/orderDetails/:orderId',userAuth,orderController.retrieveOrderDetails)
 userRoute.post('/orderCancel/:orderId',userAuth,orderController.orderCancelorRturn)
+
+
+userRoute.get('/Whishlish',userAuth,whishlistController.getWhishlist)
+userRoute.post('/addWhishlistItem',userAuth,whishlistController.addWhishlistItem)
+userRoute.delete('/wishlist/remove/:id', userAuth,whishlistController. removeProductFromWishlist);
+
+
+
+userRoute.get('/userCoupons',userAuth,couponController.getuserCoupons)
+userRoute.post('/applyCoupon',userAuth,couponController.applycoupon)
+
+
+
+userRoute.get('/payProduct',userAuth,paymentController.payProduct)
+userRoute.get('/paymentseccuss',userAuth,paymentController.success)
+userRoute.get('/paymentfail',userAuth,paymentController.cancel)
+
+
+userRoute.post('/applyCoupon',userAuth,couponController.applycoupon)
+userRoute.post('/removeCoupon',userAuth,couponController.removeCoupon)
+
 
        
 

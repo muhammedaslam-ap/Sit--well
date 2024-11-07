@@ -8,6 +8,10 @@ const couponSchema=new Schema({
     required:true,
     unique:true
    },
+   couponCode:{
+    type:String,
+    required:true
+   },
    createdOn:{
     type:Date,
     default:Date.now,
@@ -17,7 +21,7 @@ const couponSchema=new Schema({
     type:Date,
     required:true
    },
-   offerPrice:{
+   discount:{
     type:Number,
     required:true
    },
@@ -25,16 +29,14 @@ const couponSchema=new Schema({
     type:Number,
     required:true
    },
+   limit:{
+    type:Number,
+    required:true
+   },
    islist:{
     type:Boolean,
     default:true
    },
-   userId:[{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'User'
-   }]
 })
-const Coupon=mongoose.model('Coupon',couponSchema)
-module.exports={
-    Coupon
-}
+const Coupon = mongoose.model('Coupon',couponSchema)
+module.exports=  Coupon

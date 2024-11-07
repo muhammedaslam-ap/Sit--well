@@ -3,6 +3,7 @@ const Cart = require('../models/cartSchema');
 const Product = require('../models/productSchema');
 const User = require('../models/userSchema');
 const Address = require('../models/addressSchema');
+const Coupon = require('../models/couponSchema')
 
 
 const getAddToCart = async (req, res) => {
@@ -60,6 +61,7 @@ const getAddToCart = async (req, res) => {
     }
 };
 
+//////////////////////////////////////////////////////////////////////////////////////
 
 const addToCart = async (req, res) => {
     let productId;
@@ -157,7 +159,7 @@ const addToCart = async (req, res) => {
 };
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////////
 
 
 const removeCartProduct = async (req, res) => {
@@ -187,6 +189,7 @@ const removeCartProduct = async (req, res) => {
     }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////
 
 const updateCartItemQuantity = async (req, res) => {
     try {
@@ -243,6 +246,8 @@ const updateCartItemQuantity = async (req, res) => {
     }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+
 const updateProductQuantity = async (productId, changeInQuantity) => {
     try {
         const product = await Product.findById(productId);
@@ -255,7 +260,7 @@ const updateProductQuantity = async (productId, changeInQuantity) => {
         if (newQuantity < 0) {
             throw new Error("Quantity cannot be less than zero");
         }
-
+      
         product.quantity = newQuantity;
         await product.save();
     } catch (error) {
@@ -264,30 +269,71 @@ const updateProductQuantity = async (productId, changeInQuantity) => {
     }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 const getCheckOut = async (req, res) => {
-    try {       
+    try {
         const userId = req.session.user._id;
-        const userCart = await Cart.findOne({ userId: userId }).populate('items.productId'); 
-        const userAddress = await Address.findOne({ userId: userId })
+        const userCart = await Cart.findOne({ userId }).populate('items.productId');
+        const userAddress = await Address.findOne({ userId });
 
-
-        if(!userAddress || userAddress.address.length===0){
-            req.flash('error', 'add new  addresses for buy.');
+        if (!userAddress || userAddress.address.length === 0) {
+            req.flash('error', 'Please add an address before checkout.');
             return res.redirect('/cart');
         }
-        
-        if (!userCart || userCart.items.length === 0) {
-            req.flash('error', "User cart is empty, please add products before checkout.");
-            return res.redirect('/cart'); 
-        }
 
-        res.render('checkOut', { cart: userCart,address:userAddress});
+        const subtotal = userCart.items.reduce((total, item) => {
+            return total + (item.totalPrice || 0); // Fallback to 0 if totalPrice is undefined
+        }, 0);
+
+        console.log(subtotal)
+        
+        let isCoupon = false
+
+        const appliedCoupon = req.session.coupon ? req.session.coupon.couponCode : null;
+
+        let discount = 0;
+        let couponMessage = null;
+        
+        if (appliedCoupon) {
+
+            isCoupon = true
+            // Use `findOne` to get a single coupon document
+            const coupon = await Coupon.findOne({ couponCode: appliedCoupon, islist: true });
+        
+            // Check if coupon exists and the subtotal meets the minimum requirement
+            if (coupon && subtotal >= coupon.minimumOffer) {
+                discount = (subtotal * coupon.discount) / 100;
+                couponMessage = `Coupon applied successfully! You saved $${discount.toFixed(2)} (${coupon.discount}%)`;
+            } else if (coupon) {
+                // If the coupon exists but subtotal is less than the required minimum
+                couponMessage = `Subtotal must be at least $${coupon.minimumOffer} to apply this coupon.`;
+            } else {
+                // Coupon was not found or is inactive
+                couponMessage = 'Invalid or inactive coupon code.';
+            }
+        }
+        
+        const newTotal = subtotal - discount;
+
+        res.render('checkout', { 
+            cart: userCart, 
+            address: userAddress, 
+            subtotal:subtotal, 
+            discount, 
+            couponMessage, 
+            newTotal, 
+            isCoupon,
+            appliedCoupon  // Pass to the view to show coupon if applied
+        });
+
     } catch (error) {
-        console.error('An error occurred while getting the checkout page:', error);
-        req.flash('error', "An unexpected error occurred. Please try again later."); 
-        res.redirect('/cart'); 
+        console.error('Error in getCheckout:', error);
+        req.flash('error', "Unexpected error occurred. Please try again later.");
+        res.redirect('/cart');
     }
 };
+
 
 
 

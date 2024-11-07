@@ -1,0 +1,124 @@
+
+<%- include('../../views/partials/user/header.ejs') %>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"></head>
+    <body class="bg-gray-100 font-sans">
+        <div class="bg-gray-100 min-h-screen py-8">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-bold mb-10 text-gray-800 border-b pt-10">My Wishlist</h1>
+                <div id="wishlist" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <% wishlist.products.forEach(item => { %>
+                        <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                            <div class="relative">
+                                <img class="w-full h-64 object-cover"
+                                    src="/uploads/product-images/<%= item.productId.productImage[0] %>" 
+                                    alt="<%= item.productId.productName %>" 
+                                />
+                                <button 
+                                    class="absolute top-2 right-2 bg-white rounded-full p-2 text-red-500 hover:text-red-700 transition duration-200 shadow-sm hover:shadow-md"
+                                    aria-label="Remove <%= item.productId.productName %> from wishlist" 
+                                    onclick="removeFromWishlist('<%= item.productId._id %>')"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <h4 class="text-xl font-semibold text-gray-900 mb-2 truncate"><%= item.productId.productName %></h4>
+                                <div class="flex justify-between items-center mb-4">
+                                  <%if(item.productId.quantity <=0){%>
+                                        <span class="text-danger"><b>Sold Out</b></span>
+                                        <%}else{%>
+                                <span class="text-gray-600">Quantity: <span class="font-bold"><%= item.productId.quantity %>
+                                            <%}%>
+                                        </span>
+                                    </span>
+                                    <span class="text-gray-800 font-bold text-lg">₹<%= item.productId.salePrice.toLocaleString('en-IN') %></span>
+                                </div>
+                                <form action="/addToCart" method="POST" class="mt-4">
+                                    <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-200 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                        </svg>
+                                        Add to Cart
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div> 
+            </div>
+        </div>
+        
+    
+        <script>
+            async function removeFromWishlist(id) {
+                console.log(`Removing item with id ${id} from wishlist`);
+                try {
+                    const response = await fetch(`/wishlist/remove/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+    
+                    // Optionally, refresh the wishlist or remove the item from the DOM
+                    location.reload(); // Reload the page to reflect changes
+                } catch (error) {
+                    console.error('Error removing item:', error);
+                }
+            }
+        </script>
+        <script>
+        document.querySelectorAll('.add-to-cart-form').forEach(form => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent the default form submission
+        
+                const productId = form.dataset.productId; // Get the product ID from the data attribute
+        
+                try {
+                    const response = await fetch('/addToCart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ productId, quantity: 1 }) // Send the product ID and quantity
+                    });
+        
+                    const data = await response.json(); // Parse the JSON response
+                    
+                    if (response.ok) {
+                        // Show a success message
+                        document.getElementById('flash-message').innerText = data.message;
+                        document.getElementById('flash-message').style.display = 'block';
+                        document.getElementById('flash-message').style.color = 'green'; // Optional styling
+        
+                        // Optionally, you can update the cart count or UI here
+                    } else {
+                        // Show an error message
+                        document.getElementById('flash-message').innerText = data.message;
+                        document.getElementById('flash-message').style.display = 'block';
+                        document.getElementById('flash-message').style.color = 'red'; // Optional styling
+                    }
+                } catch (error) {
+                    console.error('Error adding to cart:', error);
+                    document.getElementById('flash-message').innerText = 'Failed to add product to cart.';
+                    document.getElementById('flash-message').style.display = 'block';
+                    document.getElementById('flash-message').style.color = 'red';
+                }
+            });
+        });
+        </script>
+        
+    </body>
+    
+
