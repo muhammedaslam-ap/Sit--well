@@ -153,7 +153,7 @@
 
                               <% if(!isCoupon){ %>
                                 
-                                <%= orderDetails.finalAmount.toFixed(2) %>
+                                <%= orderDetails.totalPrice.toFixed(2) %>
                               <% } else { %>
                               
                                 <%= newPrice.toFixed(2) %>
@@ -163,9 +163,9 @@
                             <% if(isCoupon){ %>
                               <p class="text-success">Coupon applied!</p>
                               <p>Original Price: ₹
-                                <s><%= orderDetails.finalAmount.toFixed(2) %></s></p>
+                                <s><%= orderDetails.totalPrice.toFixed(2) %></s></p>
                               <p>You saved: ₹
-                                <%= (orderDetails.finalAmount - newPrice).toFixed(2) %></p>
+                                <%= (orderDetails.totalPrice - newPrice).toFixed(2) %></p>
                             <% } %>
                             </td>
                       </tfoot>

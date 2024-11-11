@@ -231,7 +231,15 @@
                     <tfoot>
                         <tr class="total-row">
                             <td colspan="4" class="text-end">Sub-Total:</td>
-                            <td class="text-end">$<%= order.totalPrice.toFixed(2) %></td>
+                            <td class="text-end">
+                                <% if (order.finalAmount > 0) { %>
+                                    
+
+                                    ₹<%= order.finalAmount.toFixed(2) %>
+                                <% } else { %>
+                                    ₹<%= order.totalPrice.toFixed(2) %>
+                                <% } %>
+                            </td>
                         </tr>
                     </tfoot>
                 </table>

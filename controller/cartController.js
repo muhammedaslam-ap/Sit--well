@@ -275,12 +275,29 @@ const getCheckOut = async (req, res) => {
     try {
         const userId = req.session.user._id;
         const userCart = await Cart.findOne({ userId }).populate('items.productId');
+        if (!userCart || userCart.items.length === 0) {
+            req.flash('error', 'Your cart is empty. Please add items before proceeding to checkout.');
+            return res.redirect('/cart');
+        }
+
+        for (let item of userCart.items) {
+            const product = await Product.findById(item.productId._id);
+
+            if (item.quantity > product.quantity) {
+                req.flash('error', `Not enough stock for ${product.productName}. Available: ${product.quantity}`);
+                return res.redirect('/cart'); 
+            }
+        }
+
         const userAddress = await Address.findOne({ userId });
 
         if (!userAddress || userAddress.address.length === 0) {
             req.flash('error', 'Please add an address before checkout.');
             return res.redirect('/cart');
         }
+
+
+
 
         const subtotal = userCart.items.reduce((total, item) => {
             return total + (item.totalPrice || 0); // Fallback to 0 if totalPrice is undefined

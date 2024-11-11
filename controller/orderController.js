@@ -26,7 +26,7 @@ const getOrderSuccess = async (req, res) => {
             req.flash('error', 'Order details not found');
             return res.redirect('/checkout'); 
         }
-
+     
         // Retrieve user cart and address details
         const userCart = await Cart.findOne({ userId }).populate('items.productId');
         const userAddress = await Address.findOne({ userId }); // Fetch the user's address
@@ -65,6 +65,7 @@ const getOrderSuccess = async (req, res) => {
         await Cart.deleteOne({ userId });
         
         req.session.coupon = null;
+        req.session.paypalDetails = false;
 
         return res.render('orderSuccess', {
             orderDetails: orderDetails,
@@ -85,11 +86,11 @@ const getOrderSuccess = async (req, res) => {
 const proceedTopayment = async (req, res) => {
     try {
         const userId = req.session.user._id; 
-        const { selectedAddress, selectedPayment } = req.body;
+        const { selectedAddress, selectedPayment } =  req.session.paypalDetails ?    req.session.paypalDetails : req.body;
 
         // console.log("User ID:", userId);
-        // console.log("Selected Address ID:", selectedAddress);
-        // console.log("Selected Payment:", selectedPayment);
+        console.log("Selected Address ID:", selectedAddress);
+        console.log("Selected Payment:", selectedPayment);
 
         if (!selectedAddress || !selectedPayment) {
             req.flash('error', 'Please select an address and a payment method.');
@@ -101,10 +102,22 @@ const proceedTopayment = async (req, res) => {
             "address._id": new mongoose.Types.ObjectId(selectedAddress)
         });
 
-        console.log("User Address Found:", userAddress);
 
         const userCart = await Cart.findOne({ userId }).populate('items.productId');
-        console.log("User Cart Found:", userCart);
+        if (!userCart || userCart.items.length === 0) {
+            req.flash('error', 'Your cart is empty. Please add items before proceeding to payment.');
+            return res.redirect('/checkout');
+        }
+
+        for (let item of userCart.items) {
+            const product = await Product.findById(item.productId._id);
+
+            if (!product || item.quantity > product.quantity) {
+                req.flash('error', `Not enough stock for ${product ? product.productName : 'a product'}. Available: ${product ? product.quantity : 0}`);
+                return res.redirect('/checkout'); 
+            }
+        }
+
 
         if (!userAddress) {
             req.flash('error', 'Invalid address selected.');
@@ -117,7 +130,24 @@ const proceedTopayment = async (req, res) => {
         }
 
         const totalPrice = userCart.items.reduce((total, item) => total + item.price * item.quantity, 0);
-        const finalAmount = totalPrice;
+
+        let isCoupon = false;
+
+        let discount = 0;
+        const sessiocoupon = req.session.coupon;
+        console.log(sessiocoupon)
+        if (sessiocoupon) {
+            isCoupon = true
+            const validCoupon = await Coupon.findOne({ couponCode: sessiocoupon.couponCode, islist: true });
+            if (validCoupon) {
+                discount = (totalPrice * validCoupon.discount) / 100;
+            }
+        } else {
+            console.log('No coupons applied');
+        }
+
+        const newPrice = totalPrice - discount;
+
 
         const selectedAddressDetails = userAddress.address.find(addr => addr._id.toString() === selectedAddress);
         console.log("Selected Address Details:", selectedAddressDetails);
@@ -145,8 +175,8 @@ const proceedTopayment = async (req, res) => {
         const newOrder = new Order({
             userId,
             orderedItems: cartItems,
-            totalPrice,
-            finalAmount,
+            totalPrice:totalPrice,
+            finalAmount:newPrice,
             address: [
                 {
                     userId: userAddress.userId,
@@ -167,8 +197,13 @@ const proceedTopayment = async (req, res) => {
             createdOn: new Date()
         });
 
-        console.log("New Order to Save:", newOrder); 
+        console.log(newOrder.totalPrice,'this want you want to see')
+        console.log(newOrder.finalAmount,'this want you want to see')
 
+
+        
+        console.log("New Order to Save:", newOrder); 
+        req.session.newOrder = newOrder
         await newOrder.save();
 
         for (const item of cartItems) {

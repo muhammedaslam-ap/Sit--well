@@ -16,6 +16,7 @@ const orderController = require('../controller/orderController')
 const whishlistController = require('../controller/whishlistController')
 const paymentController = require('../controller/paypalController')
 const couponController = require('../controller/couponController')
+const walletController = require('../controller/walletController')
 
 userRoute.get('/',userController.landing)
 
@@ -62,6 +63,7 @@ userRoute.get('/checkout',userAuth,cartController.getCheckOut)
 
 userRoute.get('/orderSuccess',userAuth,orderController.getOrderSuccess)
 userRoute.post('/proceedToPayment',userAuth,orderController.proceedTopayment)
+userRoute.get('/proceedToPayment',userAuth,orderController.proceedTopayment)
 userRoute.get('/order',userAuth,orderController.getYourOrder)
 userRoute.get('/orderDetails/:orderId',userAuth,orderController.retrieveOrderDetails)
 userRoute.post('/orderCancel/:orderId',userAuth,orderController.orderCancelorRturn)
@@ -75,16 +77,30 @@ userRoute.delete('/wishlist/remove/:id', userAuth,whishlistController. removePro
 
 userRoute.get('/userCoupons',userAuth,couponController.getuserCoupons)
 userRoute.post('/applyCoupon',userAuth,couponController.applycoupon)
-
-
-
-userRoute.get('/payProduct',userAuth,paymentController.payProduct)
-userRoute.get('/paymentseccuss',userAuth,paymentController.success)
-userRoute.get('/paymentfail',userAuth,paymentController.cancel)
-
-
 userRoute.post('/applyCoupon',userAuth,couponController.applycoupon)
 userRoute.post('/removeCoupon',userAuth,couponController.removeCoupon)
+
+
+
+userRoute.post('/paypalPayment',userAuth,paymentController.paypalPayment)
+userRoute.get('/paymentseccuss',userAuth,paymentController.success)
+userRoute.post('/paymentseccuss',userAuth,paymentController.paypalPayment)
+// userRoute.get('/paymentfail',userAuth,paymentController.cancel)
+
+
+userRoute.get('/userwallet',userAuth,walletController.getUserWallet)
+userRoute.post('/userwallet',userAuth,walletController.saveWallet)
+
+
+userRoute.post('/walletPayment',userAuth,walletController.processWalletPayment)
+
+
+
+
+
+
+
+
 
 
        

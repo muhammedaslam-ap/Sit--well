@@ -167,13 +167,13 @@
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-body">
                             <h2 class="card-title mb-4">Payment Methods</h2>
-                            <div class="payment-option mb-3 p-3 border rounded" id="check-payment">
+                            <div class="payment-option mb-3 p-3 border rounded" id="wallet-payment">
                                 <div class="d-flex align-items-center">
-                                    <div class="payment-icon me-3">💳</div>
+                                    <div class="payment-icon me-3">💼</div>
                                     <div class="flex-grow-1">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="payment" id="check-option" value="check">
-                                            <label class="form-check-label" for="check-option" onclick="">Check payments</label>
+                                            <input class="form-check-input" type="radio" name="payment" id="wallet-option" value="wallet">
+                                            <label class="form-check-label" for="wallet-option" onclick="">wallet</label>
                                         </div>
                                     </div>
                                 </div>
@@ -403,47 +403,159 @@
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-       const paymentOptions = document.querySelectorAll('.payment-option input[name="payment"]');
-       const addressOptions = document.querySelectorAll('input[name="addressChoice"]');
-       const selectedAddressInput = document.getElementById('selectedAddress');
-       const selectedPaymentInput = document.getElementById('selectedPayment');
-       const termsCheckbox = document.getElementById('f-option4');
-       const proceedButton = document.getElementById('proceed-btn');
-   
-       document.getElementById('proceed-btn').addEventListener('click', (e) => {
-       console.log("Selected Address:", document.getElementById('selectedAddress').value);
-       console.log("Selected Payment:", document.getElementById('selectedPayment').value);
-       });
-   
-       function updateProceedButton() {
-           const isPaymentSelected = document.querySelector('input[name="payment"]:checked');
-           proceedButton.disabled = !(isPaymentSelected && termsCheckbox.checked && selectedAddressInput.value);
-       }
-   
-       // Update selected address value
-       addressOptions.forEach(option => {
-           option.addEventListener('change', function() {
-               selectedAddressInput.value = this.value;
-               updateProceedButton();
-           });
-       });
-   
-       // Update selected payment method value
-       paymentOptions.forEach(option => {
-           option.addEventListener('change', function() {
-               selectedPaymentInput.value = this.value;
-               updateProceedButton();
-           });
-       });
-   
-       // Enable button based on terms acceptance
-       termsCheckbox.addEventListener('change', updateProceedButton);
-   });
+document.addEventListener('DOMContentLoaded', function () {
+    const paymentOptions = document.querySelectorAll('.payment-option input[name="payment"]');
+    const addressOptions = document.querySelectorAll('input[name="addressChoice"]');
+    const selectedAddressInput = document.getElementById('selectedAddress');
+    const selectedPaymentInput = document.getElementById('selectedPayment');
+    const termsCheckbox = document.getElementById('f-option4');
+    const proceedButton = document.getElementById('proceed-btn');
+    
+    // PayPal and Wallet buttons created dynamically
+    const paypalButton = document.createElement('button');
+    paypalButton.id = 'paypal-button';
+    paypalButton.className = 'btn btn-primary mt-3';
+    paypalButton.style.display = 'none';
+    paypalButton.innerText = 'Proceed with PayPal';
+    
+    const walletButton = document.createElement('button');
+    walletButton.id = 'wallet-button';
+    walletButton.className = 'btn btn-primary mt-3';
+    walletButton.style.display = 'none';
+    walletButton.innerText = 'Proceed with Wallet';
+
+    // Add the buttons to the DOM
+    document.getElementById('paypal-payment').appendChild(paypalButton);
+    document.getElementById('wallet-payment').appendChild(walletButton);
+
+    // Update selected address
+    addressOptions.forEach(option => {
+        option.addEventListener('change', function () {
+            selectedAddressInput.value = this.value;
+            updateButtonStates();
+        });
+    });
+
+    // Save the selected payment method
+    function saveSelectedPaymentMethod(paymentMethod) {
+        localStorage.setItem('selectedPaymentMethod', paymentMethod);
+    }
+
+    // Retrieve and pre-select the saved payment method
+    const savedPaymentMethod = localStorage.getItem('selectedPaymentMethod');
+    if (savedPaymentMethod) {
+        const savedPaymentOption = document.querySelector(`input[name="payment"][value="${savedPaymentMethod}"]`);
+        if (savedPaymentOption) {
+            savedPaymentOption.checked = true;
+            selectedPaymentInput.value = savedPaymentMethod;
+            updateButtonStates();
+        }
+    }
+
+    // Update selected payment method and button visibility
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function () {
+            selectedPaymentInput.value = this.value;
+            updateButtonStates();
+
+            // Save the selected payment method
+            saveSelectedPaymentMethod(this.value);
+
+            if (this.value === 'paypal') {
+                paypalButton.style.display = 'block';
+                walletButton.style.display = 'none';
+                proceedButton.style.display = 'none';
+            } else if (this.value === 'wallet') {
+                walletButton.style.display = 'block';
+                paypalButton.style.display = 'none';
+                proceedButton.style.display = 'none';
+            } else if (this.value === 'cash') {
+                proceedButton.style.display = 'block';
+                walletButton.style.display = 'none';
+                paypalButton.style.display = 'none';
+            }
+        });
+    });
+
+    // Enable button based on selections
+    function updateButtonStates() {
+        const isAddressSelected = selectedAddressInput.value !== "";
+        const isPaymentSelected = !!document.querySelector('input[name="payment"]:checked');
+        
+        // Enable buttons only if terms are accepted, address and payment are selected
+        proceedButton.disabled = !(isPaymentSelected && termsCheckbox.checked && isAddressSelected && selectedPaymentInput.value === 'cash');
+        paypalButton.disabled = !(isPaymentSelected && termsCheckbox.checked && isAddressSelected && selectedPaymentInput.value === 'paypal');
+        walletButton.disabled = !(isPaymentSelected && termsCheckbox.checked && isAddressSelected && selectedPaymentInput.value === 'wallet');
+    }
 
 
-   ////////////applying for coupon////////////////
-   // JavaScript to handle coupon removal
+const totalAmount = '<%!isCoupon%>'?'<%=subtotal%>':'<%=newTotal%>'
+
+walletButton.addEventListener('click', function() {
+    const amount = totalAmount; 
+    const address = selectedAddressInput.value;
+    const paymentMethod = selectedPaymentInput.value;
+
+
+
+    fetch('/walletPayment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({     
+            totalAmount: amount,
+            selectedAddress: address,
+            selectedPayment: paymentMethod
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url || '/orderSuccess';
+        } else {
+            alert(data.message || "Payment could not be completed. Please check your balance.");
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+
+    paypalButton.addEventListener('click', function() {
+        fetch('/paypalPayment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({     
+        totalAmount: totalAmount,
+        selectedAddress:selectedAddressInput.value,
+        selectedPayment:selectedPaymentInput.value
+    })
+})
+.then(response => response.json())
+.then(data => {
+    if (data.success && data.approval_url) {
+            window.location.href = data.approval_url;
+        } else {
+            alert("Error initiating PayPal payment. Please try again.");
+      }
+})
+.catch(error => console.error('Error:', error));
+    });
+
+    termsCheckbox.addEventListener('change', updateProceedButton);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
    
  
 

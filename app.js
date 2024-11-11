@@ -8,6 +8,7 @@
  const session = require('express-session')
  const db = require('./configaration/db')
  const passport = require('./configaration/passport')
+ const paypal = require('paypal-rest-sdk')
  db();
  
  
@@ -23,9 +24,7 @@
         maxAge:72*60*60*1000
     }
  }))
-
-
-
+ 
 
  app.use(passport.initialize())
  app.use(passport.session());

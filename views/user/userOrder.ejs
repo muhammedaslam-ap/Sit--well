@@ -263,7 +263,15 @@
                             <% }) %>
                             <tr class="order-total">
                                 <td colspan="3"><strong>Order Total:</strong></td>
-                                <td>₹<%= order.totalPrice.toFixed(2) %></td>
+                                <td>
+                                    <% if (order.finalAmount > 0) { %>
+                                        
+
+                                        ₹<%= order.finalAmount.toFixed(2) %>
+                                    <% } else { %>
+                                        ₹<%= order.totalPrice.toFixed(2) %>
+                                    <% } %>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

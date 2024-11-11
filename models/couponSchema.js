@@ -37,6 +37,17 @@ const couponSchema=new Schema({
     type:Boolean,
     default:true
    },
+   user:[{
+      userId: {
+         type: Schema.Types.ObjectId,
+         ref: 'User', 
+         required: true 
+     },
+     couponLimit:{
+      type:Number,
+      default:0
+     }
+   }]
 })
 const Coupon = mongoose.model('Coupon',couponSchema)
 module.exports=  Coupon

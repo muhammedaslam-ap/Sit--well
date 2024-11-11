@@ -22,6 +22,7 @@ const createCoupon = async (req, res) => {
             req.flash('error', 'All fields are required');
             return res.status(400).redirect('/admin/coupon');
         }
+        
 
         const newCoupon = new Coupon({
             name,
@@ -78,8 +79,8 @@ const couponListing = async (req,res)=>{
 const getuserCoupons = async (req,res)=>{
     try {
         const userId = req.session.user._id
-        const coupons = await Coupon.find({islist:true})
-        res.render('userCoupons',{coupons,userId})
+        const coupons = await Coupon.find({ islist: true }).populate('user.userId');
+        res.render('userCoupons',{coupons:coupons,userId})
 
     } catch (error) {
         console.error('an error finded in getting copon in user side',error)
@@ -89,13 +90,32 @@ const getuserCoupons = async (req,res)=>{
 
 const applycoupon = async (req, res) => {
     const { couponCode }= req.body;
-
+    const userId = req.session.user._id
     console.log(couponCode)
     const coupon = await Coupon.findOne({ couponCode: couponCode, islist: true });
     if (coupon && new Date() <= coupon.expireOn) {
+
+        let userEntry = coupon.user.find(entry => entry.userId.toString() === userId.toString());
+
+        if (userEntry) {
+            if (userEntry.couponLimit >= coupon.limit) {
+                req.flash('error', 'You have reached the usage limit for this coupon');
+                return res.redirect('/checkout');
+            } else {
+                userEntry.couponLimit += 1;
+            }
+        } else {
+            coupon.user.push({ userId: userId, couponLimit: 1 });
+        }
+
+        await coupon.save();
+
         req.session.coupon = coupon;  
         req.flash('success', `Coupon applied: ${coupon.discount}% off!`);
         res.redirect('/checkout');
+
+
+
     } else {
         req.flash('error', 'Invalid or expired coupon');
         res.redirect('/checkout');

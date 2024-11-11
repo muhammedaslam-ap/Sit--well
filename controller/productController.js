@@ -1,5 +1,7 @@
 const Product = require("../models/productSchema");
 const Category = require("../models/categorySchema");
+const Cart = require('../models/cartSchema')
+const Wishlist = require('../models/whishlistSchema')
 const mongoose = require('mongoose')
 const fs = require("fs");
 const path = require("path");
@@ -132,18 +134,29 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-const blockProduct = async(req,res) => {
-  try {
+const blockProduct = async (req, res) => {
+    try {
       let id = req.query.id;
       
-      await Product.updateOne({_id:id},{$set:{isBlocked:true}});
+      await Product.updateOne({ _id: id }, { $set: { isBlocked: true } });
+      
+      await Cart.updateMany(
+        { 'items.productId': id },
+        { $pull: { items: { productId: id } } }
+      );
+  
+      await Wishlist.updateMany(
+        { 'products.productId': id },
+        { $pull: { products: { productId: id } } }
+      );
+      
       res.redirect("/admin/products");
-  } catch (error) {
-      console.error('Error blocking product:', error); 
+    } catch (error) {
+      console.error('Error blocking product:', error);
       res.redirect("/admin/pageerror");
-  }
-}
-
+    }
+  };
+  
 const unblockProduct = async (req,res) => {
   try {
       let id = req.query.id;
