@@ -23,6 +23,10 @@ const productSchema = new Schema({
         type: Number,
         required: true,
     },
+    offerPrice:{
+        type: Number,
+        default: 0,
+    },
     productOffer: {
         type: Number,
         default: 0,

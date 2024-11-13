@@ -86,6 +86,11 @@ adminRoute.get('/couponMenage',adminAuth,couponController.couponMenagent)
 adminRoute.put('/couponManage/toggle/:id',adminAuth,couponController.couponListing)
 
 
+adminRoute.get('/salesReport',adminAuth,adminController.getSalesReport)
+adminRoute.get('/getDownloadPdf',adminAuth,adminController.getDownloadPdf)
+adminRoute.get('/getDownloadExel',adminAuth,adminController.getDownloadExel)
+
+
 
 
 

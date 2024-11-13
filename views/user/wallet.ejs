@@ -1,237 +1,131 @@
 <%- include('../../views/partials/user/profileHeader.ejs') %>
 
-<!-- Styles -->
 <style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #f0f2f5;
-    }
-    .card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 24px;
-        margin-bottom: 24px;
-    }
-    .card-title {
-        font-size: 28px;
-        font-weight: bold;
-        margin-bottom: 12px;
-        color: #2c3e50;
-    }
-    .card-description {
-        color: #7f8c8d;
-        margin-bottom: 20px;
-    }
-    .balance {
-        font-size: 42px;
-        font-weight: bold;
-        margin-bottom: 24px;
-        color: #27ae60;
-    }
-    button {
-        background-color: #3498db;
-        color: #fff;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
-    }
-    button:hover {
-        background-color: #2980b9;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th, td {
-        text-align: left;
-        padding: 14px;
-        border-bottom: 1px solid #ecf0f1;
-    }
-    th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-        color: #34495e;
-    }
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        backdrop-filter: blur(5px);
-    }
-    .modal-content {
-        background-color: #fff;
-        margin: 10% auto;
-        padding: 30px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        animation: modalFadeIn 0.3s;
-    }
-    @keyframes modalFadeIn {
-        from {opacity: 0; transform: translateY(-50px);}
-        to {opacity: 1; transform: translateY(0);}
-    }
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: color 0.3s ease;
-    }
-    .close:hover {
-        color: #2c3e50;
-    }
-    .credit {
-        color: #27ae60;
-    }
-    .debit {
-        color: #c0392b;
-    }
-    #amountInput {
-        width: 100%;
-        padding: 12px;
-        margin: 16px 0;
-        border: 2px solid #bdc3c7;
-        border-radius: 6px;
-        font-size: 18px;
-        transition: border-color 0.3s ease;
-    }
-    #amountInput:focus {
-        outline: none;
-        border-color: #3498db;
-    }
-    .modal-title {
-        font-size: 24px;
-        color: #2c3e50;
-        margin-bottom: 12px;
-    }
-    .modal-description {
-        color: #7f8c8d;
-        margin-bottom: 20px;
+    .transaction-history {
+        height: 300px;
+        overflow-y: auto;
     }
 </style>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="card-title">Wallet Balance</h2>
+                        <p class="card-text">Your current balance and options</p>
+                        <h3 class="display-4 mb-4"><span id="balance"><% if(wallet.balance>0){%> ₹<%= wallet.balance.toFixed(2) %><% }else{ %>₹0<% } %></span></h3>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMoneyModal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle me-2" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            Add Money
+                        </button>
+                    </div>
+                </div>
 
-<!-- Toastr and SweetAlert Libraries -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Transaction History</h2>
+                        <div class="transaction-history">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionBody">
+                                    <% if(wallet){%>
+                                <% for (let i = 0 ; i < wallet.transactions.length ; i++ ) { %>
+                                    <tr>
+                                        <td><%= new Date(wallet.transactions[i].transaction_date).toDateString() %></td>
+                                        <td>₹<%= wallet.transactions[i].amount.toFixed(2) %></td>
+                                        <% if( wallet.transactions[i].transaction_type === "Debit") { %>
+                                        <td class="text-danger"><%= wallet.transactions[i].transaction_type %></td> 
+                                        <% } else { %>
+                                        <td class="text-success"><%= wallet.transactions[i].transaction_type %></td> %>
+                                        <% } %>
+                                    </tr>
+                                <% } %>
+                                <% }else{ %>
+                                    <span>no transations</span>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Money Modal -->
+    <div class="modal fade" id="addMoneyModal" tabindex="-1" aria-labelledby="addMoneyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMoneyModalLabel">Add Money to Wallet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Enter amount</label>
+                        <input type="number" min="0" class="form-control" id="amount" placeholder="Enter amount">
+                        <div id="errorAmount" class="error-message text-danger"></div>
+                    </div>
+                    <div class="mb-3 px-3">
+                        <input class="form-check-input" type="radio" name="payment" id="Paypal" checked>
+                        <label class="form-check-label" for="Paypal">Paypal</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="validation()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- SweetAlert Success/Error Messages -->
-<% if (successMessage && successMessage.length) { %>
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: '<%= successMessage %>',
-            confirmButtonText: 'OK'
-        });
-    </script>
-<% } %>
-<% if (errorMessage && errorMessage.length) { %>
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: '<%= errorMessage %>',
-            confirmButtonText: 'OK'
-        });
-    </script>
-<% } %>
-
-<!-- Wallet Balance and Add Money Button -->
-<div class="card mt-5">
-    <h2 class="card-title">Your Wallet</h2>
-    <p class="card-description">Manage your funds and view transaction history</p>
-    <div class="balance" id="balance">Balance: ₹
-            <% if (wallet.balance > 0) { %>
-                <%= wallet.balance.toFixed(2) %>
-            <% } else { %>
-                0
-            <% } %>
-        </div>
-        <button id="addMoneyBtn" type="button">Add Money</button>
-
-        </div>
-</div>
-
-<!-- Transaction History Display -->
-<div class="card">
-    <h2 class="card-title">Transaction History</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>&nbsp;&nbsp;&nbsp;&nbsp;Date   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Time</th>
-                <th>Type</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% for (let i = 0; i < wallet.transactions.length; i++) { %>
-                <tr>
-                    <td><%= wallet.transactions[i].transaction_date.toLocaleString() %></td>
-                    <td class="<%= wallet.transactions[i].transaction_type %>"><%= wallet.transactions[i].transaction_type %></td>
-                    <td>₹<%= wallet.transactions[i].amount.toFixed(2) %></td>
-                </tr>
-            <% } %>
-        </tbody>
-    </table>
-    <p class="card-description" id="transactionCount">Showing <%= wallet.length %> recent transactions</p>
-</div>
-
-<!-- Modal for Adding Money -->
-<div id="addMoneyModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 class="modal-title">Add Money to Wallet</h2>
-        <p class="modal-description">Enter the amount you want to add to your wallet.</p>
-        <form action="/userwallet" method="post">
-            <input type="number" id="amountInput" name="amount" placeholder="Enter amount" min="0" step="1">
-            <button id="confirmAddMoney" type="submit">Add to Wallet</button>
-        </form>  
-    </div>
-</div>
-
-<!-- JavaScript for Modal, Toastr, and Toast Notifications -->
 <script>
-    const addMoneyBtn = document.getElementById('addMoneyBtn');
-    const modal = document.getElementById('addMoneyModal');
-    const closeBtn = document.getElementsByClassName('close')[0];
-    const balanceElement = document.getElementById('balance');
-    const transactionCount = document.getElementById('transactionCount');
-
-    // Toastr configuration
-    toastr.options = {
-        "closeButton": true,
-        "progressBar": true,
-        "positionClass": "toast-bottom-right",
-        "timeOut": "3000"
-    };
-
-    // Function to update balance display
-    function updateBalance(newBalance) {
-        balanceElement.textContent = `Balance: $${newBalance.toFixed(2)}`;
+    function validation() {
+    const addAmount = document.getElementById("amount").value.trim();
+    event.preventDefault();
+    if(addAmount <= 0 ) {
+        errorAmount.style.display = "block";
+        errorAmount.innerHTML = "Please enter  positive Amount";
+    } else {
+        addMoney(addAmount)
+    }
     }
 
-    // Open and close modal
-    addMoneyBtn.onclick = () => { modal.style.display = "block"; };
-    closeBtn.onclick = () => { modal.style.display = "none"; };
-    window.onclick = event => { if (event.target == modal) modal.style.display = "none"; };
+
+    function addMoney(addAmount) {
+    
+
+    fetch('/addMoneyThroughPaypal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    addAmount:addAmount
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.approval_url) {
+                    window.location.href = data.approval_url;
+                } else {
+                    alert("Error initiating PayPal payment. Please try again.");
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
 </script>
 
 <%- include('../../views/partials/user/profileFooter.ejs') %>

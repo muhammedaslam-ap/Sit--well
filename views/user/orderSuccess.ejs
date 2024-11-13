@@ -85,7 +85,7 @@
                         <li><p>Order Number</p><span>: <%= orderDetails.orderId %></span></li>
                         <li><p>Date</p><span>: <%= orderDetails.createdOn.toLocaleDateString() %></span></li>
                         <li><p>Total</p><span>Rs: <% if(!isCoupon){ %>₹
-                          <%= orderDetails.finalAmount.toFixed(2) %> <% }else{ %>₹
+                          <%= orderDetails.totalPrice.toFixed(2) %> <% }else{ %>₹
                             <%=newPrice.toFixed(2)%><% } %></span></li>
                         <li><p>Payment Method</p><span>: <%= orderDetails.paymentMethod %></span></li>
                     </ul>

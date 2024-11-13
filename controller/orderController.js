@@ -4,6 +4,7 @@ const Address = require('../models/addressSchema');
 const Order = require('../models/orderSchema');
 const Product  = require('../models/productSchema')
 const Coupon = require('../models/couponSchema')
+const Wallet = require('../models/walletSchema')
 const User = require('../models/userSchema')
 
 
@@ -132,7 +133,7 @@ const proceedTopayment = async (req, res) => {
         const totalPrice = userCart.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
         let isCoupon = false;
-
+        let newPrice = 0
         let discount = 0;
         const sessiocoupon = req.session.coupon;
         console.log(sessiocoupon)
@@ -141,12 +142,12 @@ const proceedTopayment = async (req, res) => {
             const validCoupon = await Coupon.findOne({ couponCode: sessiocoupon.couponCode, islist: true });
             if (validCoupon) {
                 discount = (totalPrice * validCoupon.discount) / 100;
+                newPrice = totalPrice - discount;
             }
         } else {
             console.log('No coupons applied');
         }
 
-        const newPrice = totalPrice - discount;
 
 
         const selectedAddressDetails = userAddress.address.find(addr => addr._id.toString() === selectedAddress);
@@ -305,6 +306,10 @@ const updateOrderStatus = async (req, res) => {
         if (order.status === 'Shipped' || order.status === 'Delivered') {
             req.flash('error', 'Order cannot be Cancelled after it has been shipped or delivered.');
             return res.redirect('/order');
+        }
+        if (order.status === 'Returned') {
+            req.flash('error', 'This order has already been return by user');
+            return res.redirect('/admin/orderDetails');
         }
 
         const isBecomingCancelled = status === 'Cancelled';
@@ -465,11 +470,48 @@ const orderCancelorRturn = async (req, res) => {
             order.status = 'Cancelled'; 
             req.flash('success', 'Order has been successfully cancelled.');
         }
+
+        const wallet = await Wallet.findOne({ user: userId });
+
+        if (!wallet) {
+            console.error("Wallet not found for the user.");
+            return;
+        }
+        
+        let amountToCredit;
+        if (order.finalAmount > 0) {
+            amountToCredit = order.finalAmount;
+        } else if (order.totalPrice && order.finalAmount === 0) {
+            amountToCredit = order.totalPrice;
+        } else {
+            console.error("No amount to credit.");
+            return;
+        }
+        
+        const newBalance = wallet.balance + amountToCredit;
+        await Wallet.updateOne(
+            { user: userId },
+            {
+                $set: { balance: newBalance },
+                $push: {
+                    transactions: {
+                        transaction_date: Date.now(),
+                        transaction_type: "Credit",
+                        transaction_status: "Completed",
+                        amount: amountToCredit
+                    }
+                }
+            }
+        );
+        
+       
     
         // Restore stock quantities for each product in the returned/cancelled order
         const productUpdatePromises = order.orderedItems.map(async (orderItem) => {
             if (orderItem.product && orderItem.quantity) {
                 try {
+                  
+
                     const product = await Product.findById(orderItem.product._id);
                     if (product) {
                         product.quantity += orderItem.quantity;

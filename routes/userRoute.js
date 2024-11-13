@@ -87,10 +87,12 @@ userRoute.get('/paymentseccuss',userAuth,paymentController.success)
 userRoute.post('/paymentseccuss',userAuth,paymentController.paypalPayment)
 // userRoute.get('/paymentfail',userAuth,paymentController.cancel)
 
-
-userRoute.get('/userwallet',userAuth,walletController.getUserWallet)
-userRoute.post('/userwallet',userAuth,walletController.saveWallet)
-
+//CouponManagement
+userRoute.get("/userwallet",userAuth,walletController.loadWallet);
+userRoute.post("/addMoneyThroughPaypal",userAuth,walletController.getPayPal);
+userRoute.get("/walletSuccessPayPal",userAuth,walletController.successPayPal);
+userRoute.get("/walletCancelPayPal",userAuth,walletController.cancelPayPal);
+userRoute.get("/addMoneyToWallet",userAuth,walletController.addMoneyToWallet);
 
 userRoute.post('/walletPayment',userAuth,walletController.processWalletPayment)
 

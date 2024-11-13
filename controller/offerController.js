@@ -65,13 +65,16 @@ const addOffer = async (req, res) => {
                 req.flash('error', 'Product not found');
                 return res.redirect('/admin/addOffer');
             }
-        
+
             const salePrice = product.regularPrice * (1 - discountPercentage / 100);
+            const offerPrice = product.salePrice - salePrice        
+
         
             await Product.findByIdAndUpdate(
                 productName,
                 {
                     productOffer: discountPercentage,
+                    offerPrice:offerPrice,
                     salePrice: salePrice,
                 },
                 { new: true }

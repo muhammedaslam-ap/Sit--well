@@ -129,7 +129,7 @@ const success = async (req, res) => {
         });
     } catch (error) {
         console.error("Unexpected error:", error);
-        res.redirect('/paymentError'); // Redirect to an error page if something fails
+        res.redirect('/paymentError'); 
     }
 };
 

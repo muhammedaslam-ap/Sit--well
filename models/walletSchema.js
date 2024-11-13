@@ -23,12 +23,12 @@ const walletSchema = new mongoose.Schema({
             },
             transaction_type: {
                 type: String,
-                enum: ["debit", "credit"],
+                enum: ["Debit", "Credit",'Deposit'],
                 required: true,
             },
             transaction_status: {
                 type: String,
-                enum: ["pending", "completed", "failed"],
+                enum: ["pending", "Completed", "failed"],
                 required: true,
             },
             amount: {

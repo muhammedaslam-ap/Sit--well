@@ -1,31 +1,107 @@
-const Wallet = require('../models/walletSchema')
-const User = require('../models/userSchema')
+const User = require("../models/userSchema");
+const Wallet = require("../models/walletSchema");
+const paypal = require('paypal-rest-sdk');
+const axios = require("axios");
 
 
-const getUserWallet = async (req, res) => {
+
+const loadWallet = async (req,res) => {
     try {
-        const userId = req.session.user._id;
 
-        let wallet = await Wallet.findOne({ user: userId });
+        const user = req.session.user._id;
+        const existingUserWallet = await Wallet.findOne({user: user}).populate("transactions")        
 
-        if (!wallet) {
-            wallet = { balance: 0, transactions: [] };
-        } else if (!wallet.transactions) {
-            wallet.transactions = [];
+        if(existingUserWallet) {
+            existingUserWallet.transactions.sort((a, b) => b.transaction_date - a.transaction_date);
+            res.render('wallet',{wallet:existingUserWallet})
+        } else {
+            res.render('wallet',{ wallet :false })
+        }
+    } catch (error) {
+        console.log("loading the Wallet Page has some issues", error);
+        res.status(500).json({success:false,message:"Server error"})
+    }
+}
+
+const addMoneyToWallet = async(req,res) => {
+    try {
+        const addAmount = req.session.walletAmount.addAmount
+        const user = req.session.user._id
+        const existingUserWallet = await Wallet.findOne({user : user})
+
+        if(user) {
+            if(existingUserWallet) {
+                const newBalance = Number(existingUserWallet.balance) + Number(addAmount)
+                
+                await Wallet.updateOne(
+                    { user: user },
+                    {
+                        $set: { balance: newBalance },
+                        $push: {
+                            transactions: {
+                               transaction_date: Date.now(),
+                                transaction_type: "Deposit",
+                                transaction_status: "Completed",
+                                amount: addAmount
+                            }
+                        }
+                    }
+                );
+    
+                res.redirect('/userwallet')
+            } else {
+                const newWallet = new Wallet({
+                    user:user,
+                    balance:addAmount,
+                    transactions:[{
+                        transaction_date: Date.now(),
+                        transaction_type:"Deposit",
+                        transaction_status:"Completed",
+                        amount:addAmount
+                    }]
+                })
+                await newWallet.save()
+                res.redirect('/userwallet')
+            }
+        } else {
+            res.redirect('/userwallet')
         }
 
-        console.log("Wallet data:", wallet);
-
-        res.render('wallet', { userId, wallet });
 
     } catch (error) {
-        console.error('Error in getUserWallet:', error);
-        res.redirect('/pageNotFound');
+        console.log("Money adding in wallet has some issues", error);
+        res.status(500).json({success:false,message:"Server error"})
     }
-};
+}
 
 
-const processWalletPayment = async (req, res) => {
+//currencyConverter
+const convertCurrency = async (amount) => {
+    try {
+      const apiKey = process.env.OPEN_EXCHANGE_API_KEY; 
+      const fromCurrency = 'INR'
+      const toCurrency = 'USD'
+  
+      const response = await axios.get(`https://openexchangerates.org/api/latest.json?app_id=${apiKey}`);
+      
+      if (response.data && response.data.rates) {
+        const usdToInrRate = response.data.rates[fromCurrency];
+        const usdToUsdRate = response.data.rates[toCurrency];
+        const convertedAmount = amount * (usdToUsdRate / usdToInrRate);
+        
+        return convertedAmount.toFixed(2);
+      } else {
+        throw new Error('Unable to retrieve exchange rates.');
+      }
+  
+    } catch (error) {
+      console.error('Currency conversion error:', error);
+      throw error;
+    }
+  };  
+
+
+  const processWalletPayment = async (req, res) => {
     try {
         const userId = req.session.user._id;
         const { totalAmount, selectedAddress, selectedPayment } = req.body;
@@ -45,15 +121,21 @@ const processWalletPayment = async (req, res) => {
             });
         }
 
-        wallet.balance -= amountToDebit;
-        wallet.transactions.push({
-            transaction_type: "debit",
-            transaction_status: "completed",
-            amount: amountToDebit,
-            transaction_date: new Date(),
-        });
+        const newBalance = wallet.balance - amountToDebit
+                await Wallet.updateOne(
+                    {user:userId},
+                    {$set:{balance:newBalance},
+                    $push: {
+                        transactions: {
+                            transaction_date: Date.now(),
+                            transaction_type: "Debit",
+                            transaction_status: "Completed",
+                            amount: totalAmount
+                        }
+                    }}
+                )
 
-        await wallet.save();
+console.log('newBalance:',newBalance);
 
         res.status(200).json({
             success: true,
@@ -70,70 +152,118 @@ const processWalletPayment = async (req, res) => {
     }
 };
 
+//payment integration
+paypal.configure({
+    'mode':process.env.PAYPAL_MODE,
+    'client_id':process.env.PAYPAL_CLIENT_ID,
+    'client_secret':process.env.PAYPAL_SECRET_KEY
+    
+})
 
-
-const saveWallet = async (req, res) => {
+const getPayPal = async(req,res) => {
     try {
-        const userId = req.session.user._id;
-        const { amount } = req.body;
-        console.log(amount)
-
-        const isCredit = true; 
-
-        if (!amount || isNaN(amount) || amount <= 0) {
-            return res.status(400).json({ error: 'Invalid amount' });
+        const addAmount = req.body.addAmount
+        const USDCurrency = await convertCurrency(addAmount);
+        console.log(addAmount)
+        
+        req.session.walletAmount = {
+            USDCurrency: USDCurrency,
+            addAmount:addAmount
         }
+        
+        const create_payment_json = {
+            "intent": "sale",
+            "payer": {
+                "payment_method": "Paypal"
+            },
+            "redirect_urls": {
+                "return_url": "http://localhost:3000/walletSuccessPayPal",
+                "cancel_url": "http://localhost:3000/walletCancelPayPal"
+            },
+            "transactions": [{
+                "item_list": {
+                    "items": [{
+                        "name": "Red Sox Hat",
+                        "sku": "001",
+                        "price": USDCurrency,
+                        "currency": "USD",
+                        "quantity": 1
+                    }]
+                },
+                "amount": {
+                    "currency": "USD",
+                    "total": USDCurrency
+                },
+                "description": "Hat for the best team ever"
+            }]
+        };
 
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        let wallet = await Wallet.findOne({ user: userId });
-
-        if (!wallet) {
-            if (!isCredit) {
-                return res.status(400).json({ error: 'Insufficient balance for debit transaction' });
-            }
-
-            wallet = new Wallet({
-                user: userId,
-                balance: parseFloat(amount),
-                transactions: []
-            });
-        } else {
-            if (isCredit) {
-                wallet.balance += parseFloat(amount); 
+        paypal.payment.create(create_payment_json, (error, payment) => {
+            if (error) {
+                console.error("PayPal error:", error);
+                res.status(500).json({ success: false, message: "PayPal payment creation failed." });
             } else {
-                if (wallet.balance < amount) {
-                    return res.status(400).json({ error: 'Insufficient balance for debit transaction' });
+                const approvalUrl = payment.links.find(link => link.rel === 'approval_url');
+                if (approvalUrl) {
+                    res.json({ success: true, approval_url: approvalUrl.href });
+                } else {
+                    res.status(500).json({ success: false, message: "Approval URL not found." });
                 }
             }
-        }
-
-        const transactionType = isCredit ? "credit" : "debit";
-
-        wallet.transactions.push({
-            transaction_type: transactionType,
-            transaction_status: "completed",
-            amount: parseFloat(amount),
-            transaction_date: new Date()
         });
 
-        await wallet.save();
-         
-        req.flash('success', 'Transaction successful', { balance: wallet.balance, transactions: wallet.transactions } )
-        res.redirect('/userwallet')
     } catch (error) {
-        console.error("Error saving wallet transaction:", error);
-        res.status(500).json({ error: 'An error occurred while processing the transaction' });
+        console.error("PayPal payment creation error:", error);
+        res.status(500).json({ success: false, message: "PayPal payment creation failed." });
     }
-};
+}
 
 
+const successPayPal = async (req,res) => {
+    try {
+            const payerId = req.query.PayerID;
+            const paymentId = req.query.paymentId;
+            const walletData = req.session.walletAmount;
+          
+            const execute_payment_json = {
+              "payer_id": payerId,
+              "transactions": [{
+                  "amount": {
+                      "currency": "USD",
+                      "total": walletData.USDCurrency
+                  }
+              }]
+            };
+          
+            paypal.payment.execute(paymentId, execute_payment_json, function (error) {
+              if (error) {   
+                  console.log(error.response);
+                  throw error;
+              } else {
+                  res.redirect("/addMoneyToWallet")
+              }
+          });
+    } catch (error) {
+        console.error("PayPal payment Success error:", error);
+        res.status(500).json({ success: false, message: "PayPal payment Doesn't Success." });
+    }
+}
 
-module.exports= {
-    getUserWallet,
-    saveWallet,
+const cancelPayPal = async(req,res) => {
+    try {
+            res.redirect("/wallet")
+    } catch (error) {
+        console.error("PayPal payment Cancelation error:", error);
+        res.status(500).json({ success: false, message: "PayPal payment Cancelation failed." });
+    }
+}
+
+
+module.exports = {
+    loadWallet,
+    addMoneyToWallet,
+    getPayPal,
+    successPayPal,
+    cancelPayPal,
     processWalletPayment
 }

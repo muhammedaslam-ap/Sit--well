@@ -105,8 +105,8 @@
                             <div class="d-flex justify-content-between mt-3">
                                 <h5>Subtotal</h5>
                                          <% if(!isCoupon){ %><h5>₹
-                                            <%= subtotal %></h5><% }else{ %><h4>₹
-                                                <%= newTotal %></h4><% } %>
+                                            <%= subtotal.toFixed(2) %></h5><% }else{ %><h5>₹
+                                                <%= newTotal.toFixed(2) %></h5><% } %>
                             </div>
                         </div>
                     </div>
