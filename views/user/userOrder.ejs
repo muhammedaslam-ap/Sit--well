@@ -278,12 +278,14 @@
     
                     <div class="order-footer d-flex justify-content-between align-items-center mt-3">
                         <form action="/orderCancel/<%= order._id %>" method="post" onsubmit="return confirmCancel(event)">
-                            <% if(order.status === 'Delivered' || order.status === 'Shipped') { %>
+                            <% if(order.status === 'Delivered') { %>
                                 <button type="submit" class="action-btn btn btn-primary">Return Order</button>
                             <% } else if(order.status === 'Cancelled') { %>
                                 <span class="text-danger"><strong>Cancelled</strong></span>
                             <% } else if(order.status === 'Returned') { %>
                                 <span class="text-muted"><strong>Returned</strong></span>
+                            <% } else if(order.status === 'Return Request') { %>
+                                    <span class="text-muted"><strong>Return Requested</strong></span>
                             <% } else { %>
                                 <button type="submit" class="action-btn btn btn-primary">Cancel Order</button>
                             <% } %>
@@ -548,7 +550,7 @@
 
 <script>
  function confirmCancel(event) {
-        event.preventDefault(); // Prevents the form from submitting immediately
+        event.preventDefault(); 
 
         Swal.fire({
             title: 'Are you sure?',
@@ -560,7 +562,7 @@
             confirmButtonText: 'Yes,  ok!'
         }).then((result) => {
             if (result.isConfirmed) {
-                event.target.submit(); // Submits the form if confirmed
+                event.target.submit(); 
             }
         });
     }

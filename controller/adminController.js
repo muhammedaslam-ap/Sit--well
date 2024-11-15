@@ -128,22 +128,33 @@ const getSalesReport = async (req, res) => {
             .skip(skip)  
             .limit(limit) 
             .populate('userId', 'name email')
-            .populate('orderedItems.product', 'name price');
+            .populate('orderedItems.product', 'name price offerPrice');
 
         let totalOrderAmount = 0;
         let totalDiscount = 0;
+        let totalOfferPrice = 0
+        
 
         const order = await Order.find(query)
         .populate('userId', 'name email')
-        .populate('orderedItems.product', 'name price');
+        .populate('orderedItems.product', 'name price offerPrice');
 
 
         order.forEach(order => {
-            const orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
+            for (let item of order.orderedItems) {
+                let product = item.product; 
+          
+                let offerPrice = product.offerPrice || 0; 
+                totalOfferPrice += offerPrice*item.quantity;
+              }
+              console.log(totalOfferPrice)
+            let orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
             totalOrderAmount += orderTotal;
 
+
+
             if (order.finalAmount > 0) {
-                const discountForOrder = order.totalPrice - order.finalAmount;
+                let discountForOrder = order.totalPrice - order.finalAmount;
                 totalDiscount += discountForOrder;
             }
         });
@@ -152,6 +163,7 @@ const getSalesReport = async (req, res) => {
             orders,
             totalOrderAmount: totalOrderAmount.toFixed(2),
             totalDiscount: totalDiscount.toFixed(2),
+            totalOfferPrice :totalOfferPrice + totalDiscount,
             totalOrders,
             totalPages,
             currentPage: page,

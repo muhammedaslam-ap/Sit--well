@@ -303,7 +303,7 @@ const updateOrderStatus = async (req, res) => {
             return res.redirect('/admin/orderDetails');
         }
 
-        if (order.status === 'Shipped' || order.status === 'Delivered') {
+        if ( order.status === 'Delivered') {
             req.flash('error', 'Order cannot be Cancelled after it has been shipped or delivered.');
             return res.redirect('/order');
         }
@@ -463,8 +463,8 @@ const orderCancelorRturn = async (req, res) => {
         }
     
         
-        if (order.status === 'Shipped' || order.status === 'Delivered') {
-            order.status = 'Returned';  
+        if (order.status === 'Delivered') {
+            order.status = 'Return Request';  
             req.flash('success', 'Your return request has been successfully processed.');
         } else {
             order.status = 'Cancelled'; 
@@ -487,43 +487,49 @@ const orderCancelorRturn = async (req, res) => {
             console.error("No amount to credit.");
             return;
         }
-        
-        const newBalance = wallet.balance + amountToCredit;
-        await Wallet.updateOne(
-            { user: userId },
-            {
-                $set: { balance: newBalance },
-                $push: {
-                    transactions: {
-                        transaction_date: Date.now(),
-                        transaction_type: "Credit",
-                        transaction_status: "Completed",
-                        amount: amountToCredit
+
+        if (order.paymentMethod === 'cash' || order.status === 'Return Request') {
+            console.log("Cash on delivery order: No amount to credit.");
+        } else {
+            const newBalance = wallet.balance + amountToCredit;
+            await Wallet.updateOne(
+                { user: userId },
+                {
+                    $set: { balance: newBalance },
+                    $push: {
+                        transactions: {
+                            transaction_date: Date.now(),
+                            transaction_type: "Credit",
+                            transaction_status: "Completed",
+                            amount: amountToCredit
+                        }
                     }
                 }
-            }
-        );
+            );
+        }
+        
         
        
     
-        // Restore stock quantities for each product in the returned/cancelled order
         const productUpdatePromises = order.orderedItems.map(async (orderItem) => {
-            if (orderItem.product && orderItem.quantity) {
-                try {
-                  
-
-                    const product = await Product.findById(orderItem.product._id);
-                    if (product) {
-                        product.quantity += orderItem.quantity;
-                        await product.save();
-                        console.log(`Restored ${orderItem.quantity} units of product ${product.productName}`);
-                    } else {
-                        console.error(`Product not found for ID: ${orderItem.product._id}`);
+            if(order.status !== 'Return Request'){
+                if (orderItem.product && orderItem.quantity) {
+                    try {
+                      
+    
+                        const product = await Product.findById(orderItem.product._id);
+                        if (product) {
+                            product.quantity += orderItem.quantity;
+                            await product.save();
+                            console.log(`Restored ${orderItem.quantity} units of product ${product.productName}`);
+                        } else {
+                            console.error(`Product not found for ID: ${orderItem.product._id}`);
+                        }
+                    } catch (quantityUpdateError) {
+                        console.error(`Failed to update quantity for product ${orderItem.product._id}:`, quantityUpdateError);
                     }
-                } catch (quantityUpdateError) {
-                    console.error(`Failed to update quantity for product ${orderItem.product._id}:`, quantityUpdateError);
                 }
-            }
+            }    
         });
     
         await Promise.all(productUpdatePromises);
@@ -541,6 +547,68 @@ const orderCancelorRturn = async (req, res) => {
 };
 
 
+const approveReturnRequest = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        console.log("Processing return approval for orderId:", orderId);
+
+        const order = await Order.findById(orderId).populate({
+            path: 'orderedItems.product',
+        });
+
+        if (!order || order.status !== 'Return Request') {
+            console.error("Invalid order or no return request found. OrderId:", orderId);
+            req.flash('error', 'Invalid order or no return request found.');
+            return res.redirect('/admin/orderDetails');
+        }
+
+        order.status = 'Returned';
+
+        const wallet = await Wallet.findOne({ user: order.userId });
+            const amountToCredit = order.finalAmount || order.totalPrice || 0;
+            if (amountToCredit > 0) {
+                wallet.balance += amountToCredit;
+                wallet.transactions.push({
+                    transaction_date: Date.now(),
+                    transaction_type: "Credit",
+                    transaction_status: "Completed",
+                    amount: amountToCredit,
+                });
+                await wallet.save();
+                console.log(`Credited ${amountToCredit} to wallet of user ${order.userId}`);            
+        }
+
+        await Promise.all(order.orderedItems.map(async (orderItem) => {
+            if (orderItem.product && orderItem.quantity) {
+                try {
+                    const product = await Product.findById(orderItem.product._id);
+                    if (product) {
+                        product.quantity += orderItem.quantity;
+                        await product.save();
+                        console.log(`Restored stock for product ID: ${product._id}`);
+                    } else {
+                        console.error(`Product not found for ID: ${orderItem.product._id}`);
+                    }
+                } catch (error) {
+                    console.error(`Error updating stock for product ID: ${orderItem.product._id}`, error);
+                }
+            }
+        }));
+
+        await order.save();
+
+        req.flash('success', 'The return request has been approved and processed.');
+        return res.redirect('/admin/orderDetails');
+    } catch (error) {
+        console.error("Error approving return request:", error);
+        req.flash('error', 'An error occurred while approving the return request.');
+        return res.redirect('/admin/orderDetails');
+    }
+};
+
+
+
+
 
 
 
@@ -555,5 +623,6 @@ module.exports={
     updateOrderStatus,
     getYourOrder,
     orderCancelorRturn,
-    retrieveOrderDetails
+    retrieveOrderDetails,
+    approveReturnRequest
 }

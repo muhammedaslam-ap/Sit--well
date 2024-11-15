@@ -84,10 +84,15 @@
                 <span class="text-xl font-bold text-gray-800">Total Order Amount</span>
                 <span class="text-2xl font-bold text-green-600">₹<%= totalOrderAmount %></span>
             </div>
+            
             <div class="summary-row mt-4">
-                <span class="font-semibold">Total Discount</span>
-                <span class="text-lg font-bold text-red-600">₹<%= totalDiscount %></span>
+                <span class="font-semibold">Total Coupon Discount</span>
+                <span class="text-lg font-bold text-red-600">₹<%=totalDiscount%></span>
             </div>
+        </div>
+        <div class="summary-row mt-4">
+            <span class="font-semibold">Total Discount</span>
+            <span class="text-lg font-bold text-red-600">₹<%= totalOfferPrice.toFixed(2)%></span>
         </div>
 
         <div class="mt-6 flex justify-between items-center">
