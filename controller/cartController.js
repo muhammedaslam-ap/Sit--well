@@ -35,9 +35,9 @@ const getAddToCart = async (req, res) => {
             items: cart.items.map(item => {
                 const productImage = Array.isArray(item.productId.productImage) && item.productId.productImage.length > 0
                     ? item.productId.productImage[0]
-                    : 'placeholder.jpg'; // Fallback image if empty or undefined
+                    : 'placeholder.jpg'; 
 
-                // console.log("Product Image:", productImage); // Debug log
+                // console.log("Product Image:", productImage); 
 
                 return {
                     productId: item.productId._id,

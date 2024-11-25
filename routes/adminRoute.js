@@ -74,6 +74,10 @@ adminRoute.post("/deleteImage", adminAuth, productController.deleteSingleImage);
 adminRoute.get('/orderDetails',adminAuth,orderController.getOrderDetails)
 adminRoute.post('/order/updateStatus/:orderId', adminAuth, orderController.updateOrderStatus);
 adminRoute.post('/approve/:orderId', adminAuth, orderController.approveReturnRequest);
+adminRoute.post('/cancelReturnRequest/:orderId', adminAuth, orderController.cancelReturnRequest);
+adminRoute.get('/cancelReturnRequest/:orderId', adminAuth, orderController.cancelReturnRequest);
+
+
 
 
 adminRoute.get('/addOffer',adminAuth,offerController.getAddOffer)

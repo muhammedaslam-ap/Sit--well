@@ -67,7 +67,7 @@ const addOffer = async (req, res) => {
 
 
         if (offerType === 'product') {
-            console.log('hy');
+            // console.log('hy');
             
             const product = await Product.findById(productName);
             if (!product) {
@@ -102,7 +102,7 @@ const addOffer = async (req, res) => {
         // ** If offerType is category **
         } else if (offerType === 'category') {
             const category = await Category.findById(categoryName);
-            console.log("1",category)
+            // console.log("1",category)
             if (!category) {
                 req.flash('error', 'Category not found');
                 return res.redirect('/admin/addOffer');
@@ -113,10 +113,10 @@ const addOffer = async (req, res) => {
             const newProduct = await Product.find({category:category._id})
 
 
-            console.log('2',newProduct)
+            // console.log('2',newProduct)
             for(let item of newProduct){
                 if(item.productOffer < discountPercentage){
-                    console.log('3',item)
+                    // console.log('3',item)
                     const effectiveDiscount = Math.max(discountPercentage, item.productOffer);
                     const salesPrice = item.regularPrice * (1 - effectiveDiscount / 100);
                     const offerPrice = item.regularPrice - salesPrice;
@@ -145,7 +145,7 @@ const addOffer = async (req, res) => {
 const deleteAddOffer = async (req, res) => {
     try {
       const offerId  = req.query.offerId;
-      console.log(offerId)
+      // console.log(offerId)
 
   
       // Find the offer to delete

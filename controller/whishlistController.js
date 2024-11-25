@@ -15,11 +15,11 @@ const getWhishlist = async (req, res) => {
 
         // Check if wishlist exists
         if (!wishlistData) {
-            return res.status(404).render('whishlist', { wishlist: [], user: req.user, message: 'Wishlist not found' });
+            return res.status(404).render('whishlist', { wishlist: [], user: req.user, message: 'Wishlist not found',  user: req.session.user });
         }
 
         // Render the wishlist page with the fetched data
-        res.render('whishlist', { wishlist: wishlistData, user: req.user });
+        res.render('whishlist', { wishlist: wishlistData, user: req.user,  user: req.session.user });
     } catch (error) {
         console.error('Error retrieving wishlist:', error);
         res.status(500).render('whishlist', { wishlist: [], user: req.user, message: 'Internal server error' });

@@ -147,7 +147,7 @@ const getSalesReport = async (req, res) => {
                 let offerPrice = product.offerPrice || 0; 
                 totalOfferPrice += offerPrice*item.quantity;
               }
-              console.log(totalOfferPrice)
+            //   console.log(totalOfferPrice)
             let orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
             totalOrderAmount += orderTotal;
 
@@ -182,7 +182,7 @@ const PdfKit = require('pdfkit');
 const getDownloadPdf = async (req, res) => {
     try {
         const { timeFilter,orderStatus } = req.query;
-        console.log(timeFilter);
+        // console.log(timeFilter);
         
         
         const now = new Date();

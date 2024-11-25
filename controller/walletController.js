@@ -106,8 +106,8 @@ const convertCurrency = async (amount) => {
         const userId = req.session.user._id;
         const { totalAmount, selectedAddress, selectedPayment } = req.body;
         console.log("Total Amount from Client:", totalAmount); // Debugging line
-        console.log("Selected Address from Client:", selectedAddress); // Debugging line
-        console.log("Selected Payment Method from Client:", selectedPayment); // Debugging line
+        // console.log("Selected Address from Client:", selectedAddress); // Debugging line
+        // console.log("Selected Payment Method from Client:", selectedPayment); // Debugging line
         req.session.paypalDetails  =  {totalAmount:totalAmount,selectedPayment:selectedPayment,selectedAddress:selectedAddress}
 
         
@@ -135,7 +135,7 @@ const convertCurrency = async (amount) => {
                     }}
                 )
 
-console.log('newBalance:',newBalance);
+// console.log('newBalance:',newBalance);
 
         res.status(200).json({
             success: true,

@@ -76,17 +76,22 @@ const couponListing = async (req,res)=>{
 }
 
 
-const getuserCoupons = async (req,res)=>{
+const getuserCoupons = async (req, res) => {
     try {
-        const userId = req.session.user._id
+        const userId = req.session.user._id;
         const coupons = await Coupon.find({ islist: true }).populate('user.userId');
-        res.render('userCoupons',{coupons:coupons,userId})
 
+        if (!coupons) {
+            console.error('No coupons found');
+            return res.render('userCoupons', { coupons: [], userId });
+        }
+
+        res.render('userCoupons', { coupons, userId }); 
     } catch (error) {
-        console.error('an error finded in getting copon in user side',error)
-        res.redirect('/pageNotFound')
+        console.error('Error fetching coupons for user:', error);
+        res.redirect('/pageNotFound');
     }
-}
+};
 
 const applycoupon = async (req, res) => {
     const { couponCode }= req.body;

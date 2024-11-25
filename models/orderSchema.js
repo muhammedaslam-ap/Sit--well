@@ -123,7 +123,11 @@ const orderSchema = new Schema({
     couponApplied: {
         type: Boolean,
         default: false
-    }
+    },
+    rejectionMessage: {
+        type: String,
+        default: null, 
+    },
 });
 
 orderSchema.pre('save', function (next) {

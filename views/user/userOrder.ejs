@@ -235,6 +235,9 @@
                             order.status === 'Returned' ? 'bg-dark' : 'bg-secondary'
                         %>">
                             <strong>Status:</strong> <%= order.status %>
+                            <% if (order.rejectionMessage) { %>
+                                <p style="color: red;">Message: <%= order.rejectionMessage %></p>
+                            <% } %>
                         </span>
                     </div>
                     
@@ -278,14 +281,16 @@
     
                     <div class="order-footer d-flex justify-content-between align-items-center mt-3">
                         <form action="/orderCancel/<%= order._id %>" method="post" onsubmit="return confirmCancel(event)">
-                            <% if(order.status === 'Delivered') { %>
+                            <%if (order.rejectionMessage) { %>
+                                <span style="color: #004085;"><strong>The return request has been rejected Admin <br>. Admin apologizes for the inconvenience</strong></span>
+                            <%}else if(order.status === 'Delivered') { %>
                                 <button type="submit" class="action-btn btn btn-primary">Return Order</button>
                             <% } else if(order.status === 'Cancelled') { %>
                                 <span class="text-danger"><strong>Cancelled</strong></span>
                             <% } else if(order.status === 'Returned') { %>
                                 <span class="text-muted"><strong>Returned</strong></span>
                             <% } else if(order.status === 'Return Request') { %>
-                                    <span class="text-muted"><strong>Return Requested</strong></span>
+                                <span class="text-muted"><strong>Return Requested</strong></span>
                             <% } else { %>
                                 <button type="submit" class="action-btn btn btn-primary">Cancel Order</button>
                             <% } %>
@@ -385,7 +390,11 @@
                                                         <h5 class="card-title text-primary mb-4">Order Information</h5>
                                                         <p class="mb-2"><strong>Order Number:</strong> ${orderDetails.orderId}</p>
                                                         <p class="mb-2"><strong>Date:</strong> ${new Date(orderDetails.createdOn).toLocaleDateString()}</p>
-                                                        <p class="mb-2"><strong>Total:</strong> ₹${orderDetails.finalAmount.toFixed(2)}</p>
+                                                         <p class="mb-2"><strong>Total:</strong> ₹
+                                                            ${(orderDetails.finalAmount > 0) 
+                                                                ? orderDetails.finalAmount.toFixed(2) 
+                                                                : orderDetails.totalPrice.toFixed(2)}
+                                                        </p>
                                                         <p class="mb-0"><strong>Payment Method:</strong> ${orderDetails.paymentMethod}</p>
                                                     </div>
                                                 </div>

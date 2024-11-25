@@ -93,7 +93,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <h5 class="item-price">$<%= item.price.toFixed(2) %></h5>
+                                    <h5 class="item-price">₹<%= item.price.toFixed(2) %></h5>
                                 </td>
                                 <td>
                                     <input type="text" value="<%= item.quantity %>" 
@@ -103,7 +103,7 @@
                                 </td>
                                 <td>
                                     <p class="total-price">
-                                        Total Price: $<span class="price-value" id="total-<%= item.productId %>"><%= item.totalPrice.toFixed(2) %></span>
+                                        Total Price: ₹<span class="price-value" id="total-<%= item.productId %>"><%= item.totalPrice.toFixed(2) %></span>
                                     </p>
                                 </td>
                                 <td>
@@ -124,7 +124,7 @@
                                 <h5>Subtotal</h5>
                             </td>
                             <td>
-                                <h5 class="cart-subtotal">$<%= cartTotal.toFixed(2) %></h5>
+                                <h5 class="cart-subtotal">₹<%= cartTotal.toFixed(2) %></h5>
                             </td>
                         </tr>
                     

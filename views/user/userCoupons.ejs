@@ -53,13 +53,18 @@
                         <p class="card-text coupon-code"><%= coupons[i].couponCode %></p>
                         <p class="card-text coupon-discount"><%= coupons[i].discount %>% OFF</p>
                         <p class="card-text coupon-expiry">Expires: <%= new Date(coupons[i].expireOn).toLocaleDateString() %></p>
-                        
-                        <!-- Loop through each user associated with the coupon to display their couponLimit -->
-                        <% coupons[i].user.forEach(userObj => { %>
-                            <p class="card-text coupon-limit">Limit :<%= coupons[i].limit%>
-                                &nbsp;&nbsp;&nbsp;&nbsp; Used: <%= userObj.couponLimit %></p>
-                        <% }); %>
                     </div>
+                    <div>
+                      
+                        <% const currentUserData = coupons[i].user.find(userObj => userObj.userId === userId); %>
+                 <% if (currentUserData) {  %> 
+                      <p class="card-text coupon-limit">
+                          Limit: <%= coupons[i].limit %> 
+                          &nbsp;&nbsp;&nbsp;&nbsp; 
+                          Used: <%= currentUserData.couponLimit %>
+                      </p>
+                  <% } %>
+                  </div>
                     <div class="card-footer">
                         <button class="btn btn-primary w-100" onclick="copyCouponCode('<%= coupons[i].couponCode %>')">
                             Copy Code

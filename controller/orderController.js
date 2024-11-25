@@ -50,7 +50,7 @@ const getOrderSuccess = async (req, res) => {
 
         let discount = 0;
         const sessiocoupon = req.session.coupon;
-        console.log(sessiocoupon)
+        // console.log(sessiocoupon)
         if (sessiocoupon) {
             isCoupon = true
             const validCoupon = await Coupon.findOne({ couponCode: sessiocoupon.couponCode, islist: true });
@@ -90,8 +90,8 @@ const proceedTopayment = async (req, res) => {
         const { selectedAddress, selectedPayment } =  req.session.paypalDetails ?    req.session.paypalDetails : req.body;
 
         // console.log("User ID:", userId);
-        console.log("Selected Address ID:", selectedAddress);
-        console.log("Selected Payment:", selectedPayment);
+        // console.log("Selected Address ID:", selectedAddress);
+        // console.log("Selected Payment:", selectedPayment);
 
         if (!selectedAddress || !selectedPayment) {
             req.flash('error', 'Please select an address and a payment method.');
@@ -136,7 +136,7 @@ const proceedTopayment = async (req, res) => {
         let newPrice = 0
         let discount = 0;
         const sessiocoupon = req.session.coupon;
-        console.log(sessiocoupon)
+        // console.log(sessiocoupon)
         if (sessiocoupon) {
             isCoupon = true
             const validCoupon = await Coupon.findOne({ couponCode: sessiocoupon.couponCode, islist: true });
@@ -151,7 +151,7 @@ const proceedTopayment = async (req, res) => {
 
 
         const selectedAddressDetails = userAddress.address.find(addr => addr._id.toString() === selectedAddress);
-        console.log("Selected Address Details:", selectedAddressDetails);
+        // console.log("Selected Address Details:", selectedAddressDetails);
 
         if (!selectedAddressDetails) {
             req.flash('error', 'The selected address could not be found.');
@@ -198,12 +198,12 @@ const proceedTopayment = async (req, res) => {
             createdOn: new Date()
         });
 
-        console.log(newOrder.totalPrice,'this want you want to see')
-        console.log(newOrder.finalAmount,'this want you want to see')
+        // console.log(newOrder.totalPrice,'this want you want to see')
+        // console.log(newOrder.finalAmount,'this want you want to see')
 
 
         
-        console.log("New Order to Save:", newOrder); 
+        // console.log("New Order to Save:", newOrder); 
         req.session.newOrder = newOrder
         await newOrder.save();
 
@@ -286,8 +286,8 @@ const updateOrderStatus = async (req, res) => {
         const { orderId } = req.params;
         const { status } = req.body;
 
-        console.log("Updating Order ID:", orderId);
-        console.log("New Status:", status);
+        // console.log("Updating Order ID:", orderId);
+        // console.log("New Status:", status);
 
         const order = await Order.findById(orderId).populate({
             path: 'orderedItems.product' 
@@ -607,6 +607,35 @@ const approveReturnRequest = async (req, res) => {
 };
 
 
+const cancelReturnRequest = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            req.flash('error', 'Order not found.');
+            return res.redirect('/admin/orderDetails');
+        }
+
+        if (order.status !== 'Return Request') {
+            req.flash('info', 'Order is already delivered. No return request to cancel.');
+            return res.redirect('/admin/orderDetails');
+        }
+        order.status = 'Delivered';
+        order.rejectionMessage = "Sorry, admin rejected your return request.";
+        await order.save();
+
+        req.flash('success', 'The return request has been cancelled. Admin apologizes for the inconvenience.');
+        return res.redirect('/admin/orderDetails');
+    } catch (error) {
+        console.error('Error canceling the return request:', error);
+        req.flash('error', 'An error occurred while canceling the return request.');
+        return res.redirect('/admin/orderDetails');
+    }
+};
+
+
 
 
 
@@ -624,5 +653,6 @@ module.exports={
     getYourOrder,
     orderCancelorRturn,
     retrieveOrderDetails,
-    approveReturnRequest
+    approveReturnRequest,
+    cancelReturnRequest
 }
