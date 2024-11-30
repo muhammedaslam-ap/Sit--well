@@ -2,27 +2,55 @@ const Whishlist = require('../models/whishlistSchema')
 const Product = require('../models/productSchema')
 const User = require('../models/userSchema'); 
 const mongoose = require ('mongoose')
+const Cart = require('../models/cartSchema')
+
 
 const getWhishlist = async (req, res) => {
     try {
-        const userId = req.session.user._id; // Assuming user is authenticated and you have their ID
-
+        const userId = req.session.user._id;
+        
         const wishlistData = await Whishlist.findOne({ userId })
             .populate({
                 path: 'products.productId',
                 select: 'productName productImage salePrice quantity' 
             });
-
-        // Check if wishlist exists
-        if (!wishlistData) {
-            return res.status(404).render('whishlist', { wishlist: [], user: req.user, message: 'Wishlist not found',  user: req.session.user });
+        
+        if (!wishlistData || !wishlistData.products || wishlistData.products.length === 0) {
+            return res.status(404).render('whishlist', { 
+                wishlist: { products: [] }, 
+                user: req.session.user, 
+                message: 'Wishlist not found' 
+            });
         }
 
-        // Render the wishlist page with the fetched data
-        res.render('whishlist', { wishlist: wishlistData, user: req.user,  user: req.session.user });
+        const cartData = await Cart.findOne({ userId });
+
+        const cartProductIds = cartData 
+            ? cartData.items.map(cartItem => cartItem.productId.toString())
+            : [];
+
+        const wishlistWithCartStatus = wishlistData.products.map(wishlistProduct => ({
+            ...wishlistProduct.toObject(),
+            isInCart: cartProductIds.includes(wishlistProduct.productId._id.toString())
+        }));
+
+        const updatedWishlistData = {
+            ...wishlistData.toObject(),
+            products: wishlistWithCartStatus
+        };
+
+        res.render('whishlist', { 
+            wishlist: updatedWishlistData, 
+            user: req.session.user 
+        });
+
     } catch (error) {
         console.error('Error retrieving wishlist:', error);
-        res.status(500).render('whishlist', { wishlist: [], user: req.user, message: 'Internal server error' });
+        res.status(500).render('whishlist', { 
+            wishlist: { products: [] }, 
+            user: req.session.user, 
+            message: 'Internal server error' 
+        });
     }
 };
 

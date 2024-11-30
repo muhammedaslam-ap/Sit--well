@@ -3,6 +3,7 @@ const Product = require('../models/productSchema')
 const Category = require("../models/categorySchema");
 const Cart = require('../models/cartSchema')
 const mongoose = require('mongoose')
+const Wallet =  require('../models/walletSchema')
 
 const nodemailer=require('nodemailer')
 const env=require('dotenv').config()
@@ -256,7 +257,7 @@ const login = async (req, res) => {
             return res.render('login', { message: "Incorrect password." });
         }
 
-        req.session.user = {
+        req.session.user = await { 
             _id: findUser._id,
             name: findUser.name,
             email: findUser.email
@@ -359,15 +360,13 @@ const securePassword = async (password)=>{
 const verifyotp = async (req, res) => {
     try {
         const { otp } = req.body;
-        // console.log(otp);
 
         if (otp === req.session.userOtp) {
             const user = req.session.userData;
 
-           
-
             const passwordHash = await securePassword(user.password);
 
+            // Save user data to the database
             const saveUserData = new User({
                 name: user.name,
                 email: user.email,
@@ -376,18 +375,38 @@ const verifyotp = async (req, res) => {
             });
 
             await saveUserData.save();
-            req.session.user = saveUserData._id;
+
+            // Create a wallet with an initial balance of 5000 for the new user
+            const initialWalletBalance = 5000;
+            const newWallet = new Wallet({
+                user: saveUserData._id,
+                balance: initialWalletBalance,
+                transactions: [
+                    {
+                        transaction_date: Date.now(),
+                        transaction_type: "Credit",
+                        transaction_status: "Completed",
+                        amount: initialWalletBalance,
+                        description: "Initial wallet credit for new user signup."
+                    }
+                ]
+            });
+
+            await newWallet.save();
+            console.log(`Wallet created for user ${saveUserData._id} with balance ${initialWalletBalance}`);
+
+            req.session.user = saveUserData; // Log the user in
             res.json({ success: true, redirectUrl: '/' });
         } else {
             res.status(400).json({ success: false, message: "Invalid OTP, please try again." });
         }
 
     } catch (error) {
-       console.log('Error while verifiying the otp',error);
-       res.status(500).json({success:false,message:'An error occured'});
-
+        console.error('Error while verifying the OTP:', error);
+        res.status(500).json({ success: false, message: 'An error occurred while processing your request.' });
     }
 };
+
 
 const resendOtp = async (req,res)=>{
     try {
@@ -417,7 +436,11 @@ const productDetails = async (req, res) => {
         const user = req.session.user;
         const productId = req.params.id;
 
-        // Validate productId before querying
+        const products = await Product.findById(productId)
+        const cartItem = await Cart.findOne({ userId:user._id, 'items.productId': productId });
+
+        const isInCart = cartItem ? cartItem:false;
+        
         if (!mongoose.Types.ObjectId.isValid(productId)) {
             // console.log("Invalid Product ID format:", productId);
             return res.status(400).redirect('/pageNotFound');
@@ -465,6 +488,8 @@ const productDetails = async (req, res) => {
             user: userData || null,
             category: productCategory,
             quantity: productData.quantity,
+            products, 
+            isInCart,
             recommendedProducts: recommendedProducts.length ? recommendedProducts : [],
             message: recommendedProducts.length ? null : "No recommendations available."
         });
@@ -473,6 +498,27 @@ const productDetails = async (req, res) => {
         return res.status(500).send("Server error");
     }
 };
+
+
+const getAboutPage =  async(req,res)=>{
+    try {
+        const user  = req.session.user       
+        
+        res.render('aboutPage',{user})
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+const getContactPage =  async(req,res)=>{
+    try {
+        const user  = req.session.user       
+        
+        res.render('contact',{user})
+    } catch (error) {
+        console.error(error)
+    }
+}
 
 
 
@@ -577,5 +623,7 @@ module.exports={
     resendOtp,
     productDetails,
     shop,
-    userLogout
+    userLogout,
+    getAboutPage,
+    getContactPage
 }

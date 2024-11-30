@@ -24,11 +24,14 @@
     <link rel="stylesheet" href="/user/css/slick.css">
     <!-- style CSS -->
     <link rel="stylesheet" href="/user/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </head><style>
     .navbar-brand img {
-        height: 50px;
-        width: auto;
-    }
+    height: 50px; 
+    width: auto; 
+    transition: all 0.3s ease; 
+}
     .navbar-nav .nav-link {
         color: #333;
         font-weight: 500;
@@ -50,8 +53,8 @@
         }
         .navbar-brand {
             position: absolute;
-            right: 15px;
-            top: 50%;
+            right: 50px;
+            top: 20%;
             transform: translateY(-50%);
         }
         .navbar-brand img {
@@ -63,183 +66,84 @@
             margin-left: 15px;
         }
     }
-</style>
-<style>/* Initially hide the search input box */
-    #search_input_box {
-        display: none;
+    @media (max-width: 768px) {
+    .navbar-brand img {
+        height: 40px; /* Smaller height for mobile screens */
+        width: auto; /* Keep aspect ratio */
+        margin-left: 0; /* Align to the left if necessary */
     }
     
-    /* Show when the class 'active' is added */
-    #search_input_box.active {
-        display: block;
-        position: absolute;  /* Ensure proper positioning */
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: rgba(255, 255, 255, 0.95);
-        z-index: 1000;  /* Ensures it stays on top */
-        padding: 20px 0;
+    .navbar .container {
+        display: flex;
+        justify-content: space-between; /* Proper alignment of elements */
+        align-items: center;
     }
-    .dropdown{
-        position: absolute;
-        display: inline-block;
-    }
-    .dropdown-content{
-        display: none;
-        position: absolute;
-        background-color: aliceblue;
-        
-    }
-    .user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: #4f46e5;
-    color: white;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-    font-size: 14px;
-    margin-right: 8px;
-  }
-  
-  .user-menu {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .user-menu-button {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #374151;
-    font-size: 14px;
-    font-weight: 500;
-  }
-  
-  .user-menu-button:hover {
-    color: #4f46e5;
-  }
-  
-  .user-menu-dropdown {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    width: 200px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    transition: all 0.2s ease;
-  }
-  
-  .user-menu.active .user-menu-dropdown {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-  
-  .user-menu-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    color: #374151;
-    text-decoration: none;
-    transition: background-color 0.2s;
-  }
-  
-  .user-menu-item:hover {
-    background-color: #f3f4f6;
-    color: #4f46e5;
-  }
-  
-  .user-menu-item i {
-    margin-right: 12px;
-    font-size: 16px;
-    width: 20px;
-  }
-  
-  .divider {
-    height: 1px;
-    background-color: #e5e7eb;
-    margin: 4px 0;
-  }
-    </style>
+}
+</style>
+
 <body>
     <!--::header part start::-->
     <header class="main_menu home_menu">
-        <div class="container-fluid mx-0">
-            <div class="row align-items-center">
-                <div class="col-lg-12">
-                    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-                        <div class="container">
-                            <a class="navbar-brand" href="/">
-                                <img class="m-0" src="/user/img/sitwell.png" alt="Sitwell Logo">
-                            </a>
-        
-                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                        
-                            <div class="collapse navbar-collapse" id="navbarContent">
-                                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="/">Home</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="/shop">Shop</a>
-                                    </li>
-                                </ul>
-                                
-                                <div class="d-flex align-items-center">
-                                    <% if (locals.user) { %>
-                                        <a href="/Whishlish" class="btn btn-link text-dark p-2" aria-label="View Wishlist">
-                                            <i class="fas fa-heart" aria-hidden="true"></i>
-                                        </a>
-                                        <a href="/cart" class="btn btn-link text-dark p-2" aria-label="View Cart">
-                                            <i class="fas fa-shopping-cart" aria-hidden="true"></i>
-                                        </a>
-        
-                                        <div class="dropdown">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <span class="user-avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mr-2" style="width: 30px; height: 30px;">
-                                                    <%= locals.user.name.charAt(0).toUpperCase() %>
-                                                </span>
-                                                <%= locals.user.name %>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenuButton">
-                                                <a class="dropdown-item" href="/userProfile"><i class="fas fa-user mr-2"></i>Profile</a>
-                                                <a class="dropdown-item" href="/order"><i class="fas fa-shopping-bag mr-2"></i>Orders</a>
-                                                <a class="dropdown-item" href="/Whishlish"><i class="fas fa-heart mr-2"></i>Wishlist</a>
-                                                <a class="dropdown-item" href="/userCoupons"><i class="fas fa-ticket-alt mr-2"></i>Coupons</a>
-                                                <div class="dropdown-divider"></div>
-                                                <a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a>
-                                            </div>
-                                        </div>
-                                    <% } else { %>
-                                        <a href="/login" class="btn btn-outline-secondary">
-                                            <i class="fas fa-sign-in-alt mr-2"></i>Login
-                                        </a>
-                                    <% } %>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-2">
+            <div class="container">
+                <a class="navbar-brand " href="/">
+                    <img src="/user/img/sitwell.png" alt="Sitwell Logo" style="height: 40px; width: 60px;">
+                </a>
+    
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold" href="/" style="color: #333; transition: color 0.3s;">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold" href="/shop" style="color: #333; transition: color 0.3s;">Shop</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold" href="/about" style="color: #333; transition: color 0.3s;">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold" href="/contact" style="color: #333; transition: color 0.3s;">Contact As</a>
+                        </li>
+                    </ul>
+                    
+                    <div class="d-flex align-items-center">
+                        <% if (locals.user) { %>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-radius: 20px; padding: 8px 16px;">
+                                    <span class="user-avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                        <%= locals.user.name.charAt(0).toUpperCase() %>
+                                    </span>
+                                    <span class="d-none d-md-inline"><%= locals.user.name %></span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton" style="border: none; border-radius: 10px;">
+                                    <a class="dropdown-item py-2" href="/userProfile"><i class="fa fa-user me-2 "></i>Profile</a>
+                                    <a class="dropdown-item py-2" href="/order"><i class="fa fa-shopping-bag me-2 "></i>Orders</a>
+                                    <a class="dropdown-item py-2" href="/Whishlish"><i class="fa fa-heart me-2 "></i>Wishlist</a>
+                                    <a class="dropdown-item py-2" href="/cart"><i class="fa fa-shopping-cart me-2 "></i>Cart</a>
+                                    <a class="dropdown-item py-2" href="/userCoupons"><i class="fa fa-ticket-alt me-2 "></i>Coupons</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item py-2" href="/logout"><i class="fas fa-sign-out-alt me-2 "></i>Logout</a>
                                 </div>
                             </div>
-                        </div>
-                    </nav>
+                        <% } else { %>
+                            <a href="/login" class="btn btn-outline-secondary" style="border-radius: 20px; padding: 8px 16px;">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                        <% } %>
+                    </div>
                 </div>
             </div>
-        </div>        
-        <div class="search_input" id="search_input_box">
+        </nav>
+        <div class="search_input" id="search_input_box" style="display: none; background-color: rgba(0,0,0,0.8); padding: 20px 0;">
             <div class="container">
                 <form class="d-flex justify-content-between search-inner">
-                    <input type="text" class="form-control" id="search_input" placeholder="Search Here">
-                    <button type="submit" class="btn"></button>
-                    <span class="ti-close" id="close_search" title="Close Search"></span>
+                    <input type="text" class="form-control bg-transparent text-white border-0" id="search_input" placeholder="Search Here" style="flex-grow: 1; margin-right: 10px;">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <span class="text-white ms-3" id="close_search" title="Close Search" style="cursor: pointer;"><i class="fas fa-times"></i></span>
                 </form>
             </div>
         </div>

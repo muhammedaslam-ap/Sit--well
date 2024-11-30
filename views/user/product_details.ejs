@@ -308,15 +308,24 @@
               -->
           
               <!-- Add to Cart Button -->
+             
               <div class="action_buttons d-flex align-items-center gap-2">
                 <!-- Add to Cart Button -->
                 <form action="/addToCart" method="POST" class="d-inline">
                     <input type="hidden" name="productId" value="<%= product._id %>">
                     <input type="hidden" name="quantity" value="1">
+              <% if(!isInCart){%>                   
                     <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center px-3 py-2">
                         <i class="ti-shopping-cart me-1"></i> Add to Cart
                     </button>
+                    <% } %>
                 </form>
+                <% if(isInCart){%>
+                  <a href="/cart"><button  class="btn btn-success btn-sm d-flex align-items-center px-3 py-2">
+                    <i class="ti-shopping-cart me-1"></i> Go TO Cart 
+                </button></a>
+                <% } %>
+                
             
                 <!-- Wishlist Button -->
                 <form action="/addWhishlistItem" method="POST">
@@ -360,27 +369,26 @@
                                     <%= recommendedProduct.productName %>
                                 </h5>
                                 <div class="price-section text-center mb-3">
-                                    <% if (recommendedProduct.salePrice < recommendedProduct.regularPrice) { %>
+                                  <% if (recommendedProduct.salePrice < recommendedProduct.regularPrice) { %>
                                       <span class="text-danger" style="text-decoration: line-through;">
-                                        ₹<%= recommendedProduct.regularPrice %>
-                                    </span>
+                                          ₹<%= recommendedProduct.regularPrice %>
+                                      </span>
                                       &nbsp;&nbsp;
-                                        <span class="text-success ms-2">
-                                            ₹<%= recommendedProduct.salePrice %>
-                                        </span>
-                                    <% } else { %>
-                                        <span class="text-success">₹<%= recommendedProduct.regularPrice %></span>
-                                    <% } %>
-                                </div>
+                                      <span class="text-success ms-2">
+                                          ₹<%= recommendedProduct.salePrice %>
+                                      </span>
+                                  <% } else { %>
+                                      <span class="text-success">₹<%= recommendedProduct.regularPrice %></span>
+                                  <% } %>
+                              </div>
+                              
+                              <!-- Quantity Section -->
+                              <div class="quantity-section text-center text-danger">
+                                  Quantity left: <%= recommendedProduct.quantity %>
+                              </div>
+                              
+                               
                                 <!-- Add buttons at the bottom -->
-                                <div class="mt-auto d-flex justify-content-center">
-                                    <a href="/addToCart?id=<%= recommendedProduct._id %>" class="btn btn-sm btn-outline-primary me-2">
-                                        Add to Cart
-                                    </a>
-                                    <a href="/addToWhishlist?id=<%= recommendedProduct._id %>" class="btn btn-sm btn-outline-secondary">
-                                        <i class="ti-heart"></i>
-                                    </a>
-                                </div>
                             </div>
                         </div>
                     </div>

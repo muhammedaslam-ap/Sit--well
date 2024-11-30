@@ -151,8 +151,12 @@
                         <div class="text">
                             <h6 class="mb-1">Customer</h6>
                             <p class="mb-1">
+                                <% if(order.userId){ %>
                                 <%= order.userId.name %> <br> <%= order.userId.email %> <br> <%= order.userId.phone %>
-                            </p>
+                                <% }else{ %>
+                                <p>user not found</p>
+                                </p>
+                                <% } %>
                         </div>
                     </article>
                 </div>

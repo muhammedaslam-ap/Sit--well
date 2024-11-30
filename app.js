@@ -48,7 +48,7 @@
 });
 
 
- app.set('view engine', 'ejs');
+app.set('view engine', 'ejs');
 
 // Set multiple views directories
 app.set('views', [

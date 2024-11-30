@@ -31,7 +31,7 @@
         <a href="/admin/salesReport?timeFilter=week" class="btn-custom">Weekly</a>
         <a href="/admin/salesReport?timeFilter=month" class="btn-custom">Monthly</a>
         <a href="/admin/salesReport?timeFilter=year" class="btn-custom">Yearly</a>
-        <a href="/admin/salesReport?timeFilter=custom" class="btn-custom">Custom</a>
+        <a href="/admin/salesReport?timeFilter=custom" class="btn-custom">All Orders</a>
       </div>
     </div>
   </div>
@@ -52,8 +52,12 @@
                     <% orders.forEach(order => { %>
                         <tr class="hover:bg-gray-50">
                             <td class="px-2 py-2 whitespace-nowrap">
+                                <% if(order.userId){ %>
                                 <div class="text-sm font-medium text-gray-900"><%= order.userId.name %></div>
                                 <div class="text-sm text-gray-500"><%= order.userId.email %></div>
+                                <% }else{ %>
+                                    <p>user not found yet</p>
+                                 <% } %>
                             </td>
                             <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-500">
                                 <%= order.createdOn ? new Date(order.createdOn).toLocaleString() : "No Date" %>

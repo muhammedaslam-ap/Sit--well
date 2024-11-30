@@ -32,6 +32,8 @@ userRoute.post('/verify-otp',userController.verifyotp);
 userRoute.post('/resend-otp',userController.resendOtp)
 userRoute.get('/productDetails/:id', userController.productDetails);
 userRoute.get('/shop',userController.shop)
+userRoute.get('/about',userController.getAboutPage)
+userRoute.get('/contact',userController.getContactPage)
 
 
 userRoute.get('/forgetPassword',profileController.getForgotPassPage)
@@ -54,6 +56,7 @@ userRoute.post('/checkout/addAddressFromCheckout',userAuth,addressConroller.addA
 
 userRoute.get('/cart',userAuth,cartController.getAddToCart)
 userRoute.post('/addToCart',userAuth,cartController.addToCart)
+userRoute.post('/addToCartFromWishlist',userAuth,cartController.addToCartFromWishlist)
 userRoute.patch('/cart/updateQuantity', userAuth, cartController.updateCartItemQuantity);
 userRoute.delete('/cart/remove',userAuth,cartController.removeCartProduct)
 userRoute.post("/update-product-quantity",cartController.updateProductQuantity);

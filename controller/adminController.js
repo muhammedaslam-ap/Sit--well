@@ -125,6 +125,7 @@ const getSalesReport = async (req, res) => {
         const totalPages = Math.ceil(totalOrders / limit);
 
         const orders = await Order.find(query)
+            .sort({createdOn:-1})
             .skip(skip)  
             .limit(limit) 
             .populate('userId', 'name email')

@@ -243,13 +243,15 @@ const getOrderDetails = async (req, res) => {
                 { productName: { $regex: ".*" + search + ".*", $options: 'i' } }
             ]
         })
-            .populate('userId', ' name email phone') 
+            .populate('userId', 'name email phone') 
             .populate('orderedItems.product', 'productName price productImages')
+            .sort({createdOn:-1})
             .limit(limit)
             .skip((page - 1) * limit)
             .exec();
+            
 
-
+        
             const totalOrders = await Order.countDocuments({
                 $or: [
                     { orderId: { $regex: ".*" + search + ".*", $options: 'i' } },
@@ -365,7 +367,6 @@ const updateOrderStatus = async (req, res) => {
 
 const getYourOrder = async (req, res) => {
     try {
-
         const search = req.query.search || ""; 
         let page = 1;
         if (req.query.page) {
@@ -375,38 +376,47 @@ const getYourOrder = async (req, res) => {
         const limit = 3; 
         const userId = req.session.user._id;
 
-        const orders = await Order.find({ userId: userId,
+        // Filter orders by userId and search query
+        const searchQuery = {
+            userId: userId,
             $or: [
                 { orderId: { $regex: ".*" + search + ".*", $options: 'i' } },
-                { productName: { $regex: ".*" + search + ".*", $options: 'i' } }
-                ]
-         })
-      
+                { "orderedItems.product.productName": { $regex: ".*" + search + ".*", $options: 'i' } }
+            ]
+        };
+
+        // Fetch orders with pagination
+        const orders = await Order.find(searchQuery)
             .populate('userId', 'name email phone')
             .populate('orderedItems.product', 'productName price productImages')
             .limit(limit)
             .skip((page - 1) * limit)
             .exec();
 
-         
-            const totalOrders = await Order.countDocuments({
-                $or: [
-                    { orderId: { $regex: ".*" + search + ".*", $options: 'i' } },
-                    { productName: { $regex: ".*" + search + ".*", $options: 'i' } }
-                ]
-            });
-            const totalPages = Math.ceil(totalOrders / limit);
+        // Count total orders matching the query
+        const totalOrders = await Order.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalOrders / limit);
 
+        // If no orders found, render the page with a "No orders found" message
         if (!orders || orders.length === 0) {
-            req.flash('error', 'No orders found for this user');
-            return res.redirect('/');
+            return res.render('userOrder', { 
+                orders: [],
+                statusOptions: [],
+                userId,
+                currentPage: page,
+                totalPages: 0,
+                search,
+                message: 'No orders found for this user.'
+            });
         }
 
+        // Get status options from the Order schema
         const statusOptions = Order.schema.path('status').enumValues;
 
+        // Render the order view
         return res.render('userOrder', { 
             orders,
-            statusOptions,      
+            statusOptions,
             userId,
             currentPage: page,
             totalPages, 
@@ -470,9 +480,9 @@ const orderCancelorRturn = async (req, res) => {
             order.status = 'Cancelled'; 
             req.flash('success', 'Order has been successfully cancelled.');
         }
-
+        console.log(userId,'error fix data')
         const wallet = await Wallet.findOne({ user: userId });
-
+        console.log(wallet,'error fix data')
         if (!wallet) {
             console.error("Wallet not found for the user.");
             return;
@@ -541,7 +551,7 @@ const orderCancelorRturn = async (req, res) => {
     } catch (error) {
         console.error("Error processing order status change:", error);
         req.flash('error', 'An error occurred while attempting to process your request.');
-        return res.redirect('/order');
+        return res.redirect('/order'); 
     }
     
 };

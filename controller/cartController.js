@@ -52,6 +52,8 @@ const getAddToCart = async (req, res) => {
 
         res.render('cart', { 
             cart: cartData,
+            user: userData,
+
            
         });
     } catch (error) {
@@ -155,6 +157,105 @@ const addToCart = async (req, res) => {
         console.error("Error adding to cart:", error);
         req.flash('error', 'An error occurred while adding to cart');
         res.redirect(`/productDetails/${productId || 'unknown'}`);
+    }
+};
+
+
+
+
+const addToCartFromWishlist = async (req, res) => {
+    let productId;
+
+    try {
+        const userId = req.session.user._id;
+        productId = req.body.productId;
+
+        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+            req.flash('error', 'Invalid product');
+            return res.redirect(`/Whishlish`);
+        }
+
+        const quantityNum = parseInt(req.body.quantity) || 1;
+        if (isNaN(quantityNum) || quantityNum < 1) {
+            req.flash('error', 'Invalid quantity');
+            return res.redirect(`/Whishlish`);
+        }
+
+        
+       
+        const product = await Product.findById(productId);
+        if (!product) {
+            req.flash('error', 'Product not found');
+            return res.redirect(`/Whishlish`);
+        }
+        if(product.quantity === 0){
+            req.flash('error','This product is OutOfStock!!')
+            return res.redirect(`/Whishlish/`)
+        }
+
+        const productPrice = parseFloat(product.salePrice || product.regularPrice);
+        if (!productPrice || isNaN(productPrice)) {
+            console.error('Invalid product price:', {
+                productId,
+                salePrice: product.salePrice,
+                regularPrice: product.regularPrice,
+            });
+            req.flash('error', 'Invalid product price');
+            return res.redirect(`/Whishlish`);
+        }
+
+        const productImage = product.productImage && product.productImage.length > 0
+            ? product.productImage[0]
+            : null;
+
+        if (!productImage) {
+            console.warn("No image available for product:", productId);
+        }
+
+        let cart = await Cart.findOne({ userId });
+        const itemTotalPrice = productPrice * quantityNum;
+
+        if (cart) {
+            const itemIndex = cart.items.findIndex(
+                item => item.productId.toString() === productId
+            );
+
+            if (itemIndex > -1) {
+                cart.items[itemIndex].quantity += quantityNum;
+                cart.items[itemIndex].price = productPrice;
+                cart.items[itemIndex].totalPrice += itemTotalPrice;
+
+                cart.items[itemIndex].productImages = [productImage]; 
+            } else {
+                cart.items.push({
+                    productId,
+                    quantity: quantityNum,
+                    price: productPrice,
+                    totalPrice: itemTotalPrice,
+                    productImages: [productImage]
+                });
+            }
+        } else {
+            cart = new Cart({
+                userId,
+                items: [{
+                    productId,
+                    quantity: quantityNum,
+                    price: productPrice,
+                    totalPrice: itemTotalPrice,
+                    productImages: [productImage]  
+                }]
+            });
+        }
+
+        await cart.save();
+
+        req.flash('success', 'Product successfully added to cart');
+        res.redirect(`/Whishlish`);
+    } catch (error) {
+        console.error("Error adding to cart:", error);
+        req.flash('error', 'An error occurred while adding to cart');
+        res.redirect(`/Whishlish/${productId || 'unknown'}`);
     }
 };
 
@@ -300,7 +401,7 @@ const getCheckOut = async (req, res) => {
 
 
         const subtotal = userCart.items.reduce((total, item) => {
-            return total + (item.totalPrice || 0); // Fallback to 0 if totalPrice is undefined
+            return total + (item.totalPrice || 0); 
         }, 0);
 
         console.log(subtotal)
@@ -341,7 +442,7 @@ const getCheckOut = async (req, res) => {
             couponMessage, 
             newTotal, 
             isCoupon,
-            appliedCoupon  // Pass to the view to show coupon if applied
+            appliedCoupon  
         });
 
     } catch (error) {
@@ -361,5 +462,6 @@ module.exports = {
     updateCartItemQuantity,
     removeCartProduct,
     updateProductQuantity,
-    getCheckOut
+    getCheckOut,
+    addToCartFromWishlist
 };
