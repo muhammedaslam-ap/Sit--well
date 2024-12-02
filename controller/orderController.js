@@ -480,9 +480,7 @@ const orderCancelorRturn = async (req, res) => {
             order.status = 'Cancelled'; 
             req.flash('success', 'Order has been successfully cancelled.');
         }
-        console.log(userId,'error fix data')
         const wallet = await Wallet.findOne({ user: userId });
-        console.log(wallet,'error fix data')
         if (!wallet) {
             console.error("Wallet not found for the user.");
             return;
@@ -555,6 +553,41 @@ const orderCancelorRturn = async (req, res) => {
     }
     
 };
+
+const returnMessage = async (req, res) => {
+    try {
+        const { orderId } = req.params; 
+        const { reason} = req.body; 
+
+        if (!reason || reason.trim() === '') {
+            return res.status(400).json({ error: 'Return message is required.' });
+        }
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found.' });
+        }
+        order.returnRequest = reason;
+
+        order
+
+        if (order.status === 'Delivered') {
+            order.status = 'Return Request';  
+            req.flash('success', 'Your return request has been successfully processed.');
+        } 
+
+        await order.save();
+
+        req.flash('success', 'Return request submitted successfully.');
+        res.redirect('/order')
+
+        
+    } catch (error) {
+        console.error('Error handling return message:', error);
+
+        return res.status(500).json({ error: 'Internal server error.' });
+    }
+};
+
 
 
 const approveReturnRequest = async (req, res) => {
@@ -664,5 +697,6 @@ module.exports={
     orderCancelorRturn,
     retrieveOrderDetails,
     approveReturnRequest,
-    cancelReturnRequest
+    cancelReturnRequest,
+    returnMessage
 }

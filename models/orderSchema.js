@@ -124,6 +124,10 @@ const orderSchema = new Schema({
         type: Boolean,
         default: false
     },
+    returnRequest:{
+        type: String,
+        default: null, 
+    },
     rejectionMessage: {
         type: String,
         default: null, 

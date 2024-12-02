@@ -180,6 +180,7 @@
                                     order.status === 'Returned' ? 'bg-dark' : 'bg-secondary'
                                 %>">
                               <% if (order.status === 'Return Request') { %>
+
                                 <%= order.status %>
 
                                 <div style="text-align: center; margin-top: 10px;">
@@ -220,6 +221,9 @@
                                         </form>
                                     </div>
                                 </div>
+
+                                <p class="text-danger"> return message from User ===:<%=order.returnRequest %> </p>
+
                             <% } else { %>
                                         <%= order.status %>                                  
                             <% } %>

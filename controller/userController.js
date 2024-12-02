@@ -366,7 +366,6 @@ const verifyotp = async (req, res) => {
 
             const passwordHash = await securePassword(user.password);
 
-            // Save user data to the database
             const saveUserData = new User({
                 name: user.name,
                 email: user.email,
@@ -376,7 +375,6 @@ const verifyotp = async (req, res) => {
 
             await saveUserData.save();
 
-            // Create a wallet with an initial balance of 5000 for the new user
             const initialWalletBalance = 5000;
             const newWallet = new Wallet({
                 user: saveUserData._id,
@@ -395,7 +393,7 @@ const verifyotp = async (req, res) => {
             await newWallet.save();
             console.log(`Wallet created for user ${saveUserData._id} with balance ${initialWalletBalance}`);
 
-            req.session.user = saveUserData; // Log the user in
+            req.session.user = saveUserData; 
             res.json({ success: true, redirectUrl: '/' });
         } else {
             res.status(400).json({ success: false, message: "Invalid OTP, please try again." });
@@ -442,7 +440,6 @@ const productDetails = async (req, res) => {
         const isInCart = cartItem ? cartItem:false;
         
         if (!mongoose.Types.ObjectId.isValid(productId)) {
-            // console.log("Invalid Product ID format:", productId);
             return res.status(400).redirect('/pageNotFound');
         }
 
@@ -455,8 +452,6 @@ const productDetails = async (req, res) => {
             }).lean()
         ]);
 
-        // console.log("Fetched Categories:", categories);
-        // console.log("Fetched Product Data:", productData);
 
         if (!productData) {
             return res.status(404).redirect('/pageNotFound');
@@ -481,7 +476,6 @@ const productDetails = async (req, res) => {
             .lean()
         ]);
 
-        // console.log("Recommended Products:", recommendedProducts);
 
         return res.render('product_details', {
             product: productData,

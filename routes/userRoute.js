@@ -2,6 +2,7 @@ const express=require('express')
 const userRoute = express()
 const passport=require('passport')
 const {userAuth,adminAuth} = require('../middleware/auth')
+const Wallet  = require('../models/walletSchema')
 userRoute.set('view engine','ejs')
 userRoute.set('views','./views/user')
 const Order = require('../models/orderSchema'); 
@@ -70,6 +71,7 @@ userRoute.get('/proceedToPayment',userAuth,orderController.proceedTopayment)
 userRoute.get('/order',userAuth,orderController.getYourOrder)
 userRoute.get('/orderDetails/:orderId',userAuth,orderController.retrieveOrderDetails)
 userRoute.post('/orderCancel/:orderId',userAuth,orderController.orderCancelorRturn)
+userRoute.post('/returnMessage/:orderId',userAuth,orderController.returnMessage)
 
 
 userRoute.get('/Whishlish',userAuth,whishlistController.getWhishlist)
@@ -116,9 +118,34 @@ userRoute.get('/auth/google', passport.authenticate('google', { scope: ['profile
 
 userRoute.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login'
-}), (req, res) => {
+}), async (req, res) => {
+    try {
+        const user = req.user;
+
+        const walletExists = await Wallet.findOne({ user: user._id });
+
+        if (!walletExists) {
+            const wallet = new Wallet({
+                user: user._id,
+                balance: 5000,
+                transactions: [{
+                    transaction_date: new Date(),
+                    transaction_type: "Credit",
+                    transaction_status: "Completed",
+                    amount: 5000,
+                }]
+            });
+            await wallet.save();
+        }
+
+
     req.session.user = req.user; 
     res.redirect('/'); 
+    } catch (error) {
+        console.error('Error in Google login callback:', error);
+        res.redirect('/login');     
+    }
+    
 });
 
 module.exports=userRoute;
