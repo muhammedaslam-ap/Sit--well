@@ -70,120 +70,152 @@
   }
 </style>
 
-<section class="confirmation_part padding_top">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="confirmation_tittle">
-                    <span>Thank you. Your order has been received.</span>
-                </div>
-            </div>
-            <div class="col-lg-6 col-lx-4">
-                <div class="single_confirmation_details">
-                    <h4>Order Info</h4>
-                    <ul>
-                        <li><p>Order Number</p><span>: <%= orderDetails.orderId %></span></li>
-                        <li><p>Date</p><span>: <%= orderDetails.createdOn.toLocaleDateString() %></span></li>
-                        <li><p>Total</p><span>Rs: <% if(!isCoupon){ %>₹
-                          <%= orderDetails.totalPrice.toFixed(2) %> <% }else{ %>₹
-                            <%=newPrice.toFixed(2)%><% } %></span></li>
-                        <li><p>Payment Method</p><span>: <%= orderDetails.paymentMethod %></span></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-lg-6 col-lx-4">
-                <div class="single_confirmation_details">
-                    <h4>Billing Address</h4>
-                    <ul>
-                        <li><p>Street</p><span>: <%= orderDetails.address[0].addressLine1 %></span></li>
-                        <li><p>City</p><span>: <%= orderDetails.address[0].city %></span></li>
-                        <li><p>Country</p><span>: United States</span></li>
-                        <li><p>Postcode</p><span>: <%= orderDetails.address[0].pinCode %></span></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="container mt-5">
-              <div class="card shadow-sm">
-                <div class="card-body">
-                  <h3 class="card-title mb-4">Order Details</h3>
-                  <div class="table-responsive">
-                    <table class="table table-hover">
-                      <thead class="table-light">
+<section class="confirmation_part padding_top gradient-background">
+  <div class="container">
+      <div class="row">
+          <div class="col-lg-12">
+              <div class="confirmation_tittle">
+                <% if (orderDetails.paymentStatus == 'failed') { %>
+                  <span>Your Payment has failed</span>
+                  <button class="btn btn-danger" onclick="reTryPayment('<%= orderDetails._id %>')">Try again</button>
+                <% } else { %>
+                  <span class="text-success">Thank you. Your order has been received.</span>
+                <% } %>
+              </div>
+          </div>
+          <div class="col-lg-6 col-lx-4">
+              <div class="single_confirmation_details">
+                  <h4>Order Info</h4>
+                  <ul>
+                      <li><p>Order Number</p><span>: <%= orderDetails.orderId %></span></li>
+                      <li><p>Date</p><span>: <%= orderDetails.createdOn.toLocaleDateString() %></span></li>
+                      <li><p>Total</p><span>Rs: ₹<%= isCoupon ? newPrice.toFixed(2) : orderDetails.totalPrice.toFixed(2) %></span></li>
+                      <li><p>Payment Method</p><span>: <%= orderDetails.paymentMethod %></span></li>
+                      <li><p>Payment Status</p>
+                        <span class="<%= orderDetails.paymentStatus === 'failed' ? 'text-danger' : 'text-success' %>">
+                          : <%= orderDetails.paymentStatus %>
+                        </span>
+                      </li>
+                  </ul>
+              </div>
+          </div>
+          <div class="col-lg-6 col-lx-4">
+              <div class="single_confirmation_details">
+                  <h4>Billing Address</h4>
+                  <ul>
+                      <li><p>Street</p><span>: <%= orderDetails.address[0].addressLine1 %></span></li>
+                      <li><p>City</p><span>: <%= orderDetails.address[0].city %></span></li>
+                      <li><p>Country</p><span>: United States</span></li>
+                      <li><p>Postcode</p><span>: <%= orderDetails.address[0].pinCode %></span></li>
+                  </ul>
+              </div>
+          </div>
+          <div class="container mt-5">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h3 class="card-title mb-4">Order Details</h3>
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th scope="col">Product</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Unit Price</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col" class="text-end">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% orderDetails.orderedItems.forEach(item => { %>
                         <tr>
-                          <th scope="col">Product</th>
-                          <th scope="col">Name</th>
-                          <th scope="col">Unit Price</th>
-                          <th scope="col">Quantity</th>
-                          <th scope="col" class="text-end">Total</th>
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <img style="width: 100px; height: 100px;" 
+                                   src="/uploads/product-images/<%= item.productImage %>" 
+                                   alt="<%= item.productName %>" />
+                            </div>
+                          </td>
+                          <td><%= item.productName %></td>
+                          <td>₹<%= item.price %></td>
+                          <td>x<%= item.quantity %></td>
+                          <td class="text-end">₹<%= (item.price * item.quantity).toFixed(2) %></td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <% orderDetails.orderedItems.forEach(item => { %>
-                          <tr>
-                            <td>
-                              <div class="d-flex align-items-center">
-                                <img style="width: 100px; height: 100px;" 
-                                src="/uploads/product-images/<%=item.productImage %>" 
-                                alt="<%= item.productName %>" />
-                              </div>
-                            </td>
-                            <td><span><%= item.productName %></span></td>
-                            <td><span><%= item.price %></span></td>
-                            <td>x<%= item.quantity %></td>
-                            <td class="text-end">₹
-                              <%= (item.price * item.quantity).toFixed(2) %></td>
-                          </tr>
-                        <% }) %>
-                      </tbody>
-                      <tfoot class="table-light">
-                        <tr>
-                          <td colspan="2">Subtotal</td>
-                          <td class="text-end">₹
-                            <%= orderDetails.totalPrice.toFixed(2) %></td>
-                        </tr>
-                        <tr>
-                          <td colspan="2">Shipping</td>
-                          <td class="text-end">Free</td>
-                        </tr>
-                        <tr class="fw-bold">
-                          <td class="order-summary">
-                            <p>Total Price: ₹
+                      <% }) %>
+                    </tbody>
+                    <tfoot class="table-light">
+                      <tr>
+                        <td colspan="2">Subtotal</td>
+                        <td class="text-end">₹<%= orderDetails.totalPrice.toFixed(2) %></td>
+                      </tr>
+                      <tr>
+                        <td colspan="2">Shipping</td>
+                        <td class="text-end">Free</td>
+                      </tr>
+                      <tr class="fw-bold">
+                        <td colspan="2">Total Price</td>
+                        <td class="text-end">
+                          <p>Total Price: ₹
 
-                              <% if(!isCoupon){ %>
-                                
-                                <%= orderDetails.totalPrice.toFixed(2) %>
-                              <% } else { %>
+                            <% if(!isCoupon){ %>
                               
-                                <%= newPrice.toFixed(2) %>
-                              <% } %>
-                            </p>
+                              <%= orderDetails.totalPrice.toFixed(2) %>
+                            <% } else { %>
                             
-                            <% if(isCoupon){ %>
-                              <p class="text-success">Coupon applied!</p>
-                              <p>Original Price: ₹
-                                <s><%= orderDetails.totalPrice.toFixed(2) %></s></p>
-                              <p>You saved: ₹
-                                <%= (orderDetails.totalPrice - newPrice).toFixed(2) %></p>
+                              <%= newPrice.toFixed(2) %>
+                              
                             <% } %>
-                            </td>
-                      </tfoot>
-                    </table>
-                  </div>
+                          </p>
+                          
+                          <% if (orderDetails.finalAmount > 0) { %>   
+                            <p class="text-success">coupon applied</p>
+                            ₹<%= orderDetails.finalAmount.toFixed(2) %>
+                            <p class="text-warning">You saved: ₹<%= (orderDetails.totalPrice - orderDetails.finalAmount).toFixed(2) %></p>
+                        <% } else { %>
+                            ₹<%= orderDetails.totalPrice.toFixed(2) %>
+                        <% } %>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
               </div>
-            </div>            
-        </div>
-    </div>
-    <div class=" d-flex align-items-center justify-content-center">
-      <a href="/" class="btn custom-btn">
-          <i class="fas fa-shopping-bag btn-icon"></i>
-          Enjoy Shopping
-      </a>
+            </div>
+          </div>
+      </div>
+  </div>
+  <div class="d-flex align-items-center justify-content-center">
+    <a href="/" class="btn custom-btn">
+      <i class="fas fa-shopping-bag btn-icon"></i> Enjoy Shopping
+    </a>
   </div>
 </section>
 
 <%-include('../../views/partials/user/footer.ejs')%>
 
- 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+console.log("Page loaded and script initialized.");
+
+window.reTryPayment = function(orderId) {
+  console.log("Attempting to retry payment for order:", orderId);
+
+  fetch('/paypalPayment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId: orderId, totalAmount: '<%= orderDetails.totalPrice %>' })
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.approval_url) {
+        window.location.href = data.approval_url;
+      } else {
+        alert("Error initiating PayPal payment. Please try again.");
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      alert("An unexpected error occurred. Please try again later.");
+    });
+};
+});
+</script>

@@ -70,7 +70,7 @@ userRoute.post('/proceedToPayment',userAuth,orderController.proceedTopayment)
 userRoute.get('/proceedToPayment',userAuth,orderController.proceedTopayment)
 userRoute.get('/order',userAuth,orderController.getYourOrder)
 userRoute.get('/orderDetails/:orderId',userAuth,orderController.retrieveOrderDetails)
-userRoute.post('/orderCancel/:orderId',userAuth,orderController.orderCancelorRturn)
+userRoute.post('/orderCancel/:orderId',userAuth,orderController.orderCancel)
 userRoute.post('/returnMessage/:orderId',userAuth,orderController.returnMessage)
 
 
@@ -90,7 +90,7 @@ userRoute.post('/removeCoupon',userAuth,couponController.removeCoupon)
 userRoute.post('/paypalPayment',userAuth,paymentController.paypalPayment)
 userRoute.get('/paymentseccuss',userAuth,paymentController.success)
 userRoute.post('/paymentseccuss',userAuth,paymentController.paypalPayment)
-// userRoute.get('/paymentfail',userAuth,paymentController.cancel)
+userRoute.get('/paymentfail',userAuth,paymentController.paymentCancel)
 
 //CouponManagement
 userRoute.get("/userwallet",userAuth,walletController.loadWallet);

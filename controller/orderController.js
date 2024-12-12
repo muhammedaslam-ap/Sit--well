@@ -29,7 +29,7 @@ const getOrderSuccess = async (req, res) => {
         }
      
         // Retrieve user cart and address details
-        const userCart = await Cart.findOne({ userId }).populate('items.productId');
+        // const userCart = await Cart.findOne({ userId }).populate('items.productId');
         const userAddress = await Address.findOne({ userId }); // Fetch the user's address
 
         if (!userAddress) {
@@ -37,13 +37,14 @@ const getOrderSuccess = async (req, res) => {
             return res.redirect('/checkout');
         }
 
-        if (!userCart || userCart.items.length === 0) {
-            req.flash('error', 'No items found in cart.');
-            return res.redirect('/checkout');
-        }
+        // if (!userCart || userCart.items.length === 0) {
+        //     req.flash('error', 'No items found in cart.');
+        //     return res.redirect('/checkout');
+        // }
 
         // Calculate the total price of items in the cart
-        const totalPrice = userCart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+        // const totalPrice = userCart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+        const totalPrice = orderDetails.orderedItems.reduce((total,item) => total + item.price * item.quantity,0)
         const finalAmount = totalPrice;
 
         let isCoupon = false;
@@ -57,12 +58,16 @@ const getOrderSuccess = async (req, res) => {
             if (validCoupon) {
                 discount = (finalAmount * validCoupon.discount) / 100;
             }
-        } else {
+        } else if(finalAmount>0){
+            discount = orderDetails.discount
+            isCoupon = true
+        }else {
             console.log('No coupons applied');
         }
 
         const newPrice = finalAmount - discount;
-
+        
+        
         await Cart.deleteOne({ userId });
         
         req.session.coupon = null;
@@ -87,12 +92,29 @@ const getOrderSuccess = async (req, res) => {
 const proceedTopayment = async (req, res) => {
     try {
         const userId = req.session.user._id; 
-        const { selectedAddress, selectedPayment } =  req.session.paypalDetails ?    req.session.paypalDetails : req.body;
+        let { selectedAddress, selectedPayment,paymentStatus,orderId } =  req.session.paypalDetails ?    req.session.paypalDetails : req.body;
 
-        // console.log("User ID:", userId);
-        // console.log("Selected Address ID:", selectedAddress);
-        // console.log("Selected Payment:", selectedPayment);
+        if(selectedPayment==='cash'){
+            paymentStatus = "success"
+        }
 
+        console.log('hyhfygehsfchaesyfgianvyt4uiehvn5iuhy7t8we:',selectedPayment,paymentStatus);
+        
+        if(orderId) {
+            if(paymentStatus == "failed") {
+                return res.redirect('/orderSuccess');
+            } else {
+                const existingOrder = await Order.findOne({_id:orderId})
+                if(existingOrder) {
+                    await Order.updateOne(
+                        {_id:orderId},
+                        {paymentStatus:"success"}
+                    )
+                }
+
+                return res.redirect('/orderSuccess');
+            }
+        } else {
         if (!selectedAddress || !selectedPayment) {
             req.flash('error', 'Please select an address and a payment method.');
             return res.redirect('/checkout');
@@ -177,6 +199,8 @@ const proceedTopayment = async (req, res) => {
             userId,
             orderedItems: cartItems,
             totalPrice:totalPrice,
+            discount:discount,
+            couponApplied: sessiocoupon ? true : false,
             finalAmount:newPrice,
             address: [
                 {
@@ -194,6 +218,7 @@ const proceedTopayment = async (req, res) => {
                 }
             ],
             paymentMethod: selectedPayment,
+            paymentStatus: paymentStatus,
             status: 'Pending',
             createdOn: new Date()
         });
@@ -216,7 +241,7 @@ const proceedTopayment = async (req, res) => {
 
         req.flash('success', 'Successfully ordered product');
         return res.redirect('/orderSuccess');
-
+    }
     } catch (error) {
         console.error('Error while proceeding to payment:', error);
         req.flash('error', 'There was an error processing your payment. Please try again.');
@@ -452,7 +477,7 @@ const retrieveOrderDetails = async (req, res) => {
 
 
 
-const orderCancelorRturn = async (req, res) => {
+const orderCancel = async (req, res) => {
     try {
         const userId = req.session.user._id;
         const orderId = req.params.orderId;
@@ -694,7 +719,7 @@ module.exports={
     getOrderDetails,
     updateOrderStatus,
     getYourOrder,
-    orderCancelorRturn,
+    orderCancel,
     retrieveOrderDetails,
     approveReturnRequest,
     cancelReturnRequest,

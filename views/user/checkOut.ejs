@@ -504,7 +504,8 @@ walletButton.addEventListener('click', function() {
         body: JSON.stringify({     
             totalAmount: amount,
             selectedAddress: address,
-            selectedPayment: paymentMethod
+            selectedPayment: paymentMethod,
+            paymentStatus:'failed'
         })
     })
     .then(response => response.json())

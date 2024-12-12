@@ -131,40 +131,46 @@ const getSalesReport = async (req, res) => {
             .populate('userId', 'name email')
             .populate('orderedItems.product', 'name price offerPrice');
 
-        let totalOrderAmount = 0;
-        let totalDiscount = 0;
-        let totalOfferPrice = 0
+
         
 
         const order = await Order.find(query)
         .populate('userId', 'name email')
         .populate('orderedItems.product', 'name price offerPrice');
 
+        let totalOrderAmount = 0;
+        let totalDiscount = 0;
+        let totalOfferPrice1 = 0
 
         order.forEach(order => {
             for (let item of order.orderedItems) {
                 let product = item.product; 
           
                 let offerPrice = product.offerPrice || 0; 
-                totalOfferPrice += offerPrice*item.quantity;
+                totalOfferPrice1 += offerPrice*item.quantity;
               }
-            //   console.log(totalOfferPrice)
-            let orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
-            totalOrderAmount += orderTotal;
-
+           
 
 
             if (order.finalAmount > 0) {
                 let discountForOrder = order.totalPrice - order.finalAmount;
                 totalDiscount += discountForOrder;
             }
+
+            let orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
+            totalOrderAmount += orderTotal;
+
         });
+
+        const totalOfferPrice=totalOfferPrice1 + totalDiscount
+
+
 
         res.render('admin_salesReport', {
             orders,
             totalOrderAmount: totalOrderAmount.toFixed(2),
             totalDiscount: totalDiscount.toFixed(2),
-            totalOfferPrice :totalOfferPrice + totalDiscount,
+            totalOfferPrice ,
             totalOrders,
             totalPages,
             currentPage: page,
@@ -182,16 +188,12 @@ const PdfKit = require('pdfkit');
 // Generate PDF for Sales Report without pagination
 const getDownloadPdf = async (req, res) => {
     try {
-        const { timeFilter,orderStatus } = req.query;
-        // console.log(timeFilter);
-        
-        
+        const { timeFilter, orderStatus } = req.query;
         const now = new Date();
         let dateRange = {};
         let periodText = '';
         let statusFilter = {};
 
-        // Set the date range and status filter based on the selected time filter
         switch (timeFilter) {
             case 'day':
                 const startOfDay = new Date(now);
@@ -199,7 +201,6 @@ const getDownloadPdf = async (req, res) => {
                 const endOfDay = new Date(now);
                 endOfDay.setHours(23, 59, 59, 999);
                 dateRange = { createdOn: { $gte: startOfDay, $lt: endOfDay } };
-                // Add status filter for day only
                 if (orderStatus) {
                     statusFilter = { status: orderStatus };
                 }
@@ -207,8 +208,9 @@ const getDownloadPdf = async (req, res) => {
                 break;
 
             case 'week':
+                const currentDay = now.getDay();
                 const startOfWeek = new Date(now);
-                startOfWeek.setDate(now.getDate() - now.getDay());
+                startOfWeek.setDate(now.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
                 startOfWeek.setHours(0, 0, 0, 0);
                 const endOfWeek = new Date(startOfWeek);
                 endOfWeek.setDate(startOfWeek.getDate() + 6);
@@ -238,215 +240,140 @@ const getDownloadPdf = async (req, res) => {
                 periodText = `Monthly Report (${defaultStart.toLocaleDateString()} - ${defaultEnd.toLocaleDateString()})`;
         }
 
-        // Combine date range and status filters
-        const queryFilter = {
-            ...dateRange,
-            ...statusFilter
-        };
+        const queryFilter = { ...dateRange, ...statusFilter };
 
-        // Fetch orders with combined filters
+        // Fetch orders
         const orders = await Order.find(queryFilter)
             .populate('userId', 'name email')
-            .populate('orderedItems.product', 'productName salePrice')
+            .populate('orderedItems.product', 'productName salePrice offerPrice')
             .sort({ createdOn: -1 });
 
-        // Calculate totals
-        const totals = orders.reduce((acc, order) => {
-            const orderTotal = order.finalAmount || order.totalPrice;
-            const discount = order.finalAmount > 0 ? order.totalPrice - order.finalAmount : 0;
-            
-            return {
-                totalAmount: acc.totalAmount + orderTotal,
-                totalDiscount: acc.totalDiscount + discount,
-                count: acc.count + 1
-            };
-        }, { totalAmount: 0, totalDiscount: 0, count: 0 });
+        // Initialize totals
+        let totalOrderAmount = 0;
+        let totalCouponDiscount = 0;
+        let totalOfferPrice = 0;
+        let totalOrders = orders.length;
 
-        const doc = new PdfKit({
-            size: 'A4',
-            margin: 50
+        // Calculate totals
+        orders.forEach(order => {
+            order.orderedItems.forEach(item => {
+                const offerPrice = item.product.offerPrice || 0;
+                totalOfferPrice += offerPrice * item.quantity;
+            });
+
+            const couponDiscount = order.finalAmount > 0 ? (order.totalPrice - order.finalAmount) : 0;
+            totalCouponDiscount += couponDiscount;
+
+            const orderRevenue = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
+            totalOrderAmount += orderRevenue;
         });
 
-        // Set response headers
+        const totalDiscount = totalOfferPrice + totalCouponDiscount;
+
+        // Create the PDF
+        const doc = new PdfKit({ size: 'A4', margin: 50 });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=sales_report_${timeFilter}.pdf`);
         doc.pipe(res);
 
-        // Helper functions remain the same
-        function drawLine(doc, startX, startY, endX, endY, color = '#E5E7EB', width = 1) {
-            doc.strokeColor(color)
-               .lineWidth(width)
-               .moveTo(startX, startY)
-               .lineTo(endX, endY)
-               .stroke();
-        }
+        // Define colors
+        const primaryColor = '#3B82F6';
+        const secondaryColor = '#1E40AF';
+        const textColor = '#1F2937';
+        const lightGray = '#F3F4F6';
+        const borderColor = '#D1D5DB';
 
-        function drawBox(doc, x, y, width, height, backgroundColor = '#F3F4F6') {
-            doc.rect(x, y, width, height)
-               .fill(backgroundColor);
-        }
+        // Header
+        doc.rect(0, 0, 595.28, 150).fill(primaryColor);
+        doc.fill('#FFFFFF').fontSize(24).font('Helvetica-Bold').text('SIT-WELL', 50, 50);
+        doc.fontSize(14).font('Helvetica').text(`Sales Report - ${periodText}`, 50, 80);
+        doc.fontSize(12).text(`Generated: ${new Date().toLocaleString()}`, 50, 100);
 
-        // Header section
-        drawBox(doc, 50, 30, 100, 40, '#0066cc');
-        doc.fillColor('#FFFFFF')
-           .fontSize(16)
-           .text('SIT-WELL', 65, 42);
-
-        // Update the report title to include status if it's a daily report
-        if (timeFilter === 'day' && orderStatus) {
-            doc.fillColor('#111827')
-               .fontSize(28)
-               .font('Helvetica-Bold')
-               .text(`Sales Report - ${orderStatus}`, 180, 35);
-        } else {
-            doc.fillColor('#111827')
-               .fontSize(28)
-               .font('Helvetica-Bold')
-               .text('Sales Report', 180, 35);
-        }
-
-        // Report period and generation info
-        drawBox(doc, 50, 90, 495, 70, '#F9FAFB');
-        doc.fontSize(12)
-           .fillColor('#374151')
-           .font('Helvetica')
-           .text(`Generated: ${new Date().toLocaleString()}`, 70, 105)
-           .text(`Period: ${periodText}`, 70, 125);
-
-        // Add a status summary section for daily reports
-        if (timeFilter === 'day' && orderStatus) {
-            drawBox(doc, 50, 270, 495, 40, '#F9FAFB');
-            doc.fontSize(12)
-               .fillColor('#374151')
-               .font('Helvetica-Bold')
-               .text(`Status Filter: ${orderStatus}`, 70, 285);
-        }
-
-        // Summary statistics
+        // Summary Section
         const summaryBoxes = [
-            { label: 'Total Orders', value: totals.count },
-            { label: 'Total Revenue', value: totals.totalAmount.toFixed(2)},
-            { label: 'Total Discount', value: totals.totalDiscount.toFixed(2)},
-            { label: 'Avg. Order Value', value: (totals.totalAmount / totals.count || 0).toFixed(2)}
+            { label: 'Total Orders', value: totalOrders },
+            { label: 'Total Revenue', value: `${totalOrderAmount.toFixed(2)}` },
+            { label: 'Coupon Discount', value: `${totalCouponDiscount.toFixed(2)}` },
+            { label: 'Total Discount', value: `${totalDiscount.toFixed(2)}` }
         ];
 
-        let boxX = 50;
-        summaryBoxes.forEach((box) => {
-            drawBox(doc, boxX, 180, 115, 80, '#F3F4F6');
-            doc.fontSize(10)
-               .fillColor('#6B7280')
-               .text(box.label, boxX + 10, 195)
-               .fontSize(14)
-               .fillColor('#111827')
-               .font('Helvetica-Bold')
-               .text(box.value, boxX + 10, 220);
-            boxX += 125;
+        doc.fill(textColor);
+        summaryBoxes.forEach((box, index) => {
+            const x = 50 + (index % 2) * 247.5;
+            const y = 170 + Math.floor(index / 2) * 80;
+            doc.roundedRect(x, y, 227.5, 70, 5).fill(lightGray);
+            doc.fontSize(12).font('Helvetica-Bold').fill(secondaryColor).text(box.label, x + 10, y + 10);
+            doc.fontSize(18).font('Helvetica-Bold').fill(textColor).text(box.value, x + 10, y + 30);
         });
 
-        // Orders section
-        let yPosition = 330;
-
+        // Order Details Section
+        let yPosition = 340;
         if (orders.length === 0) {
-            // No orders message
-            doc.fontSize(12)
-               .fillColor('#374151')
-               .text('No orders found for this period.', 50, yPosition + 20);
+            doc.fontSize(14).fill(textColor).text('No orders found for this period.', 50, yPosition);
         } else {
-            // Orders table header
-            drawBox(doc, 50, yPosition, 495, 30, '#F3F4F6');
-            doc.fontSize(12)
-               .fillColor('#374151')
-               .font('Helvetica-Bold')
-               .text('Order Details', 70, yPosition + 10);
+            // Table header
+            doc.fill(secondaryColor).rect(50, yPosition, 495, 30).fill();
+            doc.fillColor('#FFFFFF').fontSize(10).font('Helvetica-Bold');
+            doc.text('Order', 55, yPosition + 10, { width: 50 });
+            doc.text('Customer', 105, yPosition + 10, { width: 80 });
+            doc.text('Product', 185, yPosition + 10, { width: 120 });
+            doc.text('Quantity', 305, yPosition + 10, { width: 60 });
+            doc.text('Price', 365, yPosition + 10, { width: 60 });
+            doc.text('Total', 425, yPosition + 10, { width: 70 });
 
             yPosition += 40;
 
-            // Render each order
             orders.forEach((order, index) => {
-                if (yPosition > 700) {
-                    doc.addPage();
-                    yPosition = 50;
-                }
-
-                // Order header with formatted date
                 const orderDate = new Date(order.createdOn).toLocaleDateString();
-                drawBox(doc, 50, yPosition, 495, 40, '#F9FAFB');
-                doc.fontSize(12)
-                   .fillColor('#111827')
-                   .font('Helvetica-Bold')
-                   .text(`Order #${index + 1} - ${orderDate}`, 70, yPosition + 10)
-                   .fontSize(10)
-                   .fillColor('#6B7280')
-                   .font('Helvetica')
-                   .text(`Customer: ${order.userId.name}`, 200, yPosition + 10)
-                   .text(`Email: ${order.userId.email}`, 200, yPosition + 25);
+                const orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
 
-                yPosition += 50;
-
-                // Products table
-                drawLine(doc, 70, yPosition, 525, yPosition, '#E5E7EB');
-                yPosition += 10;
-                
-                // Table headers
-                doc.fontSize(10)
-                   .fillColor('#374151')
-                   .font('Helvetica-Bold')
-                   .text('Product', 70, yPosition)
-                   .text('Price (₹)', 400, yPosition);
-
-                yPosition += 20;
-
-                // Product rows
-                order.orderedItems.forEach(item => {
-                    if (yPosition > 750) {
+                order.orderedItems.forEach((item, itemIndex) => {
+                    if (yPosition > 700) {
                         doc.addPage();
                         yPosition = 50;
                     }
 
-                    doc.font('Helvetica')
-                       .fontSize(10)
-                       .fillColor('#4B5563')
-                       .text(item.product.productName, 70, yPosition, { width: 300 })
-                       .fillColor('#111827')
-                       .text(item.product.salePrice.toFixed(2), 400, yPosition);
+                    doc.fillColor(textColor).fontSize(9).font('Helvetica');
+                    if (itemIndex === 0) {
+                        doc.text(`#${index + 1}`, 55, yPosition, { width: 50 });
+                        doc.text(orderDate, 55, yPosition + 12, { width: 50 });
+                        doc.text(order.userId.name, 105, yPosition, { width: 80 });
+                        doc.text(order.userId.email, 105, yPosition + 12, { width: 80, fontSize: 8 });
+                    }
+             
+                    doc.text(item.product.productName, 185, yPosition, { width: 120 });
+                    doc.text(item.quantity.toString(), 305, yPosition, { width: 60 });
+                    doc.text(`${item.product.salePrice.toFixed(2)}`, 365, yPosition, { width: 60 });
+                    
+                    if (itemIndex === order.orderedItems.length - 1) {
+                        doc.text(`${orderTotal.toFixed(2)}`, 425, yPosition, { width: 70 });
+                    }
 
-                    yPosition += 20;
+                    yPosition += 25;
                 });
 
-                // Order total with discount if applicable
-                drawBox(doc, 350, yPosition, 195, 30, '#F9FAFB');
-                doc.fontSize(11)
-                   .fillColor('#111827')
-                   .font('Helvetica-Bold');
-                
-                if (order.finalAmount && order.finalAmount !== order.totalPrice) {
-                    doc.text(`Original:` ,order.totalPrice.toFixed(2), 400, yPosition + 5)
-                       .text('Final:', order.finalAmount.toFixed(2), 400, yPosition + 20);
-                } else {
-                    doc.text(`Total: `,order.totalPrice.toFixed(2), 400, yPosition + 10);
-                }
-
-                yPosition += 50;
+                // Draw a line between orders
+                doc.moveTo(50, yPosition - 5).lineTo(545, yPosition - 5).stroke(borderColor);
+                yPosition += 10;
             });
         }
 
         // Footer
-        doc.fontSize(8)
-           .fillColor('#9CA3AF')
-           .text('Confidential Business Document', 50, 780, { align: 'center' })
-           .text(`Generated on ${new Date().toLocaleDateString()} | Page ${doc.bufferedPageRange().count}`, 50, 795, { align: 'center' });
+        doc.fontSize(10).fill(textColor).text('Thank you for your business!', 50, 750, { align: 'center' });
+        doc.text('Page 1 of 1', 500, 750);
 
         doc.end();
-
     } catch (error) {
         console.error('Error generating PDF:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error generating PDF', 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            message: 'Error generating PDF',
+            error: error.message
         });
     }
 };
+
+
 
 
 const ExcelJS = require('exceljs');
@@ -454,7 +381,7 @@ const ExcelJS = require('exceljs');
 const getDownloadExel = async (req, res) => {
     try {
         const { timeFilter, orderStatus } = req.query;
-        
+
         const now = new Date();
         let dateRange = {};
         let periodText = '';
@@ -468,10 +395,7 @@ const getDownloadExel = async (req, res) => {
                 const endOfDay = new Date(now);
                 endOfDay.setHours(23, 59, 59, 999);
                 dateRange = { createdOn: { $gte: startOfDay, $lt: endOfDay } };
-                if (orderStatus) {
-                    statusFilter = { status: orderStatus };
-                }
-                periodText = `Daily Report - ${orderStatus || 'All Statuses'} (${startOfDay.toLocaleDateString()})`;
+                periodText = `Daily Report (${startOfDay.toLocaleDateString()})`;
                 break;
 
             case 'week':
@@ -506,55 +430,65 @@ const getDownloadExel = async (req, res) => {
                 periodText = `Monthly Report (${defaultStart.toLocaleDateString()} - ${defaultEnd.toLocaleDateString()})`;
         }
 
-        // Combine date range and status filters
-        const queryFilter = {
-            ...dateRange,
-            ...statusFilter
-        };
+        if (orderStatus) {
+            statusFilter = { status: orderStatus };
+        }
 
-        // Fetch orders with combined filters
+        const queryFilter = { ...dateRange, ...statusFilter };
+
+        // Fetch orders
         const orders = await Order.find(queryFilter)
             .populate('userId', 'name email')
-            .populate('orderedItems.product', 'productName salePrice')
+            .populate('orderedItems.product', 'productName salePrice offerPrice')
             .sort({ createdOn: -1 });
 
+        // Initialize totals
+        let totalOrderAmount = 0;
+        let totalCouponDiscount = 0;
+        let totalOfferPrice = 0;
+        let totalOrders = orders.length;
+
         // Calculate totals
-        const totals = orders.reduce((acc, order) => {
-            const orderTotal = order.finalAmount || order.totalPrice;
-            const discount = order.finalAmount > 0 ? order.totalPrice - order.finalAmount : 0;
+        orders.forEach(order => {
+            order.orderedItems.forEach(item => {
+                const offerPrice = item.product.offerPrice || 0;
+                totalOfferPrice += offerPrice * item.quantity;
+            });
 
-            return {
-                totalAmount: acc.totalAmount + orderTotal,
-                totalDiscount: acc.totalDiscount + discount,
-                count: acc.count + 1
-            };
-        }, { totalAmount: 0, totalDiscount: 0, count: 0 });
+            const couponDiscount = order.finalAmount > 0 ? (order.totalPrice - order.finalAmount) : 0;
+            totalCouponDiscount += couponDiscount;
 
-        // Create a new workbook
+            const orderRevenue = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
+            totalOrderAmount += orderRevenue;
+        });
+
+        const totalDiscount = totalOfferPrice + totalCouponDiscount;
+
+        // Create the Excel file
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Sales Report');
 
-        // Add title to the sheet
+        // Add title
         worksheet.mergeCells('A1:E1');
         worksheet.getCell('A1').value = `Sales Report - ${periodText}`;
         worksheet.getCell('A1').font = { size: 16, bold: true };
 
-        // Add summary data
+        // Add summary
         worksheet.addRow([]);
-        worksheet.addRow(['Total Orders', 'Total Revenue', 'Total Discount', 'Avg. Order Value']);
+        worksheet.addRow(['Total Orders', 'Total Revenue', 'Total Coupon Discount', 'Total Offer Price', 'Total Discount']);
         worksheet.addRow([
-            totals.count,
-            totals.totalAmount.toFixed(2),
-            totals.totalDiscount.toFixed(2),
-            (totals.totalAmount / totals.count || 0).toFixed(2)
+            totalOrders,
+            totalOrderAmount.toFixed(2),
+            totalCouponDiscount.toFixed(2),
+            totalOfferPrice.toFixed(2),
+            totalDiscount.toFixed(2)
         ]);
 
+        // Add blank row
         worksheet.addRow([]);
 
-        // Add order data
-        worksheet.addRow(['Order #', 'Date', 'Customer Name', 'Customer Email', 'Product', 'Price (₹)']);
-        
-        // Add each order's data
+        // Add order data header
+        worksheet.addRow(['Order #', 'Date', 'Customer Name', 'Customer Email', 'Product', 'Price (₹)', 'Quantity']);
         orders.forEach((order, index) => {
             const orderDate = new Date(order.createdOn).toLocaleDateString();
             order.orderedItems.forEach(item => {
@@ -564,7 +498,8 @@ const getDownloadExel = async (req, res) => {
                     order.userId.name,
                     order.userId.email,
                     item.product.productName,
-                    item.product.salePrice.toFixed(2)
+                    item.product.salePrice,
+                    item.quantity
                 ]);
             });
         });
@@ -576,24 +511,21 @@ const getDownloadExel = async (req, res) => {
         worksheet.getColumn(4).width = 30;
         worksheet.getColumn(5).width = 40;
         worksheet.getColumn(6).width = 15;
+        worksheet.getColumn(7).width = 10;
 
-        // Set the response headers for Excel file download
+        // Set response headers
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=sales_report_${timeFilter}.xlsx`);
 
-        // Write the workbook to the response stream
+        // Write and send the Excel file
         await workbook.xlsx.write(res);
         res.end();
-
     } catch (error) {
         console.error('Error generating Excel file:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error generating Excel file',
-            error: error.message
-        });
+        res.status(500).json({ success: false, message: 'Error generating Excel file', error: error.message });
     }
 };
+
 
 
 module.exports = {

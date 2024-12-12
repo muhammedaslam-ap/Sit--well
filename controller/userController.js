@@ -432,12 +432,16 @@ const resendOtp = async (req,res)=>{
 const productDetails = async (req, res) => {
     try {
         const user = req.session.user;
+        console.log('user is:',user)
         const productId = req.params.id;
 
         const products = await Product.findById(productId)
-        const cartItem = await Cart.findOne({ userId:user._id, 'items.productId': productId });
-
-        const isInCart = cartItem ? cartItem:false;
+        let isInCart
+        if(user){
+            const cartItem = await Cart.findOne({ userId:user._id, 'items.productId': productId });
+             isInCart = cartItem ? cartItem:false;
+        }
+       
         
         if (!mongoose.Types.ObjectId.isValid(productId)) {
             return res.status(400).redirect('/pageNotFound');
@@ -452,7 +456,7 @@ const productDetails = async (req, res) => {
             }).lean()
         ]);
 
-
+   
         if (!productData) {
             return res.status(404).redirect('/pageNotFound');
         }
@@ -483,7 +487,7 @@ const productDetails = async (req, res) => {
             category: productCategory,
             quantity: productData.quantity,
             products, 
-            isInCart,
+            isInCart:isInCart?isInCart:false,
             recommendedProducts: recommendedProducts.length ? recommendedProducts : [],
             message: recommendedProducts.length ? null : "No recommendations available."
         });

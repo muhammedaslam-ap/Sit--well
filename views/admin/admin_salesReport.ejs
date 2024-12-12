@@ -36,7 +36,7 @@
     </div>
   </div>
 </body>
-
+    <div>
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
             <table class="w-full">
                 <thead class="bg-gray-200">
@@ -85,19 +85,20 @@
 
         <div class="mt-6 bg-white shadow-md rounded-lg p-6">
             <div class="summary-row bg-green-50 border-2 border-green-200">
-                <span class="text-xl font-bold text-gray-800">Total Order Amount</span>
+                <span class="text-xl font-bold text-gray-800">Total Order Amount :</span>
                 <span class="text-2xl font-bold text-green-600">₹<%= totalOrderAmount %></span>
             </div>
             
             <div class="summary-row mt-4">
-                <span class="font-semibold">Total Coupon Discount</span>
+                <span class="font-semibold">Total Coupon Discount :</span>
                 <span class="text-lg font-bold text-red-600">₹<%=totalDiscount%></span>
             </div>
+            <div class="summary-row mt-4">
+                <span class="font-semibold">Total Discount :</span>
+                <span class="text-lg font-bold text-red-600">₹<%= totalOfferPrice.toFixed(2)%></span>
+            </div>
         </div>
-        <div class="summary-row mt-4">
-            <span class="font-semibold">Total Discount</span>
-            <span class="text-lg font-bold text-red-600">₹<%= totalOfferPrice.toFixed(2)%></span>
-        </div>
+       
 
         <div class="mt-6 flex justify-between items-center">
             <span class="text-sm text-gray-600">

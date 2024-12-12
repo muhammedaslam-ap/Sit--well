@@ -104,11 +104,11 @@ const convertCurrency = async (amount) => {
   const processWalletPayment = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { totalAmount, selectedAddress, selectedPayment } = req.body;
+        const { totalAmount, selectedAddress, selectedPayment,paymentStatus } = req.body;
         console.log("Total Amount from Client:", totalAmount); // Debugging line
         // console.log("Selected Address from Client:", selectedAddress); // Debugging line
         // console.log("Selected Payment Method from Client:", selectedPayment); // Debugging line
-        req.session.paypalDetails  =  {totalAmount:totalAmount,selectedPayment:selectedPayment,selectedAddress:selectedAddress}
+        req.session.paypalDetails  =  {totalAmount:totalAmount,selectedPayment:selectedPayment,selectedAddress:selectedAddress,paymentStatus}
 
         
         const amountToDebit = parseFloat(totalAmount);
@@ -135,8 +135,7 @@ const convertCurrency = async (amount) => {
                     }}
                 )
 
-// console.log('newBalance:',newBalance);
-
+                req.session.paypalDetails.paymentStatus='success'
         res.status(200).json({
             success: true,
             message: "Payment completed successfully from wallet.",

@@ -11,7 +11,7 @@ const userAuth = async (req,res,next)=>{
                 res.redirect('/login')
             }
         }).catch(error=>{
-            console.error(eroor)
+            console.error(error)
             res.status(500).send("internal server error")
         })
     }else{

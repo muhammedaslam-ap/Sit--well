@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const crypto = require('crypto')
+const crypto = require('crypto');
+const { type } = require('os');
 
 const addressSchema = new Schema({
     userId: {
@@ -102,6 +103,7 @@ const orderSchema = new Schema({
         required: false,
         min: 0
     },
+  
     address: {
         type: [addressSchema],
         required: true
@@ -123,6 +125,10 @@ const orderSchema = new Schema({
     couponApplied: {
         type: Boolean,
         default: false
+    },
+    paymentStatus:{
+        type:String,
+        enum:['success','failed'],
     },
     returnRequest:{
         type: String,

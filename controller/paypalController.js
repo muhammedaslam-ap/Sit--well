@@ -43,10 +43,14 @@ paypal.configure({
 const paypalPayment = async (req, res) => {
     try {
         // const totalAmount = parseFloat(req.body.totalAmount).toFixed(2);
-        const {totalAmount,selectedPayment,selectedAddress} = req.body
+        const {totalAmount,selectedPayment,selectedAddress,orderId} = req.body
         const USDconvertor = await convertCurrency(totalAmount)
-        console.log("Subtotal received:", totalAmount,selectedAddress,selectedPayment);
-        req.session.paypalDetails  =  {totalAmount:totalAmount,selectedPayment:selectedPayment,selectedAddress:selectedAddress,USDconvertor:USDconvertor}
+        console.log("Subtotal received:", orderId);
+        if(!orderId){
+            req.session.paypalDetails  =  {totalAmount:totalAmount,selectedPayment:selectedPayment,selectedAddress:selectedAddress,USDconvertor:USDconvertor,paymentStatus:'failed'}
+        } else {
+            req.session.paypalDetails  =  {totalAmount:totalAmount,orderId:orderId,USDconvertor:USDconvertor,paymentStatus:'failed'}
+        }
         const create_payment_json = {
             "intent": "sale",
             "payer": {
@@ -82,7 +86,6 @@ const paypalPayment = async (req, res) => {
             } else {
                 const approvalUrl = payment.links.find(link => link.rel === 'approval_url');
                 if (approvalUrl) {
-                    // Send approval URL to the client
                     res.json({ success: true, approval_url: approvalUrl.href });
                 } else {
                     res.status(500).json({ success: false, message: "Approval URL not found." });
@@ -98,6 +101,7 @@ const paypalPayment = async (req, res) => {
 const success = async (req, res) => {
     try {
         const USDconvertor =    req.session.paypalDetails.USDconvertor ; 
+        req.session.paypalDetails.paymentStatus = 'success'
         console.log(USDconvertor)
         const payerId = req.query.PayerID;
         const paymentId = req.query.paymentId;
@@ -113,7 +117,7 @@ const success = async (req, res) => {
             "transactions": [{
                 "amount": {
                     "currency": "USD",
-                    "total": USDconvertor // Must match amount in original payment creation
+                    "total": USDconvertor 
                 }
             }]
         };
@@ -134,6 +138,16 @@ const success = async (req, res) => {
 };
 
 
+const paymentCancel = async(req,res) => {
+    try {
+        req.session.paypalDetails.paymentStatus = 'failed'
+        res.redirect("/proceedToPayment")
+    } catch (error) {
+        console.error("PayPal payment Cancelation error:", error);
+        res.status(500).json({ success: false, message: "PayPal payment Cancelation failed." });
+  }
+}
+
 
    
      
@@ -143,5 +157,6 @@ const success = async (req, res) => {
 module.exports={
     paypalPayment,
     success,
-    convertCurrency
+    convertCurrency,
+    paymentCancel
 }

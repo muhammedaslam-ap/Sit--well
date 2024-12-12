@@ -227,6 +227,7 @@
                             <span><strong>Order ID:</strong> <%= order.orderId %></span><br>
                             <span><strong>Date:</strong> <%= order.createdOn ? order.createdOn.toDateString() : 'Date not available' %></span>
                         </div>
+                        
                         <span class="badge-status <%= 
                             order.status === 'Pending' ? 'bg-warning' :
                             order.status === 'Delivered' ? 'bg-success' :
@@ -241,6 +242,14 @@
                                 <p style="color: red;">Message: <%= order.rejectionMessage %></p>
                             <% } %>
                         </span>
+                        <div>
+                            <% if (order.paymentStatus=='failed') {%>
+                                <p>Payment Status<span class="text text-danger">: <%=order.paymentStatus%></span></p>
+                                <button class="btn btn-danger" onclick="reTryPayment(order._id,order.totalPrice)">Try again</button>
+                                <% } else { %>
+                                <p>Payment Status<span class="text text-success">: <%=order.paymentStatus  %></span></p>
+                                <% } %>
+                        </div>
                     </div>
         
                     <table class="table order-table mt-3">
@@ -528,7 +537,7 @@
                 }, 5000);
                 
                 
-                
+              
                 </script>
             </div>
         </div>
@@ -662,6 +671,27 @@
                 }, 300);
             }
         }
+
+
+            function reTryPayment (orderId,totalPrice) {
+                    fetch('/paypalPayment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({     
+                            orderId: orderId,
+                            totalAmount : totalPrice
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.approval_url) {
+                            window.location.href = data.approval_url;
+                        } else {
+                            alert("Error initiating PayPal payment. Please try again.");
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                };
 </script>
 
     
