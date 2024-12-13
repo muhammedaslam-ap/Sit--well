@@ -44,6 +44,7 @@ const paypalPayment = async (req, res) => {
     try {
         // const totalAmount = parseFloat(req.body.totalAmount).toFixed(2);
         const {totalAmount,selectedPayment,selectedAddress,orderId} = req.body
+        console.log(totalAmount)
         const USDconvertor = await convertCurrency(totalAmount)
         console.log("Subtotal received:", orderId);
         if(!orderId){

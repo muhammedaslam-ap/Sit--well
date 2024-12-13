@@ -75,12 +75,15 @@
       <div class="row">
           <div class="col-lg-12">
               <div class="confirmation_tittle">
-                <% if (orderDetails.paymentStatus == 'failed') { %>
+                <% if (orderDetails.paymentStatus == 'failed' && orderDetails.finalAmount>0) { %>
                   <span>Your Payment has failed</span>
-                  <button class="btn btn-danger" onclick="reTryPayment('<%= orderDetails._id %>')">Try again</button>
-                <% } else { %>
+                  <button class="btn btn-danger" onclick="reTryPayment('<%= orderDetails._id %>','<%= orderDetails.finalAmount %>')">Try again</button>
+                <% } else if(orderDetails.paymentStatus == 'failed' && orderDetails.finalAmount == 0) { %>
+                  <button class="btn btn-danger" onclick="reTryPayment('<%= orderDetails._id %>','<%= orderDetails.totalPrice %>')">Try again</button>
+
+                <% }else{ %>
                   <span class="text-success">Thank you. Your order has been received.</span>
-                <% } %>
+                  <% } %>
               </div>
           </div>
           <div class="col-lg-6 col-lx-4">
@@ -196,13 +199,12 @@
 document.addEventListener('DOMContentLoaded', () => {
 console.log("Page loaded and script initialized.");
 
-window.reTryPayment = function(orderId) {
-  console.log("Attempting to retry payment for order:", orderId);
+window.reTryPayment = function(orderId,totalPrice) {
 
   fetch('/paypalPayment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId: orderId, totalAmount: '<%= orderDetails.totalPrice %>' })
+    body: JSON.stringify({ orderId: orderId, totalAmount:totalPrice })
   })
     .then(response => response.json())
     .then(data => {

@@ -243,12 +243,18 @@
                             <% } %>
                         </span>
                         <div>
-                            <% if (order.paymentStatus=='failed') {%>
-                                <p>Payment Status<span class="text text-danger">: <%=order.paymentStatus%></span></p>
-                                <button class="btn btn-danger" onclick="reTryPayment(order._id,order.totalPrice)">Try again</button>
-                                <% } else { %>
-                                <p>Payment Status<span class="text text-success">: <%=order.paymentStatus  %></span></p>
-                                <% } %>
+                            <p>Payment Status:<% if(order.paymentStatus == 'failed'){ %>
+                                <span class="text-danger"><%= order.paymentStatus %></span>
+                                            <% }else{%>
+                                <span class="text-success"><%= order.paymentStatus %></span>
+                                           <% } %>
+                            </p>
+                            <% if (order.paymentStatus == 'failed' && order.finalAmount>0) { %>
+                                <button class="btn btn-danger" onclick="reTryPayment('<%= order._id %>','<%= order.finalAmount %>')">Try again</button>
+                              <% } else if(order.paymentStatus == 'failed' && order.finalAmount == 0) { %>
+                                <button class="btn btn-danger" onclick="reTryPayment('<%= order._id %>','<%= order.totalPrice %>')">Try again</button>
+                              <% } %>
+                              
                         </div>
                     </div>
         
@@ -673,25 +679,29 @@
         }
 
 
-            function reTryPayment (orderId,totalPrice) {
-                    fetch('/paypalPayment', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({     
-                            orderId: orderId,
-                            totalAmount : totalPrice
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.approval_url) {
-                            window.location.href = data.approval_url;
-                        } else {
-                            alert("Error initiating PayPal payment. Please try again.");
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-                };
+      
+
+        function reTryPayment(orderId,totalAmount) {
+
+        fetch('/paypalPayment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: orderId, totalAmount: totalAmount})
+        })
+            .then(response => response.json())
+            .then(data => {
+            if (data.success && data.approval_url) {
+                window.location.href = data.approval_url;
+            } else {
+                alert("Error initiating PayPal payment. Please try again.");
+            }
+            })
+            .catch(error => {
+            console.error("Error:", error);
+            alert("An unexpected error occurred. Please try again later.");
+            });
+        };
+
 </script>
 
     
