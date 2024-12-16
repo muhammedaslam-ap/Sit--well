@@ -352,7 +352,7 @@
         isValid = false;
     } else if (salePrice && parseFloat(regularPrice) <= parseFloat(salePrice)) {
         displayErrorMessage('salePrice-error', 'Sale price must be less than regular price.');
-        isValid = false;
+        isValid = true;
     }
 
     // Validate Color (if provided)

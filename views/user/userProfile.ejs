@@ -1,95 +1,100 @@
 <%- include('../../views/partials/user/profileHeader.ejs') %>
-<style>
-    .form-control[readonly] {
-    background-color: #e9ecef; /* Light gray background for readonly fields */
-    color: #6c757d; /* Muted text color */
-    pointer-events: none; /* Prevents interaction */
-}
-</style>
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-6 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">User Profile</h1>
+
+<div class="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-3xl mx-auto">
+    <div class="bg-white shadow-2xl rounded-lg overflow-hidden">
+      <div class="bg-gradient-to-r from-pink-500 to-purple-600 h-32"></div>
+      <div class="px-4 py-5 sm:p-6">
+        <div class="sm:flex sm:items-center sm:justify-between">
+          <div class="sm:flex sm:space-x-5">
+            <div class="flex-shrink-0">
+              <img class="mx-auto h-20 w-20 rounded-full border-4 border-white -mt-10 shadow-lg" src="https://ui-avatars.com/api/?name=<%= user.name %>&background=random" alt="<%= user.name %>">
+            </div>
+            <div class="mt-4 text-center sm:mt-0 sm:pt-1 sm:text-left">
+              <p class="text-xl font-bold text-gray-900 sm:text-2xl"><%= user.name %></p>
+              <p class="text-sm font-medium text-gray-600"><%= user.email %></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 border-t border-gray-200 pt-6">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6">Account Details</h2>
+          <form id="accountForm" action="/update-profile" method="post">
+            <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="name" name="name" value="<%= user.name %>" required pattern="^[A-Za-z\s]{2,50}$" title="Name should only contain letters and spaces (2-50 characters).">
+                <div class="invalid-feedback hidden text-red-500 text-sm mt-1">
+                  Please enter a valid name (letters and spaces only, 2-50 characters).
                 </div>
-                <section id="account" class="card">
-                    <div class="card-body">
-                        <h2 class="card-title mb-4">Account Details</h2>
-                        <form id="accountForm" action="/update-profile" method="post">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Name:</label>
-                                <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" requiredpattern="^[A-Za-z\s]{2,50}$" title="Name should only contain letters and spaces (2-50 characters).">
-                                <div class="invalid-feedback">
-                                    Please enter a valid name (letters and spaces only, 2-50 characters).
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email:</label>
-                                <input 
-                                    type="email" 
-                                    class="form-control" 
-                                    id="email" 
-                                    name="email" 
-                                    value="<%= user.email %>" 
-                                    readonly 
-                                    required
-                                >
-                            </div>
-                            <button type="submit" class="btn btn-primary shadow-sm">Update Account Details</button>
-                        </form>
-                    </div>
-                </section>
-           
-                <%- include('../../views/partials/user/profileHeader.ejs') %>
+              </div>
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 text-gray-500 sm:text-sm" id="email" name="email" value="<%= user.email %>" readonly required>
+              </div>
+            </div>
+            <div class="mt-6">
+              <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out transform hover:scale-105">
+                Update Account Details
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<%- include('../../views/partials/user/profileFooter.ejs') %>
 
-
-<!-- Script to check URL for success message and show Swal-->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-<% if (typeof updateSuccess !== 'undefined' && updateSuccess) { %>
-    <script>
+    <% if (typeof updateSuccess !== 'undefined' && updateSuccess) { %>
+       <script>
         Swal.fire({
             icon: 'success',
             title: 'Profile Updated!',
             text: 'Your profile has been successfully updated.',
-            confirmButtonText: 'OK'
-        });
-    </script>
-<% } %>
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3B82F6'
+            });
+       </script>   
+  <% } %>
 
 <script>
-    document.getElementById('name').addEventListener('input', function () {
-      const nameField = this;
-      const namePattern = /^[A-Za-z\s]{2,50}$/;
-  
-      if (!namePattern.test(nameField.value)) {
-          nameField.classList.add('is-invalid');
-      } else {
-          nameField.classList.remove('is-invalid');
-      }
-    });
-    
-    document.querySelector('form').addEventListener('submit', function (event) {
-      const nameField = document.getElementById('name');
-      const namePattern = /^[A-Za-z\s]{2,50}$/;
-  
-      if (!namePattern.test(nameField.value)) {
-          event.preventDefault();
-          nameField.classList.add('is-invalid');
-      }
-      if (!nameField.value.trim()) {
-        event.preventDefault();
-        nameField.classList.add('is-invalid');
-        nameField.nextElementSibling.textContent = 'Name cannot be empty.';
-    } else if (!namePattern.test(nameField.value)) {
-        event.preventDefault();
-        nameField.classList.add('is-invalid');
-        nameField.nextElementSibling.textContent = 'Please enter a valid name (letters and spaces only, 2-50 characters).';
-    } else {
-        nameField.classList.remove('is-invalid');
-    }
-    });
-  </script>
-  
+  document.getElementById('name').addEventListener('input', function () {
+    const nameField = this;
+    const namePattern = /^[A-Za-z\s]{2,50}$/;
+    const invalidFeedback = nameField.nextElementSibling;
 
-</body>
-</html>
+    if (!namePattern.test(nameField.value)) {
+      nameField.classList.add('border-red-500');
+      invalidFeedback.classList.remove('hidden');
+    } else {
+      nameField.classList.remove('border-red-500');
+      invalidFeedback.classList.add('hidden');
+    }
+  });
+
+  document.querySelector('form').addEventListener('submit', function (event) {
+    const nameField = document.getElementById('name');
+    const namePattern = /^[A-Za-z\s]{2,50}$/;
+    const invalidFeedback = nameField.nextElementSibling;
+
+    if (!nameField.value.trim()) {
+      event.preventDefault();
+      nameField.classList.add('border-red-500');
+      invalidFeedback.classList.remove('hidden');
+      invalidFeedback.textContent = 'Name cannot be empty.';
+    } else if (!namePattern.test(nameField.value)) {
+      event.preventDefault();
+      nameField.classList.add('border-red-500');
+      invalidFeedback.classList.remove('hidden');
+      invalidFeedback.textContent = 'Please enter a valid name (letters and spaces only, 2-50 characters).';
+    } else {
+      nameField.classList.remove('border-red-500');
+      invalidFeedback.classList.add('hidden');
+    }
+  });
+</script>
+
+

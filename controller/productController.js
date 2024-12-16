@@ -55,7 +55,7 @@ const addProduct = async (req, res) => {
                 const newProduct = new Product({
                     productName: productName,
                     description: description,
-                    // category:categoryId._id,
+                    category:categoryId._id,
                     regularPrice: regularPrice,
                     color : color,
                     salePrice : salePrice,

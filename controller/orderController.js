@@ -414,6 +414,7 @@ const getYourOrder = async (req, res) => {
         const orders = await Order.find(searchQuery)
             .populate('userId', 'name email phone')
             .populate('orderedItems.product', 'productName price productImages')
+            .sort({createdOn:-1})
             .limit(limit)
             .skip((page - 1) * limit)
             .exec();

@@ -4,121 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Sit Well</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="/user/img/sitwell.png" type="image/png">
     <style>
-       body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-
-        .navbar {
-            background-color: #736f71;
-            padding: 0rem 6rem;
-        }
-
-        .sidebar {
-            background-color: #f4f4f4;
-            height: 100vh; /* Full height */
-            position: fixed;
-            top: 0; /* Below the navbar */
-            left: 0;
-            width: 250px;
-            z-index: 1000;
-            transition: left 0.3s ease;
-        }
-
-        .sidebar.collapsed {
-            left: -250px; /* Hide the sidebar */
-        }
-
-        .sidebar .nav-link {
-            color: #555;
-            font-weight: 500;
-            transition: color 0.3s, background-color 0.3s;
-            padding: 15px;
-        }
-
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            background-color: #d3658a;
-            color: #fff;
-        }
-
-        /* Main content */
-        main {
-            margin-left: 250px; /* Space for the sidebar */
-            padding: 20px;
-            transition: margin-left 0.3s ease;
-        }
-
-        .main-collapsed {
-            margin-left: 0; /* Adjust main content margin when sidebar is hidden */
-        }
-
         @media (max-width: 768px) {
             .sidebar {
-                left: -250px; /* Hidden by default */
+                left: -250px;
             }
-
             .sidebar.active {
-                left: 0; /* Show when active */
-            }
-
-            main {
-                margin-left: 0; /* Adjust main content margin */
+                left: 0;
             }
         }
     </style>
 </head>
-<body>
-
-    
-
-    <nav class="navbar navbar-expand-md navbar-dark shadow-sm fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img style="height: 60px;width: 80px;" src="/user/img/sitwell.png" alt="Sitwell Logo">
+<body class="bg-gray-100 font-sans text-gray-800">
+    <nav class="bg-gradient-to-r from-pink-500 to-purple-600 py-6 px-24 fixed w-full z-10 p">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-white text-2xl font-bold">
+                <img class="h-15 w-20" src="/user/img/sitwell.png" alt="Sitwell Logo">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+            <button class="text-white md:hidden">
+                <i class="fas fa-bars"></i>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/shop">Shop</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
-                </ul>
+            <div class="hidden md:flex space-x-4">
+                <a href="/" class="text-white hover:text-gray-300">Home</a>
+                <a href="/shop" class="text-white hover:text-gray-300">Shop</a>
+                <a href="/about" class="text-white hover:text-gray-300">About</a>
+                <a href="/contact" class="text-white hover:text-gray-300">Contact</a>
             </div>
         </div>
     </nav>
     
-    <div class="container-fluid" style="margin-top: 20px;"> <!-- Add margin-top to adjust for the fixed navbar -->
-        <div class="row">
-            <!-- Sidebar -->
-            <nav  style="margin-top: 100px;" id="sidebar" class="col-md-3 col-lg-2 sidebar  d-md-block shadow-sm">
-                <div class="">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link " href="/userProfile">Account Details</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/order">Order Details</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/addAddress">Add New Address</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/userCoupons">Coupons</a></li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/userwallet">Wallet</a></li>
+    <!-- <div class="container mx-auto mt-24"> -->
+        <div class="flex flex-col md:flex-row ">
+            <aside class="w-full md:w-64 bg-gray-200 h-screen fixed left-0 top-20 transition-all duration-300 ease-in-out" id="sidebar">
+                <nav class="p-4 mt-12">
+                    <ul class="space-y-2">
+                        <li><a href="/userProfile" class="block py-2 px-4 text-gray-700 hover:bg-pink-500 hover:text-white rounded transition duration-200"><i class="fas fa-user mr-2"></i>Account Details</a></li>
+                        <li><a href="/order" class="block py-2 px-4 text-gray-700 hover:bg-pink-500 hover:text-white rounded transition duration-200"><i class="fas fa-shopping-cart mr-2"></i>Order Details</a></li>
+                        <li><a href="/addAddress" class="block py-2 px-4 text-gray-700 hover:bg-pink-500 hover:text-white rounded transition duration-200"><i class="fas fa-map-marker-alt mr-2"></i>Add New Address</a></li>
+                        <li><a href="/userCoupons" class="block py-2 px-4 text-gray-700 hover:bg-pink-500 hover:text-white rounded transition duration-200"><i class="fas fa-ticket-alt mr-2"></i>Coupons</a></li>
+                        <li><a href="/userwallet" class="block py-2 px-4 text-gray-700 hover:bg-pink-500 hover:text-white rounded transition duration-200"><i class="fas fa-wallet mr-2"></i>Wallet</a></li>
                     </ul>
-                </div>
-            </nav>
-        </div>
-    </div>
+                </nav>
+            </aside>
 
-        <!-- Main Content Area -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <main class="flex-1 md:ml-64 p-8 mt-12">
+               
+
+                <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                        <div class="p-6">
+                            <h5 class="text-xl font-bold text-pink-600 mb-2">Account Details</h5>
+                            <p class="text-gray-600 mb-4">View and update your personal information.</p>
+                            <a href="/userProfile" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200">Go to Account</a>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                        <div class="p-6">
+                            <h5 class="text-xl font-bold text-pink-600 mb-2">Order History</h5>
+                            <p class="text-gray-600 mb-4">Check the status of your recent orders.</p>
+                            <a href="/order" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200">View Orders</a>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                        <div class="p-6">
+                            <h5 class="text-xl font-bold text-pink-600 mb-2">Addresses</h5>
+                            <p class="text-gray-600 mb-4">Manage your shipping addresses.</p>
+                            <a href="/addAddress" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200">Manage Addresses</a>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                        <div class="p-6">
+                            <h5 class="text-xl font-bold text-pink-600 mb-2">Coupons</h5>
+                            <p class="text-gray-600 mb-4">View available coupons and discounts.</p>
+                            <a href="/userCoupons" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200">See Coupons</a>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                        <div class="p-6">
+                            <h5 class="text-xl font-bold text-pink-600 mb-2">Wallet</h5>
+                            <p class="text-gray-600 mb-4">Check your wallet balance and transactions.</p>
+                            <a href="/userwallet" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200">Go to Wallet</a>
+                        </div>
+                    </div>
+                </div> -->
+           
+   

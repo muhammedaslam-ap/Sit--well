@@ -40,10 +40,8 @@ const createCoupon = async (req, res) => {
         res.status(201).redirect('/admin/coupon');
     } catch (error) {
         console.error('Error creating coupon:', error.message);
-        res.status(500).json({
-            message: 'Failed to create coupon',
-            error: error.message
-        });
+        req.flash('error', 'faild to add');
+        res.status(201).redirect('/admin/coupon');
     }
 };
 
