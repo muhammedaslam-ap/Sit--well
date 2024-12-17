@@ -11,14 +11,15 @@ const categoryConroller  = require('../controller/categoryController')
 const productController = require('../controller/productController')
 const orderController = require('../controller/orderController')
 const offerController = require('../controller/offerController')
-const couponController = require('../controller/couponController')
+const couponController = require('../controller/couponController');
+const whishlistController  = require('../controller/whishlistController')
 
 
 
 adminRoute.get('/admin/pageerror',adminController.pageError)
 adminRoute.get('/login', adminController.loadlogin);
 adminRoute.post('/login', adminController.login);
-adminRoute.get('/dashboard',adminAuth,adminController.loadDashboard);
+adminRoute.get('/dashboard',adminAuth,adminController.loadDashbord)
 adminRoute.get('/logout',adminController.logout)
 
 

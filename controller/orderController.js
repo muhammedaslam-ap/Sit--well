@@ -704,8 +704,163 @@ const cancelReturnRequest = async (req, res) => {
     }
 };
 
+const PdfKit = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 
+const getOrderPdf = async (req, res) => {
+    try {
+        const { orderId } = req.query;
+        console.log(orderId)
 
+        if (!orderId) {
+            return res.status(400).json({ error: "Order ID is required" });
+        }
+
+        // Fetch order details by order ID
+        const order = await Order.findById(orderId)
+            .populate('userId', 'name email address')
+            .populate('orderedItems.product', 'productName salePrice offerPrice')
+            .exec();
+
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+
+        // Calculate totals
+        let totalOfferPrice = 0;
+        order.orderedItems.forEach(item => {
+            const offerPrice = item.product.offerPrice || 0;
+            totalOfferPrice += offerPrice * item.quantity;
+        });
+
+        const couponDiscount = order.finalAmount > 0 ? (order.totalPrice - order.finalAmount) : 0;
+        const orderRevenue = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
+
+        const totalDiscount = totalOfferPrice + couponDiscount;
+
+        // Create the PDF
+        const doc = new PdfKit({ size: 'A4', margin: 50 });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=order_${order.orderId}.pdf`);
+        doc.pipe(res);
+
+        // Colors and styles
+        const primaryColor = '#3B82F6';
+        const secondaryColor = '#1E40AF';
+        const textColor = '#1F2937';
+        const lightGray = '#F3F4F6';
+        const borderColor = '#D1D5DB';
+
+        // Header Section
+        doc.rect(0, 0, 595.28, 150).fill(primaryColor);
+        doc.fill('#FFFFFF').fontSize(24).font('Helvetica-Bold').text('SIT-WELL', 50, 50);
+        doc.fontSize(14).font('Helvetica').text(`Order Report - ${order.orderId}`, 50, 80);
+        doc.fontSize(12).text(`Generated: ${new Date().toLocaleString()}`, 50, 100);
+
+        // Order Summary Section
+        const summaryData = [
+            { label: 'Order ID', value: order.orderId },
+            { label: 'Order Date', value: new Date(order.createdOn).toLocaleDateString() },
+            { label: 'Order Status', value: order.status },
+            { label: 'Payment Method', value: order.paymentMethod },
+            { label: 'Payment Status', value: order.paymentStatus || 'Not Provided' },
+        ];
+
+        let yPosition = 170;
+        doc.fill(textColor);
+        summaryData.forEach((data) => {
+            doc.fontSize(12).font('Helvetica-Bold').text(`${data.label}:`, 50, yPosition, { continued: true });
+            doc.font('Helvetica').text(` ${data.value}`, 150, yPosition);
+            yPosition += 20;
+        });
+
+        // Customer Address Section
+        const address = order.address[0];
+        if (address) {
+            doc.fontSize(14).font('Helvetica-Bold').text('Customer Address', 50, yPosition + 10);
+            yPosition += 30;
+
+            const addressDetails = [
+                `${address.name}`,
+                `${address.addressLine1}`,
+                `${address.city}, ${address.state}, ${address.pinCode}`,
+                `Phone: ${address.phone}`,
+            ];
+
+            addressDetails.forEach((line) => {
+                doc.fontSize(12).font('Helvetica').text(line, 50, yPosition);
+                yPosition += 20;
+            });
+        }
+
+        // Order Items Section
+        doc.fontSize(14).font('Helvetica-Bold').text('Ordered Items', 50, yPosition + 20);
+        yPosition += 40;
+
+        if (order.orderedItems.length === 0) {
+            doc.fontSize(12).text('No items found in this order.', 50, yPosition);
+        } else {
+            // Table Header
+            doc.fill(secondaryColor).rect(50, yPosition, 495, 30).fill();
+            doc.fillColor('#FFFFFF').fontSize(10).font('Helvetica-Bold');
+            doc.text('Product', 55, yPosition + 10, { width: 200 });
+            doc.text('Quantity', 255, yPosition + 10, { width: 60 });
+            doc.text('Price', 315, yPosition + 10, { width: 60 });
+            doc.text('Total', 375, yPosition + 10, { width: 70 });
+
+            yPosition += 40;
+
+            // Table Rows
+            order.orderedItems.forEach((item) => {
+                const itemTotal = item.quantity * item.price;
+
+                doc.fillColor(textColor).fontSize(10).font('Helvetica');
+                doc.text(item.productName, 55, yPosition, { width: 200 });
+                doc.text(item.quantity.toString(), 255, yPosition, { width: 60 });
+                doc.text(`${item.price.toFixed(2)}`, 315, yPosition, { width: 60 });
+                doc.text(`${itemTotal.toFixed(2)}`, 375, yPosition, { width: 70 });
+
+                yPosition += 20;
+
+                // Add a new page if the content exceeds the page height
+                if (yPosition > 750) {
+                    doc.addPage();
+                    yPosition = 50;
+                }
+            });
+        }
+
+        // Pricing Summary Section
+        yPosition += 30;
+        doc.fontSize(14).font('Helvetica-Bold').text('Pricing Summary', 50, yPosition);
+        yPosition += 20;
+
+        const pricingData = [
+            { label: 'Total Price', value: `${order.totalPrice.toFixed(2)}` },
+            { label: 'Discount', value: `${order.discount.toFixed(2)}` },
+            { label: 'Final Amount', value: `${order.finalAmount.toFixed(2)}` },
+        ];
+
+        pricingData.forEach((data) => {
+            doc.fontSize(12).font('Helvetica-Bold').text(`${data.label}:`, 50, yPosition, { continued: true });
+            doc.font('Helvetica').text(` ${data.value}`, 150, yPosition);
+            yPosition += 20;
+        });
+
+        // Footer Section
+        doc.fontSize(10).fill(textColor).text('Thank you for shopping with us!', 50, 750, { align: 'center' });
+
+        doc.end();
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error generating PDF',
+            error: error.message,
+        });
+    }
+};
 
 
 
@@ -724,5 +879,6 @@ module.exports={
     retrieveOrderDetails,
     approveReturnRequest,
     cancelReturnRequest,
-    returnMessage
+    returnMessage,
+    getOrderPdf,
 }

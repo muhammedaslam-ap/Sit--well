@@ -72,6 +72,8 @@ userRoute.get('/order',userAuth,orderController.getYourOrder)
 userRoute.get('/orderDetails/:orderId',userAuth,orderController.retrieveOrderDetails)
 userRoute.post('/orderCancel/:orderId',userAuth,orderController.orderCancel)
 userRoute.post('/returnMessage/:orderId',userAuth,orderController.returnMessage)
+userRoute.get('/orderDownloadPdf',userAuth,orderController.getOrderPdf)
+
 
 
 userRoute.get('/Whishlish',userAuth,whishlistController.getWhishlist)
@@ -98,8 +100,9 @@ userRoute.post("/addMoneyThroughPaypal",userAuth,walletController.getPayPal);
 userRoute.get("/walletSuccessPayPal",userAuth,walletController.successPayPal);
 userRoute.get("/walletCancelPayPal",userAuth,walletController.cancelPayPal);
 userRoute.get("/addMoneyToWallet",userAuth,walletController.addMoneyToWallet);
-
 userRoute.post('/walletPayment',userAuth,walletController.processWalletPayment)
+
+
 
 
 

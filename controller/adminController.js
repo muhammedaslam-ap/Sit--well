@@ -47,19 +47,174 @@ const login = async (req, res) => {
 };
 
 
+
 // Load Admin Dashboard
-const loadDashboard = async (req, res) => {
+const loadDashbord = async (req, res) => {
     try {
-        if (req.session.admin) {
-            return res.render('admin_dashboard');
-        } else {
-            return res.redirect('/admin/adminlogin');
+        const { timeFilter, page = 1 } = req.query;
+        const limit = 6; // Number of orders per page
+        const skip = (page - 1) * limit;
+
+        const now = new Date();
+        let dateRange = null;
+
+        // Determine the date range based on the time filter
+        switch (timeFilter) {
+            case 'day':
+                dateRange = {
+                    $gte: new Date(now.setHours(0, 0, 0, 0)),
+                    $lt: new Date(now.setHours(23, 59, 59, 999))
+                };
+                break;
+            case 'week':
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay()); // First day of the week
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(endOfWeek.getDate() + 6); // Last day of the week
+                dateRange = { $gte: startOfWeek, $lt: endOfWeek };
+                break;
+            case 'month':
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                dateRange = { $gte: startOfMonth, $lt: endOfMonth };
+                break;
+            case 'year':
+                const startOfYear = new Date(now.getFullYear(), 0, 1);
+                const endOfYear = new Date(now.getFullYear(), 11, 31);
+                dateRange = { $gte: startOfYear, $lt: endOfYear };
+                break;
+            default:
+                dateRange = null;
         }
+
+        // Create the query for fetching orders
+        const query = {
+            ...dateRange ? { createdOn: dateRange } : {}, // Add date range if it exists
+            paymentStatus: { $ne: 'failed' } // Exclude failed payments
+        };
+
+        // Fetch total number of orders
+        let totalOrders = 0;
+        try {
+            totalOrders = await Order.countDocuments(query);
+            console.log('Total Orders:', totalOrders);
+        } catch (err) {
+            console.error('Error fetching totalOrders:', err);
+        }
+
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        // Fetch paginated orders
+        const orders = await Order.find(query)
+            .sort({ createdOn: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('userId', 'name email')
+            .populate('orderedItems.product', 'name price offerPrice');
+
+        // Fetch all orders for revenue and discount calculations
+        const allOrders = await Order.find(query)
+            .populate('orderedItems.product', 'offerPrice');
+
+        let totalOrderAmount = 0;
+        let totalDiscount = 0;
+        let totalOfferPrice = 0;
+
+        // Calculate total revenue, discount, and offer price
+        allOrders.forEach(order => {
+            let orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
+            totalOrderAmount += orderTotal;
+
+            if (order.finalAmount > 0) {
+                totalDiscount += (order.totalPrice - order.finalAmount);
+            }
+
+            order.orderedItems.forEach(item => {
+                totalOfferPrice += (item.product.offerPrice || 0) * item.quantity;
+            });
+        });
+
+        totalOfferPrice += totalDiscount;
+
+        // Prepare sales data for the graph
+        const salesData = await Order.aggregate([
+            {
+                $match: {
+                    ...query // Apply the same filter to graph data
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        day: { $dayOfMonth: "$createdOn" },
+                        month: { $month: "$createdOn" },
+                        year: { $year: "$createdOn" }
+                    },
+                    totalRevenue: { $sum: { $cond: [{ $gt: ["$finalAmount", 0] }, "$finalAmount", "$totalPrice"] } },
+                    totalDiscount: { $sum: { $subtract: ["$totalPrice", "$finalAmount"] } },
+                    orderCount: { $sum: 1 },
+                }
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 }
+            }
+        ]);
+
+        const formattedSalesData = salesData.map(data => {
+            const { day, month, year } = data._id;
+            return {
+                _id: `${day}-${month}-${year}`,
+                totalRevenue: data.totalRevenue,
+                totalDiscount: data.totalDiscount,
+                orderCount: data.orderCount
+            };
+        });
+
+        // Debug: Log all data being passed to the template
+        console.log({
+            orders,
+            totalOrderAmount: totalOrderAmount.toFixed(2),
+            totalDiscount: totalDiscount.toFixed(2),
+            totalOfferPrice: totalOfferPrice.toFixed(2),
+            totalOrders,
+            totalPages,
+            currentPage: parseInt(page),
+            timeFilter,
+            salesGraphData: {
+                labels: formattedSalesData.map(data => data._id),
+                revenue: formattedSalesData.map(data => data.totalRevenue),
+                discounts: formattedSalesData.map(data => data.totalDiscount),
+                orderCounts: formattedSalesData.map(data => data.orderCount)
+            },
+            salesData: formattedSalesData
+        });
+
+        // Render the admin dashboard with the prepared data
+        res.render('admin_dashboard', {
+            orders,
+            totalOrderAmount: totalOrderAmount.toFixed(2),
+            totalDiscount: totalDiscount.toFixed(2),
+            totalOfferPrice: totalOfferPrice.toFixed(2),
+            totalOrders,
+            totalPages,
+            currentPage: parseInt(page),
+            timeFilter,
+            salesGraphData: {
+                labels: formattedSalesData.map(data => data._id),
+                revenue: formattedSalesData.map(data => data.totalRevenue),
+                discounts: formattedSalesData.map(data => data.totalDiscount),
+                orderCounts: formattedSalesData.map(data => data.orderCount)
+            },
+            salesData: formattedSalesData
+        });
+
     } catch (error) {
-        console.error(error);
-        return res.redirect('/pageNotFound');
+        console.error('Error fetching sales report:', error);
+        res.status(500).json({ error: 'Failed to fetch sales report' });
     }
 };
+
+
 
 const pageError = async (req,res)=>{
     res.render('admin_error')
@@ -82,11 +237,15 @@ const logout = async (req,res)=>{
    } 
 }
 
+
+
+
+
 const getSalesReport = async (req, res) => {
     try {
         const { timeFilter, page = 1 } = req.query;  
         const limit = 6;                             
-        const skip = (page - 1) * limit;            
+        const skip = (page - 1) * limit;             
 
         const now = new Date();                    
         let dateRange = null;                      
@@ -119,63 +278,99 @@ const getSalesReport = async (req, res) => {
                 dateRange = null;
         }
 
-        const query = dateRange ? { createdOn: dateRange } : {};
+        // Filter orders by the selected time range and exclude failed payments
+        const query = {
+            ...dateRange ? { createdOn: dateRange } : {},
+            paymentStatus: { $ne: 'failed' } // Exclude failed payments
+        };
 
+        // Total Orders and Pagination
         const totalOrders = await Order.countDocuments(query);
         const totalPages = Math.ceil(totalOrders / limit);
 
         const orders = await Order.find(query)
-            .sort({createdOn:-1})
+            .sort({ createdOn: -1 })
             .skip(skip)  
             .limit(limit) 
             .populate('userId', 'name email')
             .populate('orderedItems.product', 'name price offerPrice');
 
-
-        
-
-        const order = await Order.find(query)
-        .populate('userId', 'name email')
-        .populate('orderedItems.product', 'name price offerPrice');
+        // Total Revenue, Discount, and Offer Price
+        const allOrders = await Order.find(query)
+            .populate('orderedItems.product', 'offerPrice');
 
         let totalOrderAmount = 0;
         let totalDiscount = 0;
-        let totalOfferPrice1 = 0
+        let totalOfferPrice = 0;
 
-        order.forEach(order => {
-            for (let item of order.orderedItems) {
-                let product = item.product; 
-          
-                let offerPrice = product.offerPrice || 0; 
-                totalOfferPrice1 += offerPrice*item.quantity;
-              }
-           
-
-
-            if (order.finalAmount > 0) {
-                let discountForOrder = order.totalPrice - order.finalAmount;
-                totalDiscount += discountForOrder;
-            }
-
+        allOrders.forEach(order => {
             let orderTotal = order.finalAmount > 0 ? order.finalAmount : order.totalPrice;
             totalOrderAmount += orderTotal;
 
+            if (order.finalAmount > 0) {
+                totalDiscount += (order.totalPrice - order.finalAmount);
+            }
+
+            order.orderedItems.forEach(item => {
+                totalOfferPrice += (item.product.offerPrice || 0) * item.quantity;
+            });
         });
 
-        const totalOfferPrice=totalOfferPrice1 + totalDiscount
+        totalOfferPrice += totalDiscount;
 
+        // Sales Data for Graph
+        const salesData = await Order.aggregate([
+            {
+                $match: {
+                    ...query // Apply the same filter to graph data
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        day: { $dayOfMonth: "$createdOn" },
+                        month: { $month: "$createdOn" },
+                        year: { $year: "$createdOn" }
+                    },
+                    totalRevenue: { $sum: { $cond: [{ $gt: ["$finalAmount", 0] }, "$finalAmount", "$totalPrice"] } },
+                    totalDiscount: { $sum: { $subtract: ["$totalPrice", "$finalAmount"] } },
+                    orderCount: { $sum: 1 },
+                }
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 }
+            }
+        ]);
 
+        const formattedSalesData = salesData.map(data => {
+            const { day, month, year } = data._id;
+            return {
+                _id: `${day}-${month}-${year}`,
+                totalRevenue: data.totalRevenue,
+                totalDiscount: data.totalDiscount,
+                orderCount: data.orderCount
+            };
+        });
 
+        // Render the Sales Report Page
         res.render('admin_salesReport', {
             orders,
             totalOrderAmount: totalOrderAmount.toFixed(2),
             totalDiscount: totalDiscount.toFixed(2),
-            totalOfferPrice ,
+            totalOfferPrice: totalOfferPrice.toFixed(2),
             totalOrders,
             totalPages,
-            currentPage: page,
+            currentPage: parseInt(page),
             timeFilter,
+            salesGraphData: {
+                labels: formattedSalesData.map(data => data._id),
+                revenue: formattedSalesData.map(data => data.totalRevenue),
+                discounts: formattedSalesData.map(data => data.totalDiscount),
+                orderCounts: formattedSalesData.map(data => data.orderCount)
+            },
+            salesData: formattedSalesData
         });
+
     } catch (error) {
         console.error('Error fetching sales report:', error);
         res.status(500).json({ error: 'Failed to fetch sales report' });
@@ -531,10 +726,10 @@ const getDownloadExel = async (req, res) => {
 module.exports = {
     loadlogin,
     login,
-    loadDashboard,
     pageError,
     logout,
     getSalesReport,
     getDownloadPdf,
-    getDownloadExel
+    getDownloadExel,
+    loadDashbord
 };
