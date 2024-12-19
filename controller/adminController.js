@@ -170,26 +170,110 @@ const loadDashbord = async (req, res) => {
             };
         });
 
-        // Debug: Log all data being passed to the template
-        console.log({
-            orders,
-            totalOrderAmount: totalOrderAmount.toFixed(2),
-            totalDiscount: totalDiscount.toFixed(2),
-            totalOfferPrice: totalOfferPrice.toFixed(2),
-            totalOrders,
-            totalPages,
-            currentPage: parseInt(page),
-            timeFilter,
-            salesGraphData: {
-                labels: formattedSalesData.map(data => data._id),
-                revenue: formattedSalesData.map(data => data.totalRevenue),
-                discounts: formattedSalesData.map(data => data.totalDiscount),
-                orderCounts: formattedSalesData.map(data => data.orderCount)
+        const mostBoughtProducts = await Order.aggregate([
+            {
+                $match: {
+                    ...dateRange ? { createdOn: dateRange } : {}, // Apply date filter if exists
+                    paymentStatus: { $ne: 'failed' }
+                }
             },
-            salesData: formattedSalesData
-        });
+            { $unwind: "$orderedItems" },
+            {
+                $lookup: {
+                    from: 'products', // Ensure this matches your product collection name
+                    localField: 'orderedItems.product',
+                    foreignField: '_id',
+                    as: 'productDetails'
+                }
+            },
+            { $unwind: "$productDetails" },
+            {
+                $group: {
+                    _id: "$orderedItems.product",
+                    productName: { $first: "$productDetails.productName" }, // Explicitly use productName
+                    categoryId: { $first: "$productDetails.category" },
+                    totalQuantity: { $sum: "$orderedItems.quantity" },
+                    totalRevenue: { $sum: { $multiply: ["$orderedItems.price", "$orderedItems.quantity"] } }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories', // Lookup category details
+                    localField: 'categoryId',
+                    foreignField: '_id',
+                    as: 'categoryDetails'
+                }
+            },
+            { $unwind: { path: "$categoryDetails", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    productName: 1,
+                    categoryName: "$categoryDetails.name", // Get category name
+                    totalQuantity: 1,
+                    totalRevenue: 1
+                }
+            },
+            { $sort: { totalQuantity: -1 } },
+            { $limit: 5 }
+        ]);
+        
+        // Debug logging
+        console.log('Most Bought Products Raw:', JSON.stringify(mostBoughtProducts, null, 2));
+        
+        // Processing the results
+        const processedMostBoughtProducts = mostBoughtProducts.map(product => ({
+            name: product.productName || 'Unknown Product',
+            category: product.categoryName || 'Uncategorized',
+            totalQuantity: product.totalQuantity || 0,
+            totalRevenue: (product.totalRevenue || 0).toFixed(2)
+        }));
+        const mostBoughtCategories = await Order.aggregate([
+            {
+                $match: {
+                    ...dateRange ? { createdOn: dateRange } : {}, // Apply date filter if exists
+                    paymentStatus: { $ne: 'failed' }
+                }
+            },
+            { $unwind: "$orderedItems" },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'orderedItems.product',
+                    foreignField: '_id',
+                    as: 'productDetails'
+                }
+            },
+            { $unwind: "$productDetails" },
+            {
+                $lookup: {
+                    from: 'categories', // Lookup category details
+                    localField: 'productDetails.category',
+                    foreignField: '_id',
+                    as: 'categoryDetails'
+                }
+            },
+            { $unwind: "$categoryDetails" },
+            {
+                $group: {
+                    _id: "$categoryDetails.name", // Use category name
+                    totalQuantity: { $sum: "$orderedItems.quantity" },
+                    totalRevenue: { $sum: { $multiply: ["$orderedItems.price", "$orderedItems.quantity"] } }
+                }
+            },
+            { $sort: { totalQuantity: -1 } },
+            { $limit: 5 }
+        ]);
+        
+        
+        
+        const processedMostBoughtCategories = mostBoughtCategories.map(category => ({
+            name: category._id || 'Unknown Category',
+            totalQuantity: category.totalQuantity || 0,
+            totalRevenue: (category.totalRevenue || 0).toFixed(2)
+        }));
 
-        // Render the admin dashboard with the prepared data
+       
         res.render('admin_dashboard', {
             orders,
             totalOrderAmount: totalOrderAmount.toFixed(2),
@@ -199,6 +283,8 @@ const loadDashbord = async (req, res) => {
             totalPages,
             currentPage: parseInt(page),
             timeFilter,
+            mostBoughtProducts:processedMostBoughtProducts,
+            mostBoughtCategories:processedMostBoughtCategories,
             salesGraphData: {
                 labels: formattedSalesData.map(data => data._id),
                 revenue: formattedSalesData.map(data => data.totalRevenue),

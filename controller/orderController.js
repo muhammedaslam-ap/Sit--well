@@ -27,9 +27,7 @@ const getOrderSuccess = async (req, res) => {
             req.flash('error', 'Order details not found');
             return res.redirect('/checkout'); 
         }
-     
-        // Retrieve user cart and address details
-        // const userCart = await Cart.findOne({ userId }).populate('items.productId');
+
         const userAddress = await Address.findOne({ userId }); // Fetch the user's address
 
         if (!userAddress) {
@@ -37,13 +35,7 @@ const getOrderSuccess = async (req, res) => {
             return res.redirect('/checkout');
         }
 
-        // if (!userCart || userCart.items.length === 0) {
-        //     req.flash('error', 'No items found in cart.');
-        //     return res.redirect('/checkout');
-        // }
 
-        // Calculate the total price of items in the cart
-        // const totalPrice = userCart.items.reduce((total, item) => total + item.price * item.quantity, 0);
         const totalPrice = orderDetails.orderedItems.reduce((total,item) => total + item.price * item.quantity,0)
         const finalAmount = totalPrice;
 
@@ -98,7 +90,7 @@ const proceedTopayment = async (req, res) => {
             paymentStatus = "success"
         }
 
-        console.log('hyhfygehsfchaesyfgianvyt4uiehvn5iuhy7t8we:',selectedPayment,paymentStatus);
+        // console.log('hyhfygehsfchaesyfgianvyt4uiehvn5iuhy7t8we:',selectedPayment,paymentStatus);
         
         if(orderId) {
             if(paymentStatus == "failed") {
@@ -170,6 +162,13 @@ const proceedTopayment = async (req, res) => {
             console.log('No coupons applied');
         }
 
+        const totalAmount = newPrice > 0 ? newPrice : totalPrice;
+        console.log('suii',totalAmount)
+
+        if (selectedPayment === 'cash' && totalAmount > 20000) {
+            req.flash('error', 'Cash on Delivery is only applicable for amounts less than 20,000.');
+            return res.redirect('/checkout');
+        }
 
 
         const selectedAddressDetails = userAddress.address.find(addr => addr._id.toString() === selectedAddress);
@@ -193,7 +192,7 @@ const proceedTopayment = async (req, res) => {
             };
         });
 
-        console.log("Cart Items Prepared for Order:", cartItems);
+        console.log("Cart Items Prepared for Order:");
 
         const newOrder = new Order({
             userId,
@@ -237,11 +236,12 @@ const proceedTopayment = async (req, res) => {
                 { _id: item.product },
                 { $inc: { quantity: -item.quantity } }
             );
+        }  
+       
+         req.flash('success', 'Successfully ordered product');
+         return res.redirect('/orderSuccess');
+       
         }
-
-        req.flash('success', 'Successfully ordered product');
-        return res.redirect('/orderSuccess');
-    }
     } catch (error) {
         console.error('Error while proceeding to payment:', error);
         req.flash('error', 'There was an error processing your payment. Please try again.');

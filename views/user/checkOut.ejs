@@ -31,6 +31,31 @@
         }
     }
 </style>
+<style>
+    .toast {
+        visibility: hidden;
+        min-width: 250px;
+        margin: 0 auto;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 5px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1000;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        transition: visibility 0.3s, opacity 0.3s ease-in-out;
+        opacity: 0;
+    }
+    
+    .toast.show {
+        visibility: visible;
+        opacity: 1;
+    }
+    </style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <% if (successMessage && successMessage.length) { %>
         <script>
@@ -454,28 +479,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Update selected payment method and button visibility
     paymentOptions.forEach(option => {
-        option.addEventListener('change', function () {
-            selectedPaymentInput.value = this.value;
-            updateButtonStates();
+    option.addEventListener('change', function (event) {
+        selectedPaymentInput.value = this.value;
+        updateButtonStates();
 
-            // Save the selected payment method
-            saveSelectedPaymentMethod(this.value);
+        saveSelectedPaymentMethod(this.value);
 
-            if (this.value === 'paypal') {
-                paypalButton.style.display = 'block';
-                walletButton.style.display = 'none';
-                proceedButton.style.display = 'none';
-            } else if (this.value === 'wallet') {
-                walletButton.style.display = 'block';
-                paypalButton.style.display = 'none';
-                proceedButton.style.display = 'none';
-            } else if (this.value === 'cash') {
-                proceedButton.style.display = 'block';
-                walletButton.style.display = 'none';
-                paypalButton.style.display = 'none';
-            }
-        });
+        if (this.value === 'paypal') {
+            paypalButton.style.display = 'block';
+            walletButton.style.display = 'none';
+            proceedButton.style.display = 'none';
+        } else if (this.value === 'wallet') {
+            walletButton.style.display = 'block';
+            paypalButton.style.display = 'none';
+            proceedButton.style.display = 'none';
+        } else if (this.value === 'cash') {
+           
+            proceedButton.style.display = 'block';
+            walletButton.style.display = 'none';
+            paypalButton.style.display = 'none';
+        }
     });
+});
 
     // Enable button based on selections
     function updateButtonStates() {
@@ -544,21 +569,6 @@ walletButton.addEventListener('click', function() {
     termsCheckbox.addEventListener('change', updateProceedButton);
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
- 
-   
- 
 
 
 

@@ -404,7 +404,7 @@ const getCheckOut = async (req, res) => {
             return total + (item.totalPrice || 0); 
         }, 0);
 
-        console.log(subtotal)
+        // console.log(subtotal)
         
         let isCoupon = false
 
