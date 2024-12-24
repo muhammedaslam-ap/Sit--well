@@ -249,6 +249,19 @@ const editProduct = async (req, res) => {
             req.flash('error','Failed to update product.')
             res.redirect("/admin/editProduct");
         }
+
+        const carts = await Cart.find({ "items.productId": id });
+
+        for (const cart of carts) {
+            for (const item of cart.items) {
+                if (item.productId.toString() === id) {
+                    item.price = updatedProduct.salePrice;
+                    item.totalPrice = item.price * item.quantity;
+                }
+            }
+            await cart.save(); // Save updated cart
+        }
+
          req.flash('success','product updated successfully')
          res.redirect("/admin/products");
 
