@@ -219,7 +219,6 @@ const loadDashbord = async (req, res) => {
         ]);
         
         // Debug logging
-        console.log('Most Bought Products Raw:', JSON.stringify(mostBoughtProducts, null, 2));
         
         // Processing the results
         const processedMostBoughtProducts = mostBoughtProducts.map(product => ({

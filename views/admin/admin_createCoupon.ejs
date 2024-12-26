@@ -47,18 +47,22 @@
                         <div class="mb-3">
                             <label for="expireOn" class="form-label">Expiry Date</label>
                             <input type="date" class="form-control" id="expireOn" name="expireOn" required>
+                            <div id="expireOnError" class="text-danger" style="display: none;"></div>
                         </div>
                         <div class="mb-3">
                             <label for="offerPrice" class="form-label">Discount</label>
-                            <input type="number" class="form-control" id="offerPrice" name="discount" required>
+                            <input type="number" class="form-control" id="offerPrice" name="discount" required min="0" max="100" step="0.01" title="Discount must be between 0 and 100">
+                            <div id="discountError" class="text-danger" style="display: none;"></div>
                         </div>
                         <div class="mb-3">
                             <label for="minimumOffer" class="form-label">Minimum Offer</label>
-                            <input type="number" class="form-control" id="minimumOffer" name="minimumOffer" required>
+                            <input type="number" class="form-control" id="minimumOffer" name="minimumOffer" required min="0" step="0.01" title="Minimum Offer must be greater than or equal to discount">
+                            <div id="minimumOfferError" class="text-danger" style="display: none;"></div>
                         </div>
                         <div class="mb-3">
                             <label for="limit" class="form-label">Limit</label>
-                            <input type="number" class="form-control" id="limit" name="limit" required>
+                            <input type="number" class="form-control" id="limit" name="limit" required min="0" step="1" title="Limit must be a positive number">
+                            <div id="limitError" class="text-danger" style="display: none;"></div>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="islist" name="islist" checked>
@@ -71,5 +75,61 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Custom validation for discount, minimumOffer, limit, and expireOn fields
+    document.getElementById("couponForm").addEventListener("submit", function(event) {
+        let isValid = true;
+        
+        // Reset previous error messages
+        document.getElementById("discountError").style.display = 'none';
+        document.getElementById("minimumOfferError").style.display = 'none';
+        document.getElementById("limitError").style.display = 'none';
+        document.getElementById("expireOnError").style.display = 'none';
+
+        // Get values from input fields
+        const discount = parseFloat(document.getElementById("offerPrice").value);
+        const minimumOffer = parseFloat(document.getElementById("minimumOffer").value);
+        const limit = parseFloat(document.getElementById("limit").value);
+        const expireOn = document.getElementById("expireOn").value;
+        
+        // Validate discount field
+        if (discount < 0 || discount > 100) {
+            document.getElementById("discountError").textContent = "Discount must be between 0 and 100.";
+            document.getElementById("discountError").style.display = 'block';
+            isValid = false;
+        }
+
+        // Validate minimumOffer field
+        if (minimumOffer < discount) {
+            document.getElementById("minimumOfferError").textContent = "Minimum Offer must be greater than or equal to Discount.";
+            document.getElementById("minimumOfferError").style.display = 'block';
+            isValid = false;
+        }
+
+        // Validate limit field
+        if (limit <= 0) {
+            document.getElementById("limitError").textContent = "Limit must be a positive number.";
+            document.getElementById("limitError").style.display = 'block';
+            isValid = false;
+        }
+
+        // Validate expiry date field
+        const today = new Date();
+        const expiryDate = new Date(expireOn);
+
+        if (expiryDate <= today) {
+            document.getElementById("expireOnError").textContent = "Expiry date must be a future date.";
+            document.getElementById("expireOnError").style.display = 'block';
+            isValid = false;
+        }
+
+        // If the form is invalid, prevent submission
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+</script>
+
 
 <%-include('../../views/partials/admin/footer.ejs')%>

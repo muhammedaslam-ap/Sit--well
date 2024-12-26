@@ -56,28 +56,73 @@
         opacity: 1;
     }
     </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <% if (successMessage && successMessage.length) { %>
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '<%= successMessage %>',
-                confirmButtonText: 'OK'
-            });
-        </script>
-    <% } %>
-    
-    <% if (errorMessage && errorMessage.length) { %>
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: '<%= errorMessage %>',
-                confirmButtonText: 'OK'
-            });
-        </script>
-    <% } %>
+<style>
+        .custom-swal-toast {
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            color: #ffffff;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+        .custom-swal-toast .swal2-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        .swal2-toast .swal2-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+    </style>
+
+<% if (successMessage && successMessage.length) { %>
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '<%= successMessage %>',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: 'linear-gradient(90deg, #56ab2f, #a8e063)', /* Gradient Background */
+            customClass: {
+                popup: 'custom-swal-toast',
+            },
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    </script>
+<% } %>
+
+<% if (errorMessage && errorMessage.length) { %>
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: '<%= errorMessage %>',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: 'linear-gradient(90deg, #ff416c, #ff4b2b)', /* Gradient Background */
+            customClass: {
+                popup: 'custom-swal-toast',
+            },
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    </script>
+<% } %>
 
 
     <section class="checkout_area py-5 bg-light">

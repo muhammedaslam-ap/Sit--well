@@ -1,12 +1,6 @@
 <%- include('../../views/partials/user/header.ejs') %>
 
 <style>
-    .quantity-container {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
     .quantity-display {
         width: 40px;
         text-align: center;
@@ -22,8 +16,8 @@
     .quantity-btn {
         width: 30px;
         height: 30px;
-        background-color: #ddd;
-        border: none;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
@@ -31,266 +25,306 @@
     }
     
     .quantity-btn:hover {
-        background-color: #bbb;
+        background-color: #e9ecef;
     }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-        <% if (successMessage && successMessage.length) { %>
-            <script>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '<%= successMessage %>',
-                    confirmButtonText: 'OK'
-                });
-            </script>
-        <% } %>
-        
-        <% if (errorMessage && errorMessage.length) { %>
-            <script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: '<%= errorMessage %>',
-                    confirmButtonText: 'OK'
-                });
-            </script>
-        <% } %>
-    
-    
-    <section class="cart_area padding_top">
-        <div class="container">
-            <div class="cart_inner">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Product</th>
-                                <th scope="col">Price</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% let cartTotal = 0; %>
-                            <% cart.items.forEach(item => { %>
-                                <% cartTotal += item.totalPrice; %>
-                                <tr id="cart-item-<%= item.productId %>">
-                                    <td>
-                                        <div class="media">
-                                            <div class="d-flex">
-                                                <img style="width: 100px; height: 100px;" 
-                                                     src="/uploads/product-images/<%=item.productImage %>" 
-                                                     alt="<%= item.productName %>" />
-                                            </div>
-                                            <div class="media-body">
-                                                <p><%= item.productName %></p>
-                                            </div>
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<% if (successMessage && successMessage.length) { %>
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '<%= successMessage %>',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: 'linear-gradient(90deg, #56ab2f, #a8e063)', /* Gradient Background */
+            customClass: {
+                popup: 'custom-swal-toast',
+            },
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    </script>
+<% } %>
+
+<% if (errorMessage && errorMessage.length) { %>
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: '<%= errorMessage %>',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: 'linear-gradient(90deg, #ff416c, #ff4b2b)', /* Gradient Background */
+            customClass: {
+                popup: 'custom-swal-toast',
+            },
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    </script>
+<% } %>
+<section class="cart_area py-5 mt-5">
+    <div class="container">
+        <div class="cart_inner">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Product</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Total</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% let cartTotal = 0; %>
+                        <% cart.items.forEach(item => { %>
+                            <% cartTotal += item.totalPrice; %>
+                            <tr id="cart-item-<%= item.productId %>">
+                                <td>
+                                    <div class="media">
+                                        <div class="d-flex mr-3">
+                                            <img src="/uploads/product-images/<%=item.productImage %>" 
+                                                 alt="<%= item.productName %>"
+                                                 class="img-fluid" style="width: 100px; height: 100px; object-fit: cover;" />
                                         </div>
-                                    </td>
-                                    <td>
-                                        <h5 class="item-price">₹<%= item.price.toFixed(2) %></h5>
-                                    </td>
-                                    <td>
-                                        <input type="text" value="<%= item.quantity %>" 
-                                        id="qty-<%= item.productId %>" readonly class="quantity-display">
-                                        <button onclick="incrementQuantity('<%= item.productId %>')">+</button>
-                                        <button onclick="decrementQuantity('<%= item.productId %>')">-</button>
-                                    </td>
-                                    <td>
-                                        <p class="total-price">
-                                            Total Price: ₹<span class="price-value" id="total-<%= item.productId %>"><%= item.totalPrice.toFixed(2) %></span>
-                                        </p>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-link text-danger p-0" 
-                                                onclick="removeFromCart('<%= item.productId %>')" 
-                                                style="font-size: 1.2rem;">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            <% }); %>
-                        
-                            <!-- Display subtotal -->
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td>
-                                    <h5>Subtotal</h5>
-                                </td>
-                                <td>
-                                    <h5 class="cart-subtotal">₹<%= cartTotal.toFixed(2) %></h5>
-                                </td>
-                            </tr>
-                        
-                            <!-- Continue and Checkout buttons -->
-                            <tr>
-                                <td colspan="4" class="text-right">
-                                    <div class="checkout_btn_inner float-right">
-                                        <a class="btn_1" href="/">Continue Shopping</a>
-                                        <a class="btn_1 checkout_btn_1" href="/checkout">Proceed to checkout</a>
+                                        <div class="media-body">
+                                            <p class="mb-0"><%= item.productName %></p>
+                                        </div>
                                     </div>
                                 </td>
+                                <td>
+                                    <h5 class="item-price">₹<%= item.price.toFixed(2) %></h5>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <input type="text" value="<%= item.quantity %>" 
+                                            id="qty-<%= item.productId %>" readonly class="quantity-display">
+                                        <button onclick="incrementQuantity('<%= item.productId %>')" class="quantity-btn rounded-circle ml-2">+</button>
+                                        <button onclick="decrementQuantity('<%= item.productId %>')" class="quantity-btn rounded-circle ml-2">-</button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="total-price mb-0">
+                                        Total Price: ₹<span class="price-value" id="total-<%= item.productId %>"><%= item.totalPrice.toFixed(2) %></span>
+                                    </p>
+                                </td>
+                                <td>
+                                    <button class="btn btn-link text-danger p-0" 
+                                            onclick="removeFromCart('<%= item.productId %>')" 
+                                            style="font-size: 1.2rem;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
                             </tr>
-                        </tbody>
-                        
-                    </table>
-                </div>
+                        <% }); %>
+                    
+                        <!-- Display subtotal -->
+                        <tr>
+                            <td colspan="3" class="text-right">
+                                <h5>Subtotal</h5>
+                            </td>
+                            <td>
+                                <h5 class="cart-subtotal">₹<%= cartTotal.toFixed(2) %></h5>
+                            </td>
+                            <td></td>
+                        </tr>
+                    
+                        <!-- Continue and Checkout buttons -->
+                        <tr>
+                            <td colspan="5" class="text-right">
+                                <div class="checkout_btn_inner float-right">
+                                    <a class="btn btn-secondary mr-2" href="/">Continue Shopping</a>
+                                    <a class="btn btn-primary" href="/checkout">Proceed to checkout</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </section>
-    
-    <script>
-    async function removeFromCart(productId) {
-        try {
-            const response = await fetch(`/cart/remove`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ productId })
-            });
-    
-            if (!response.ok) {
-                const errorMessage = await response.text();
-                throw new Error(errorMessage);
-            }
-    
-            const result = await response.json();
-    
-            if (result.success) {
-                const itemRow = document.getElementById(`cart-item-${productId}`);
-                if (itemRow) itemRow.remove();
-    
-                updateSubtotal();
-    
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Removed',
-                    text: 'Product successfully removed from cart',
-                    confirmButtonText: 'OK'
-                    
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: result.message || 'Could not remove item',
-                    confirmButtonText: 'OK'
-                });
-            }
-        } catch (error) {
-            console.error('Error removing item:', error.message);
+    </div>
+</section>
+
+<script>
+async function removeFromCart(productId) {
+    try {
+        const response = await fetch(`/cart/remove`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId })
+        });
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            throw new Error(errorMessage);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            const itemRow = document.getElementById(`cart-item-${productId}`);
+            if (itemRow) itemRow.remove();
+
+            updateSubtotal();
+
+            Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Product successfully removed from cart',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'An error occurred while removing item: ' + error.message, 
+                text: result.message || 'Could not remove item',
                 confirmButtonText: 'OK'
             });
         }
-    }
-    
-    
-    function updateSubtotal() {
-        const cartItems = document.querySelectorAll('.cart-item'); 
-        let total = 0;
-    
-        cartItems.forEach(item => {
-            const priceElement = item.querySelector('.item-price'); 
-            const quantityElement = item.querySelector('.item-quantity'); 
-    
-            if (priceElement && quantityElement) { 
-                const price = parseFloat(priceElement.textContent) || 0;
-                const quantity = parseInt(quantityElement.value) || 0;
-                total += price * quantity;
-            }
+    } catch (error) {
+        console.error('Error removing item:', error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while removing item: ' + error.message, 
+            confirmButtonText: 'OK'
         });
-    
-        const subtotalElement = document.getElementById('subtotal'); 
-        if (subtotalElement) {
-            subtotalElement.textContent = total.toFixed(2); 
+    }
+}
+
+
+function updateSubtotal() {
+    const cartItems = document.querySelectorAll('.cart-item'); 
+    let total = 0;
+
+    cartItems.forEach(item => {
+        const priceElement = item.querySelector('.item-price'); 
+        const quantityElement = item.querySelector('.item-quantity'); 
+
+        if (priceElement && quantityElement) { 
+            const price = parseFloat(priceElement.textContent) || 0;
+            const quantity = parseInt(quantityElement.value) || 0;
+            total += price * quantity;
+        }
+    });
+
+    const subtotalElement = document.getElementById('subtotal'); 
+    if (subtotalElement) {
+        subtotalElement.textContent = total.toFixed(2); 
+    } else {
+        console.error('Subtotal element not found'); 
+    }
+}
+
+async function incrementQuantity(productId) {
+        const quantityInput = document.getElementById(`qty-${productId}`);
+        let newQuantity = parseInt(quantityInput.value) + 1;
+        if (newQuantity > 10) {
+            Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'You cannot add more than 10 items.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+            return;
+        }
+        await updateQuantityOnServer(productId, newQuantity);
+    }
+
+    async function decrementQuantity(productId) {
+        const quantityInput = document.getElementById(`qty-${productId}`);
+        let newQuantity = parseInt(quantityInput.value) - 1;
+
+        if (newQuantity < 1) {
+            Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Quantity cannot be less than 1.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+            return;
+        }
+   
+   
+
+        await updateQuantityOnServer(productId, newQuantity);
+    }
+
+    async function updateQuantityOnServer(productId, newQuantity) {
+    try {
+        const response = await fetch('/cart/updateQuantity', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId, quantity: newQuantity }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            updateCartDisplay(productId, data.quantity, data.totalPrice, data.cartTotal);
         } else {
-            console.error('Subtotal element not found'); 
-        }
-    }
-    
-    async function incrementQuantity(productId) {
-            const quantityInput = document.getElementById(`qty-${productId}`);
-            let newQuantity = parseInt(quantityInput.value) + 1;
-            if (newQuantity > 10) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Limit Exceeded',
-                    text: 'You cannot add more than 10 items.',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-            await updateQuantityOnServer(productId, newQuantity);
-        }
-    
-        async function decrementQuantity(productId) {
-            const quantityInput = document.getElementById(`qty-${productId}`);
-            let newQuantity = parseInt(quantityInput.value) - 1;
-    
-            if (newQuantity < 1) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Invalid Quantity',
-                    text: 'Quantity cannot be less than 1.',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-       
-       
-    
-            await updateQuantityOnServer(productId, newQuantity);
-        }
-    
-        async function updateQuantityOnServer(productId, newQuantity) {
-        try {
-            const response = await fetch('/cart/updateQuantity', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    productId,
-                    quantity: newQuantity
-                })
+            // Display error as a toast
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'warning',
+                title: data.error || 'An error occurred.',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
             });
-    
-            // Log the full response for debugging
-            console.log('Response:', response);
-    
-            const data = await response.json();
-    
-            if (response.ok) {
-                updateCartDisplay(productId, data.quantity, data.totalPrice, data.cartTotal);
-            } else {
-                console.error('Failed to update quantity:', data.error);
-                alert(data.error || 'An error occurred. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error updating quantity:', error);
-            req.flash('error','no more stock left')
-            res.redirect('/cart')
         }
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'An error occurred while updating the cart.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
     }
+}
+
+
+
+    function updateCartDisplay(productId, newQuantity, itemTotalPrice, cartTotal) {
+        document.getElementById(`qty-${productId}`).value = newQuantity;
+
+        document.getElementById(`total-${productId}`).innerText = itemTotalPrice.toFixed(2);
+
+        document.querySelector('.cart-subtotal').innerText = `₹${cartTotal.toFixed(2)}`;
+    }
+
     
-    
-    
-        function updateCartDisplay(productId, newQuantity, itemTotalPrice, cartTotal) {
-            document.getElementById(`qty-${productId}`).value = newQuantity;
-    
-            document.getElementById(`total-${productId}`).innerText = itemTotalPrice.toFixed(2);
-    
-            document.querySelector('.cart-subtotal').innerText = `$${cartTotal.toFixed(2)}`;
-        }
-    
-        
-    
-    </script>
+
+</script>
+

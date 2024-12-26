@@ -32,12 +32,10 @@ adminRoute.get('/unblockCustomer',adminAuth,userController.costomerUnblocked)
 ///category menagement
 adminRoute.get('/category',adminAuth,categoryConroller.categoryInfo)
 adminRoute.post('/addCategory',adminAuth,categoryConroller.addCategory)
-// adminRoute.post('/addCategoryOffer',adminAuth,categoryConroller.addCategoryOffer)
-// adminRoute.post('/removeCategoryOffer',adminAuth,categoryConroller.removeCategoryOffer)
 adminRoute.get('/listCategory',adminAuth,categoryConroller.listCategory)
 adminRoute.get('/unlistCategory',adminAuth,categoryConroller.unlistCategory)
 adminRoute.get('/editCategory',adminAuth,categoryConroller.editCategory)
-adminRoute.post('admin/editCategory/:id',adminAuth,categoryConroller.postEditCategory)
+adminRoute.post('/editCategory/:id',adminAuth,categoryConroller.postEditCategory)
 
 
 

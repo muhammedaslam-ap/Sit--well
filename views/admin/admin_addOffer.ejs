@@ -217,7 +217,6 @@
     const categoryName = document.getElementById('categoryName');
     const discountPercentage = document.getElementById('discountPercentage');
     const price = document.getElementById('price');
-    const validUntil = document.getElementById('validUntil');
 
     // Show/hide fields based on offer type
     offerType.addEventListener('change', function () {
@@ -260,16 +259,33 @@
         return validateField(price, 'priceError', 'Price must be at least 1.');
     }
 
+    const validUntilInput = document.getElementById('validUntil');
+    const today = new Date().toISOString().split('T')[0];
+    validUntilInput.setAttribute('min', today);
+
     // Custom validation for validUntil date
     function validateDate() {
-        const today = new Date().toISOString().split('T')[0];
-        if (validUntil.value < today) {
-            document.getElementById('validUntilError').textContent = 'Date must be in the future.';
-            validUntil.classList.add('border-red-500');
+        const validUntilError = document.getElementById('validUntilError');
+        const inputDate = new Date(validUntilInput.value); // Convert the input value to a Date object
+        const todayDate = new Date(); // Get today's date
+
+        // Remove time part from today's date
+        todayDate.setHours(0, 0, 0, 0);
+
+        if (isNaN(inputDate.getTime())) {
+            // Check if the inputDate is invalid
+            validUntilError.textContent = 'Please enter a valid date.';
+            validUntilInput.classList.add('border-red-500');
+            return false;
+        }
+
+        if (inputDate <= todayDate) {
+            validUntilError.textContent = 'Date must be in the future.';
+            validUntilInput.classList.add('border-red-500');
             return false;
         } else {
-            document.getElementById('validUntilError').textContent = '';
-            validUntil.classList.remove('border-red-500');
+            validUntilError.textContent = '';
+            validUntilInput.classList.remove('border-red-500');
             return true;
         }
     }

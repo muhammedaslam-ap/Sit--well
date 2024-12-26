@@ -1,5 +1,28 @@
 <%- include('../../views/partials/admin/header.ejs') %>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<% if (successMessage && successMessage.length) { %>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '<%= successMessage %>',
+            confirmButtonText: 'OK'
+        });
+    </script>
+<% } %>
+    
+<% if (errorMessage && errorMessage.length) { %>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '<%= errorMessage %>',
+            confirmButtonText: 'OK'
+        });
+    </script>
+<% } %>
 
 <section class="content-main">
     <div class="content-header">
@@ -17,20 +40,21 @@
             <div class="row">
                 <!-- Form for adding category -->
                 <div class="col-md-3">
-                    <form action="/admin/addCategory" method="post" onsubmit="return handleFormSubmit(event)">
+                    <form id="category-form" action="/admin/addCategory" method="POST">
                         <div class="mb-4">
-                            <label for="category_name" class="form-label">Name</label>
-                            <input type="text" placeholder="Type here" class="form-control" id="category_name" name="name" />
-                            <div id="name-error" class="error-message text-danger"></div>
+                            <label for="category_name" class="form-label">Category Name</label>
+                            <input type="text" id="category_name" name="name" class="form-control" placeholder="Enter category name" />
+                            <div id="name-error" class="text-danger error-message"></div>
                         </div>
-
+                
                         <div class="mb-4">
-                            <label class="form-label">Description</label>
-                            <textarea placeholder="Type here" class="form-control" id="description" name="description"></textarea>
-                            <div id="description-error" class="error-message text-danger"></div>
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" name="description" class="form-control" placeholder="Enter description"></textarea>
+                            <div id="description-error" class="text-danger error-message"></div>
                         </div>
+                
                         <div class="d-grid">
-                            <button class="btn btn-primary">Create category</button>
+                            <button type="submit" class="btn btn-primary">Add Category</button>
                         </div>
                     </form>
                 </div>
@@ -43,8 +67,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Description</th>
-                                    <th>Offer Price</th>
-                                    <th>Offer</th>
+                                    
                                     <th>Status</th>
                                     <th>List/Unlist</th>
                                     <th>Edit</th>
@@ -55,23 +78,7 @@
                                     <tr>
                                         <td><%= category.name %></td>
                                         <td><%= category.description %></td>
-                                        <td>
-                                            <% if(category.categoryOffer) { %>
-                                                <%= category.categoryOffer %>%
-                                            <% } else { %>
-                                                0%
-                                            <% } %>
-                                        </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-danger">
-                                                <a href="#" class="text-white" onclick="addOffer('<%= category._id %>')">Add Offer</a>
-                                            </button>
-                                            <% if(category.categoryOffer > 0) { %>
-                                                <button class="btn btn-success" >
-                                                    <a href="#" class="text-white" onclick="removeOffer('<%= category._id %>')">Remove Offer</a>
-                                                </button>
-                                            <% } %>
-                                        </td>
+                                       
                                                                            
                                         <td>
                                             <% if(category.isListed) { %>
@@ -130,199 +137,53 @@
 
     
 <script>
-    function handleFormSubmit(event) {
+   document.getElementById("category-form").addEventListener("submit", function (event) {
         event.preventDefault();
 
-        if (!validateForm()) {
-            return false;
-        }
+        clearErrorMessages();
 
         const name = document.getElementById("category_name").value.trim();
         const description = document.getElementById("description").value.trim();
 
-        fetch('/admin/addCategory', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name, description })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.error);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            location.reload();
-        })
-        .catch(err => {
-            console.error(err);
-        });
-    }
+        let isValid = true;
 
-    async function validateForm() {
-    clearErrorMessages();
-    
-    const name = document.getElementById("category_name").value.trim();
-    const description = document.getElementById("description").value.trim();
-    
-    let isValid = true;
-    
-    // Basic validation
-    if (name === "") {
-        displayErrorMessage("name-error", "Please enter a name.");
-        isValid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(name)) {  // Allow spaces in category name
-        displayErrorMessage("name-error", "Category name should contain only alphabetic characters.");
-        isValid = false;
-    } else {
-        // Check if category already exists
-        try {
-            const exists = await checkCategoryExists(name);
-            if (exists) {
-                displayErrorMessage("name-error", "This category name already exists. Please choose a different name.");
-                isValid = false;
-            }
-        } catch (error) {
-            displayErrorMessage("name-error", "Error checking category name. Please try again.");
+        if (!name) {
+            displayErrorMessage("name-error", "Category name is required.");
+            isValid = false;
+        } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+            displayErrorMessage("name-error", "Category name should contain only letters and spaces.");
             isValid = false;
         }
-    }
-    
-    if (description === "") {
-        displayErrorMessage("description-error", "Please enter a description.");
-        isValid = false;
-    }
-    
-    return isValid;
-}
 
-// Function to check if category exists
-async function checkCategoryExists(categoryName) {
-    try {
-        const response = await fetch('/api/check-category', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ categoryName })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        if (!description) {
+            displayErrorMessage("description-error", "Description is required.");
+            isValid = false;
         }
-        
-        const data = await response.json();
-        return data.exists;
-    } catch (error) {
-        console.error('Error checking category:', error);
-        throw error;
-    }
-}
 
-function displayErrorMessage(elementId, message) {
-    const errorElement = document.getElementById(elementId);
-    errorElement.innerText = message;
-    errorElement.style.display = "block";
-}
-
-function clearErrorMessages() {
-    const errorElements = document.getElementsByClassName("error-message");
-    Array.from(errorElements).forEach((element) => {
-        element.innerText = "";
-        element.style.display = "none";
+        if (isValid) {
+            this.submit();
+        }
     });
-}
 
-    ///addoffer
+    function displayErrorMessage(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+    }
 
-    // async function addOffer(categoryId){
-    //     const {value:amount} = await swal.fire({
-    //         title:"offer in persentage",
-    //         input:"number",
-    //         inputLabel:"persentage",
-    //         inputPlaceholder:"%",
-    //     })
-    //     if(amount){
-    //         try {
-    //             const response = await fetch("/admin/categoryOffer", {
-    //                 method:"POST",
-    //                 headers:{
-    //                     'content-type':"application/json"
-    //                 },
-    //                 body:JSON.stringify({
-    //                     persentage:amount,
-    //                     categoryId:categoryId
-    //                 }),
-    //             })
-    //             const data = await response.json()
-    //             if(response.ok && data.status == true){
-    //                 swal.fire(
-    //                     'offer added',
-    //                     'the offer has been added',
-    //                     'success'
-    //                 ).the(()=>{
-    //                     location.reload()
-    //                 })
-    //             }else {
-    //                 swal.fire(
-    //                     'failed',
-    //                     data.message ||
-    //                     'adding offer failed',
-    //                     'Error'
-    //                 )
-    //             }
-    //         } catch (error) {
-    //             swal.fire(
-    //                 "error",
-    //                 "an error occured while adding"
-    //             )
-    //             console.error(error)
-    //         }
-    //     }
-    // }
-
-//     async function removeOffer(categoryId) {
-//     try {
-//         const response = await fetch('/admin/removeCategoryOffer', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             },
-//             body: JSON.stringify({
-//                 categoryId: categoryId
-//             })
-//         });
-
-//         const data = await response.json();
-
-//         if (response.ok && data.status === true) {
-//             swal.fire(
-//                 "Offer Removed",
-//                 "The offer has been removed successfully",
-//                 "success"
-//             ).then(() => {
-//                 location.reload();
-//             });
-//         } else {
-//             swal.fire(
-//                 "Failed",
-//                 data.message || 'Offer removal failed',
-//                 'error'
-//             );
-//         }
-//     } catch (error) {
-//         swal.fire(
-//             "Error",
-//             "An error occurred while removing the offer",
-//             "error"
-//         );
-//         console.error(error);
-//     }
-// }
+    function clearErrorMessages() {
+        const errorElements = document.querySelectorAll(".error-message");
+        errorElements.forEach((el) => {
+            el.textContent = "";
+            el.style.display = "none";
+        });
+    }
 </script>
-
+<style>
+    .error-message {
+        color: red;
+        display: none;
+        font-size: 0.9rem;
+    }
+</style>
 

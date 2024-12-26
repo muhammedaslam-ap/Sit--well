@@ -296,7 +296,6 @@ const updateCartItemQuantity = async (req, res) => {
     try {
         const userId = req.session.user._id;
         const { productId, quantity } = req.body;
-
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
@@ -323,8 +322,7 @@ const updateCartItemQuantity = async (req, res) => {
         }
 
         if (quantityNum > product.quantity) {
-            req.flash('error', 'Not enough stock available');
-            return res.redirect('/cart');
+            return res.status(400).json({ error: 'Not enough stock available' });
         }
 
         cart.items[itemIndex].quantity = quantityNum;

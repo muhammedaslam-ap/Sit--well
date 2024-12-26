@@ -17,33 +17,49 @@ const getCoupon = async(req,res)=>{
 const createCoupon = async (req, res) => {
     try {
         const { name, couponCode, expireOn, discount, minimumOffer, limit, islist } = req.body;
-           console.log(req.body)
+
+        console.log(req.body);
+
         if (!name || !couponCode || !expireOn || !discount || !minimumOffer || !limit) {
             req.flash('error', 'All fields are required');
             return res.status(400).redirect('/admin/coupon');
         }
-        
+
+        const existingCoupon = await Coupon.findOne({
+            $or: [
+                { name: { $regex: `^${name.trim()}$`, $options: 'i' } }, 
+                { couponCode: couponCode.trim() }
+            ]
+        });
+
+        if (existingCoupon) {
+            req.flash('error', 'Coupon already exists');
+            return res.status(400).redirect('/admin/coupon');
+        }
 
         const newCoupon = new Coupon({
-            name,
-            couponCode,
+            name: name.trim(),
+            couponCode: couponCode.trim(),
             expireOn: new Date(expireOn),
             discount,
             minimumOffer,
             limit,
-            isListed: islist
+            isListed: islist || false 
         });
 
         await newCoupon.save();
-        console.log(newCoupon)
+
+        console.log(newCoupon);
         req.flash('success', 'Coupon created successfully');
-        res.status(201).redirect('/admin/coupon');
+        return res.status(201).redirect('/admin/coupon');
+
     } catch (error) {
         console.error('Error creating coupon:', error.message);
-        req.flash('error', 'faild to add');
-        res.status(201).redirect('/admin/coupon');
+        req.flash('error', 'Failed to add coupon');
+        return res.status(500).redirect('/admin/coupon');
     }
 };
+
 
 
 const couponMenagent = async (req,res)=>{
@@ -65,7 +81,9 @@ const couponListing = async (req,res)=>{
 
         coupon.islist = !coupon.islist;
         await coupon.save();
-
+        if(coupon.islist === false){
+            req.session.coupon = null; 
+        }
         res.json({ success: true, islist: coupon.islist });
     } catch (error) {
         console.error('Error toggling status:', error);

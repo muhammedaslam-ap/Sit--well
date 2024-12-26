@@ -31,27 +31,43 @@ const categoryInfo = async (req, res) => {
 
 const addCategory = async (req, res) => {
     try {
-        const { name, description } = req.body; 
+        const { name, description } = req.body;
 
-        const existCategory = await Category.findOne({ name });
+        if (!name || !description) {
+            req.flash('error', 'Both name and description are required.');
+            return res.redirect('/admin/category');
+        }
 
+        if (!/^[a-zA-Z\s]+$/.test(name)) {
+            req.flash('error', 'Category name should contain only letters and spaces.');
+            return res.redirect('/admin/category');
+        }
+
+        const upperCaseName = name.toUpperCase().trim();
+
+        const existCategory = await Category.findOne({ name: upperCaseName });
         if (existCategory) {
-            return res.status(400).json({ error: "Category Already Exists" }); 
+            req.flash('error', 'Category name already exists.');
+            return res.redirect('/admin/category');
         }
 
         const newCategory = new Category({
-            name,
-            description, 
+            name: upperCaseName, 
+            description: description.trim(),
         });
 
         await newCategory.save();
-        return res.json({ message: "Category added successfully" }); 
 
+        req.flash('success', 'New Category Added.');
+        return res.redirect('/admin/category');
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal server error");
+        console.error('Error adding category:', error);
+
+        req.flash('error', 'An unexpected error occurred.');
+        return res.redirect('/admin/category');
     }
 };
+
 
 
 const listCategory = async (req,res)=>{
@@ -90,14 +106,17 @@ const postEditCategory = async (req, res) => {
     try {
         const id = req.params.id;
         const { categoryName, description } = req.body;
+         
+        const upperCase  = categoryName.toUpperCase()
 
         const categoryExisting = await Category.findOne({ 
-            name: categoryName, 
+            name: upperCase, 
             _id: { $ne: id }  
         });
 
         if (categoryExisting) {
-            return res.status(400).json({ error: "This category name already exists." });
+            req.flash('error', 'Category name already exists.');
+             return res.redirect('/admin/category');
         }
 
         const updatedCategory = await Category.findByIdAndUpdate(
@@ -107,6 +126,7 @@ const postEditCategory = async (req, res) => {
         );
 
         if (updatedCategory) {
+            req.flash('success', 'Category name updated.');
             res.redirect('/admin/category');  
         } else {
             res.status(404).json({ error: "Category not found." });
