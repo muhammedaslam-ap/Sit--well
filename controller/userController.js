@@ -23,12 +23,11 @@ const pageNotFound = async(req,res)=>{
 const landing = async (req, res) => {
     try {
         const user = req.session.user;
+        const categories = await Category.find({ isListed: true }); // Only fetch listed categories
+        const { search, sort, stock, category } = req.query;
 
-        const categories = await Category.find({ isListed: true });
-        const { search,sort, stock, category } = req.query;
+        let sortCriteria = { createdOn: -1 };
 
-        let sortCriteria = { createdOn: -1 }; 
-        
         switch (sort) {
             case 'popularity':
                 sortCriteria = { popularity: -1 };
@@ -46,82 +45,88 @@ const landing = async (req, res) => {
                 sortCriteria = { productName: -1 };
                 break;
         }
-        
+
         let stockFilter = {};
         if (stock === 'inStock') {
-            stockFilter = { quantity: { $gt: 0 } }; 
+            stockFilter = { quantity: { $gt: 0 } };
         } else if (stock === 'outOfStock') {
-            stockFilter = { quantity: 0 }; 
+            stockFilter = { quantity: 0 };
         }
-        
+
         let categoryFilter = {};
         if (category && category !== 'all') {
-            categoryFilter = { category: category }; 
+            categoryFilter = { category: category };
         }
 
         const filter = {};
 
         if (search) {
-            filter.productName = { $regex: `^${search}`, $options: 'i' }; // Case insensitive search
+            filter.productName = { $regex: `^${search}`, $options: 'i' };
         }
-        
+
         let productData = await Product.find({
             isBlocked: false,
             ...stockFilter,
             ...categoryFilter,
-            ...filter
+            ...filter,
         })
+        .populate('category') // Populate the category field with the category details
         .sort(sortCriteria)
-        .limit(8);
+        .limit(10) // Apply sorting before using `.then()`
+
+        productData = productData.filter(product => product.category && product.category.isListed);
+
+        // if(req.user){
+        //     const googleUser = req.user;
+        //     if (googleUser.is_blocked) {             
+        //         req.flash('error', 'This account has been blocked by the admin.'); 
+        //         return res.redirect('/logout');
+        //     }
+        // }
         
-
-        const successMessage = req.flash('success'); 
-        const errorMessage = req.flash('error'); 
-
-
         if (user) {
+            console.log( user._id)
             const userData = await User.findOne({ _id: user._id, is_blocked: false });
+            console.log(userData);
             
             if (userData) {
+                console.log(1);
+                
                 return res.render("landing", {
                     user: userData,
                     products: productData,
                     category: categories,
                     sortOption: sort,
                     stockOption: stock,
-                    selectedCategory:category,
+                    selectedCategory: category,
                     searchQuery: search
-
-                 
                 });
             } else {
-                delete req.session.user; 
+                console.log(2);
+                
+                delete req.session.user;
                 return res.render("landing", {
                     products: productData,
                     category: categories,
                     sortOption: sort,
                     stockOption: stock,
-                    selectedCategory:category,
+                    selectedCategory: category,
                     searchQuery: search
-
-                    
                 });
             }
         } else {
+            console.log(3)
             return res.render("landing", {
                 products: productData,
                 category: categories,
                 sortOption: sort,
                 stockOption: stock,
-                selectedCategory:category,
+                selectedCategory: category,
                 searchQuery: search
-
-
-               
             });
         }
     } catch (error) {
-        console.error("Error fetching landing page:", error.message); 
+        console.error("Error fetching landing page:", error.message);
         res.status(500).render('errorPage', { message: "Something went wrong" }); 
     }
 };
@@ -129,28 +134,25 @@ const landing = async (req, res) => {
 
 const userLogout = async (req,res)=>{
         try {
-            req.session.destroy((err)=>{
-                if(err){
-                    console.log(err)
-                    return res.redirect('/pageNotFound')
-                }
+            if(req.session.user) {
+                delete req.session.user
                 return res.redirect('/login')
-            })
-           
+            }
+            return res.redirect('/login')
         } catch (error) {
             console.log(error)
             return res.redirect('/pageNotFound')
         }
 }
 
-const shop  = async(req,res)=>{
+const shop = async (req, res) => {
     try {
-        const user = req.session.user
-        const categories = await Category.find({isListed:true})
-        const { search,sort, stock, category } = req.query;
+        const user = req.session.user;
+        const categories = await Category.find({ isListed: true }); // Only fetch listed categories
+        const { search, sort, stock, category } = req.query;
 
-        let sortCriteria = { createdOn: -1 }; 
-        
+        let sortCriteria = { createdOn: -1 };
+
         switch (sort) {
             case 'popularity':
                 sortCriteria = { popularity: -1 };
@@ -168,56 +170,79 @@ const shop  = async(req,res)=>{
                 sortCriteria = { productName: -1 };
                 break;
         }
-        
+
         let stockFilter = {};
         if (stock === 'inStock') {
-            stockFilter = { quantity: { $gt: 0 } }; 
+            stockFilter = { quantity: { $gt: 0 } };
         } else if (stock === 'outOfStock') {
-            stockFilter = { quantity: 0 }; 
+            stockFilter = { quantity: 0 };
         }
-        
+
         let categoryFilter = {};
         if (category && category !== 'all') {
-            categoryFilter = { category: category }; 
+            categoryFilter = { category: category };
         }
 
         const filter = {};
 
         if (search) {
-            filter.productName = { $regex: search, $options: 'i' }; 
+            filter.productName = { $regex: `^${search}`, $options: 'i' }; // Case insensitive search
         }
-        
+
         let productData = await Product.find({
             isBlocked: false,
             ...stockFilter,
             ...categoryFilter,
-            ...filter
+            ...filter,
         })
-        .sort(sortCriteria)
-        .limit(100);
-     
-        productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn))
-        productData = productData.slice(0,100)
+        .populate('category') 
+        .sort(sortCriteria); 
 
-        if(user){
-            const userData = await User.findOne({_id: user._id})
-            return res.render('shop',{user:userData,products:productData,category:categories, sortOption: sort,
-                stockOption: stock,
-                selectedCategory:category,
-                searchQuery: search
-})
-        }else{
-            return res.render('shop',{products:productData,category:categories, sortOption: sort,
-                stockOption: stock,
-                selectedCategory:category,
-                searchQuery: search
-})
+        productData = productData.filter(product => product.category && product.category.isListed);
 
+        productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
+        productData = productData.slice(0, 100); 
+
+        if (user) {
+            const userData = await User.findOne({ _id: user._id, is_blocked: false });
+
+            if (userData) {
+                return res.render('shop', {
+                    user: userData,
+                    products: productData,
+                    category: categories,
+                    sortOption: sort,
+                    stockOption: stock,
+                    selectedCategory: category,
+                    searchQuery: search
+                });
+            } else {
+                delete req.session.user;
+                return res.render('shop', {
+                    products: productData,
+                    category: categories,
+                    sortOption: sort,
+                    stockOption: stock,
+                    selectedCategory: category,
+                    searchQuery: search
+                });
+            }
+        } else {
+            return res.render('shop', {
+                products: productData,
+                category: categories,
+                sortOption: sort,
+                stockOption: stock,
+                selectedCategory: category,
+                searchQuery: search
+            });
         }
     } catch (error) {
-        console.log(error.message)
+        console.error("Error fetching shop page:", error.message);
+        res.status(500).render('errorPage', { message: "Something went wrong" });
     }
-}
+};
+
 
 const loadLogin = async (req, res) => {
     try {

@@ -522,7 +522,7 @@ const orderCancel = async (req, res) => {
             return;
         }
 
-        if (order.paymentMethod === 'cash' || order.status === 'Return Request') {
+        if (order.paymentMethod === 'cash' || order.status === 'Return Request' || order.paymentStatus== 'failed') {
             console.log("Cash on delivery order: No amount to credit.");
         } else {
             const newBalance = wallet.balance + amountToCredit;

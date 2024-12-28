@@ -85,24 +85,20 @@
                                 </div>
                             </div>
         
-                            <div class="mb-4">
-                                <label class="form-label">Color</label>
-                                <input name="color" type="text" class="form-control" value="<%= product.color %>">
-                                <div id="color-error" class="error-message"></div>
-                            </div>
+                            
                             <div class="card mb-4">
                                 <div class="card-body">
                                     <div class="row gx-2">
                                         <div class="col-sm-6 mb-3 ">
                                             <label class="form-label">Category</label>
                                             <select class="form-select border" style="width: 150px;" name="category" alt="Choose">
-                                                <option value="" disabled selected>Choose a category</option>
-                                                <% for (i=0;i<cat.length;i++) { %>
-                                                    <option value="<%= cat[i].name %>">
+                                                <option value="" disabled>Choose a category</option>
+                                                <% for (i = 0; i < cat.length; i++) { %>
+                                                    <option value="<%= cat[i]._id %>" <%= product.category.toString() === cat[i]._id.toString() ? 'selected' : '' %>>
                                                         <%= cat[i].name %>
-                                                    </option>
+                                                    </option>                                                    
                                                 <% } %>
-                                            </select>
+                                            </select>                                            
                                             <div id="category-error" class="error-message"></div>
                                         </div>
                                     </div>
@@ -166,84 +162,96 @@
     
     
         function validateAndSubmit() {
-        if (validateForm()) {
-           document.forms[0].submit();
-        }
-        }
+            if (validateForm()) {
+            document.forms[0].submit();
+            }
+            }
         
         
         
         
-        function validateForm() {
-           let imageDatas = false
-                   console.log("validate form");
-                   clearErrorMessages();
-                   const name = document.getElementsByName('productName')[0].value;
-                   const description = document.getElementsByName('descriptionData')[0].value;
-                   const brand = document.getElementsByName('brand')[0].value;
-                   const price = document.getElementsByName('regularPrice')[0].value;
-                   const saleprice = document.getElementsByName('salePrice')[0].value;
-                   const color = document.getElementsByName('color')[0].value;
-                   const category = document.getElementsByName('category')[0].value;
-                   const images = document.getElementById('input1')
-                   const quantity=document.getElementsByName('quantity')
-        imageDatas = document.getElementById("imageDatas")?.value;
-                   let isValid = true;    
-                   if (name.trim() === "") {
-           displayErrorMessage('productName-error', 'Please enter a product name.');
-           isValid = false;
-        }
-                  
-                   if (description=== '') {
-                       displayErrorMessage('description-error', 'Please enter a product description.');
-                       isValid = false;
-                   } 
-        
-        
-                   if ( parseInt(quantity) < 0) {
-                       displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-                       isValid = false;
-                   }
-        
-                   if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
-                       displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
-                       isValid = false;
-                   }
-                  if (!/^\d+(\.\d{1,2})?$/.test(saleprice) || parseFloat(saleprice) < 0) {
-                       displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
-                       isValid = false;
-                   }
-                  
-                   if (color.trim() === "") {
-                       displayErrorMessage('color-error', 'Please enter a color.');
-                       isValid = false;
-                   }
-                   if (!imageDatas && images.files.length === 0) {
-                       displayErrorMessage("images-error",'Please select an image.');
-                       isValid = false;
-                   }
-                   return isValid;
-               }
-              
-               function displayErrorMessage(elementId, message) {
-                   var errorElement = document.getElementById(elementId);
-                   errorElement.innerText = message;
-                   errorElement.style.display = "block";
-               }
-        
-        
-               function clearErrorMessages() {
-                   const errorElements = document.getElementsByClassName('error-message');
-                   Array.from(errorElements).forEach(element => {
-                       element.innerText = '';
-                   });
-                   const errorMessage = document.getElementById('errorMessage');
-        
-        
-               }
-        
-        
-        
+         function validateForm() {
+                    console.log("Validating form...");
+                    clearErrorMessages();
+
+                    const name = document.getElementsByName('productName')[0].value;
+                    const description = document.getElementById('descriptionid').value;
+                    const regularPrice = document.getElementsByName('regularPrice')[0].value;
+                    const salePrice = document.getElementsByName('salePrice')[0].value;
+                    const category = document.getElementsByName('category')[0].value;
+                    const quantity = document.getElementsByName('quantity')[0].value;
+                    const images = document.getElementById('imageInput');
+                    const imageDatas = document.getElementById("imageDatas")?.value;
+
+                    let isValid = true;
+
+                    // Product Name Validation
+                    if (name.trim() === "") {
+                        displayErrorMessage('productName-error', 'Please enter a product name.');
+                        isValid = false;
+                    }
+
+                    // Description Validation
+                    if (description.trim() === "") {
+                        displayErrorMessage('description-error', 'Please enter a product description.');
+                        isValid = false;
+                    }
+
+                    // Regular Price Validation
+                    if (!/^\d+(\.\d{1,2})?$/.test(regularPrice) || parseFloat(regularPrice) <= 0) {
+                        displayErrorMessage('regularPrice-error', 'Please enter a valid positive regular price.');
+                        isValid = false;
+                    }
+
+                    // Sale Price Validation
+                    if (!/^\d+(\.\d{1,2})?$/.test(salePrice) || parseFloat(salePrice) <= 0) {
+                        displayErrorMessage('salePrice-error', 'Please enter a valid positive sale price.');
+                        isValid = false;
+                    } else if (parseFloat(salePrice) > parseFloat(regularPrice)) {
+                        displayErrorMessage('salePrice-error', 'Sale price must be less than the regular price.');
+                        isValid = false;
+                    }
+
+                    // Quantity Validation
+                    if (!/^\d+$/.test(quantity) || parseInt(quantity) < 0) {
+                        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
+                        isValid = false;
+                    }
+
+                    
+                    // Category Validation
+                    if (category === "" || category === null) {
+                        displayErrorMessage('category-error', 'Please select a category.');
+                        isValid = false;
+                    }
+
+                    // Image Validation
+                    if (!imageDatas && (!images || images.files.length === 0)) {
+                        displayErrorMessage("images-error", 'Please upload at least one image.');
+                        isValid = false;
+                    }
+
+                    return isValid;
+                }
+
+                function displayErrorMessage(id, message) {
+                    const errorElement = document.getElementById(id);
+                    if (errorElement) {
+                        errorElement.textContent = message;
+                        errorElement.style.color = 'red';
+                    }
+                }
+
+                function clearErrorMessages() {
+                    const errorElements = document.getElementsByClassName('error-message');
+                    Array.from(errorElements).forEach((element) => {
+                        element.textContent = '';
+                    });
+                }
+
+                        
+                        
+                        
         
         function viewImage1(event) {
                    document.getElementById('imgView1').src = URL.createObjectURL(event.target.files[0])

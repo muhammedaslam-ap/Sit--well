@@ -25,7 +25,7 @@ const getProductAddPage = async (req, res) => {
 // Add a new product
 const addProduct = async (req, res) => {
     try {
-        const {productName,description,regularPrice,salePrice,quantity,color,category}= req.body;
+        const {productName,description,regularPrice,salePrice,quantity,category}= req.body;
 
         const productExists = await Product.findOne({
             productName: productName,
@@ -57,7 +57,7 @@ const addProduct = async (req, res) => {
                     description: description,
                     category:categoryId._id,
                     regularPrice: regularPrice,
-                    color : color,
+                    // color : color,
                     salePrice : salePrice,
                     createdOn: new Date(),
                     quantity: quantity,
@@ -76,7 +76,7 @@ const addProduct = async (req, res) => {
                     salePrice: salePrice,
                     createdOn: new Date(),
                     quantity: quantity,
-                    color: color,
+                    // color: color,
                     productImage: images,
                     status: 'Available', 
                 });
@@ -209,17 +209,17 @@ const editProduct = async (req, res) => {
         });
         if (existingProduct) {
             req.flash('error','Product name already exists. Please try another name')
-            return res.redirect('/admin/editProduct')
+            return res.redirect('/admin/editProduct/:id')
         }
 
         let categoryId;
         if (mongoose.Types.ObjectId.isValid(data.category)) {
-            categoryId = mongoose.Types.ObjectId(data.category);
+            categoryId = new mongoose.Types.ObjectId(data.category);
         } else {
             const categoryDoc = await Category.findOne({ name: data.category });
             if (!categoryDoc) {
                 req.flash('error','Invalid category name provided.')
-                return res.redirect('/admin/editProduct')
+                return res.redirect('/admin/editProduct/:id')
             }
             categoryId = categoryDoc._id;
         }
@@ -235,7 +235,7 @@ const editProduct = async (req, res) => {
             regularPrice: data.regularPrice,
             salePrice: data.salePrice,
             quantity: data.quantity,
-            color: data.color
+            // color: data.color
         };
 
         // Replace product images if new images are uploaded
@@ -247,7 +247,7 @@ const editProduct = async (req, res) => {
         const updatedProduct = await Product.findByIdAndUpdate(id, updateFields, { new: true });
         if (!updatedProduct) {
             req.flash('error','Failed to update product.')
-            res.redirect("/admin/editProduct");
+            res.redirect("/admin/editProduct/:id");
         }
 
         const carts = await Cart.find({ "items.productId": id });

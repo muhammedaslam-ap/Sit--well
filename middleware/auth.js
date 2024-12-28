@@ -20,6 +20,7 @@ const userAuth = async (req,res,next)=>{
 }
 
 const adminAuth = (req, res, next) => {
+    
     if (req.session.admin) {
         next(); // If admin session exists, proceed to the requested route
     } else {

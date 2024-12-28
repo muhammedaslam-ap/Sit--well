@@ -55,10 +55,10 @@ const postAddAddress = async (req, res) => {
     
     try {
         const { addressType, name, city, district, addressLine1, landMark, state, pinCode, phone, altPhone } = req.body;
-        console.log(req.body);
-        
+        console.log("Request body:", req.body);
+
         const user = req.session.user;
-        
+
         // Check for user session
         if (!user || !user._id) {
             req.flash('error', 'User session not found!');
@@ -66,6 +66,47 @@ const postAddAddress = async (req, res) => {
         }
         console.log("User session found:", user._id);
 
+        // Input validation
+        const validationErrors = [];
+
+        if (!name || name.trim().length < 3) {
+            validationErrors.push('Name must be at least 3 characters long.');
+        }
+        if (!landMark || landMark.trim().length === 0) {
+            validationErrors.push('Landmark is required.');
+        }
+        if (!phone || !/^\d{10}$/.test(phone)) {
+            validationErrors.push('Phone number must be 10 digits.');
+        }
+        if (altPhone && !/^\d{10}$/.test(altPhone)) {
+            validationErrors.push('Alternate phone number must be 10 digits.');
+        }
+        if (!addressLine1 || addressLine1.trim().length === 0) {
+            validationErrors.push('Street address is required.');
+        }
+        if (!city || city.trim().length === 0) {
+            validationErrors.push('City is required.');
+        }
+        if (!district || district.trim().length === 0) {
+            validationErrors.push('District is required.');
+        }
+        if (!state || state.trim().length === 0) {
+            validationErrors.push('State is required.');
+        }
+        if (!pinCode || !/^\d{6}$/.test(pinCode)) {
+            validationErrors.push('Pin code must be 6 digits.');
+        }
+        if (!addressType || !['Home', 'Work', 'Other'].includes(addressType)) {
+            validationErrors.push('Address type must be Home, Work, or Other.');
+        }
+
+        // If there are validation errors, redirect with errors
+        if (validationErrors.length > 0) {
+            req.flash('error', validationErrors);
+            return res.redirect('/addAddress');
+        }
+
+        // User existence check
         const existingUser = await User.findById(user._id);
         if (!existingUser) {
             console.log("User not found in database");
@@ -129,6 +170,7 @@ const postAddAddress = async (req, res) => {
         return res.redirect('/addAddress'); // Stay on add address page in case of error
     }
 };
+
 
 const getEditAddress = async (req, res) => {
     try {

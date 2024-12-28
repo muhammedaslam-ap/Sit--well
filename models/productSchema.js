@@ -35,10 +35,6 @@ const productSchema = new Schema({
         type: Number,
         required: true, // Make sure this is a number, not defaulting to true
     },
-    color: {
-        type: String,
-        required: true,
-    },
     productImage: {
         type: [String], // An array of image file names or URLs
         required: true,

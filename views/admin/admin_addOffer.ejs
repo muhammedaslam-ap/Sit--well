@@ -52,7 +52,7 @@
                         <option value="product">Product</option>
                         <option value="category">Category</option>
                     </select>
-                    <span class="text-red-500 text-xs mt-1" id="offerTypeError"></span>
+                    <span id="offerTypeError" class="text-red-500"></span>
                 </div>
             
                 <!-- Product Name (conditional) -->
@@ -64,7 +64,7 @@
                             <option value="<%= p._id %>"><%= p.productName %></option>
                         <% }); %>
                     </select>
-                    <span class="text-red-500 text-xs mt-1" id="productNameError"></span>
+                    <span id="productNameError" class="text-red-500"></span>
                 </div>
             
                 <!-- Category Name (conditional) -->
@@ -76,7 +76,7 @@
                             <option value="<%= c._id %>"><%= c.name %></option>
                         <% }); %>
                     </select>
-                    <span class="text-red-500 text-xs mt-1" id="categoryNameError"></span>
+                    <span id="categoryNameError" class="text-red-500"></span>
                 </div>
             
                 <!-- Discount Percentage -->
@@ -84,14 +84,14 @@
                     <label for="discountPercentage" class="block text-sm font-medium text-gray-700 mb-2">Discount Percentage</label>
                     <input type="number" name="discountPercentage" id="discountPercentage" class="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                            required min="0" max="100" placeholder="Enter 0-100" step="1">
-                    <span class="text-red-500 text-xs mt-1" id="discountPercentageError"></span>
-                </div>
+                           <span id="discountPercentageError" class="text-red-500"></span>
+                        </div>
             
                 <!-- Valid Until Date -->
                 <div class="mb-6">
                     <label for="validUntil" class="block text-sm font-medium text-gray-700 mb-2">Valid Until</label>
                     <input type="date" name="validUntil" id="validUntil" class="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
-                    <span class="text-red-500 text-xs mt-1" id="validUntilError"></span>
+                    <span id="validUntilError" class="text-red-500"></span>
                 </div>
             
                 <!-- Submit Button -->
@@ -217,8 +217,11 @@
     const categoryName = document.getElementById('categoryName');
     const discountPercentage = document.getElementById('discountPercentage');
     const price = document.getElementById('price');
+    const validUntilInput = document.getElementById('validUntil');
 
-    // Show/hide fields based on offer type
+    const today = new Date().toISOString().split('T')[0];
+    validUntilInput.setAttribute('min', today);
+
     offerType.addEventListener('change', function () {
         const productField = document.getElementById('productField');
         const categoryField = document.getElementById('categoryField');
@@ -235,7 +238,6 @@
         }
     });
 
-    // Validate each field and show error messages
     function validateField(field, messageElementId, message) {
         const messageElement = document.getElementById(messageElementId);
         if (!field.checkValidity()) {
@@ -249,31 +251,29 @@
         }
     }
 
-    // Custom validation for discount percentage
     function validateDiscount() {
-        return validateField(discountPercentage, 'discountPercentageError', 'Enter a discount between 0 and 100.');
+        const discountValue = parseFloat(discountPercentage.value);
+        const isValid = discountValue >= 0 && discountValue < 80;
+        const messageElement = document.getElementById('discountPercentageError');
+        if (!isValid) {
+            messageElement.textContent = 'Discount must be between 0 and 80.';
+            discountPercentage.classList.add('border-red-500');
+            return false;
+        } else {
+            messageElement.textContent = '';
+            discountPercentage.classList.remove('border-red-500');
+            return true;
+        }
     }
 
-    // Custom validation for price
-    function validatePrice() {
-        return validateField(price, 'priceError', 'Price must be at least 1.');
-    }
-
-    const validUntilInput = document.getElementById('validUntil');
-    const today = new Date().toISOString().split('T')[0];
-    validUntilInput.setAttribute('min', today);
-
-    // Custom validation for validUntil date
     function validateDate() {
         const validUntilError = document.getElementById('validUntilError');
-        const inputDate = new Date(validUntilInput.value); // Convert the input value to a Date object
-        const todayDate = new Date(); // Get today's date
+        const inputDate = new Date(validUntilInput.value); 
+        const todayDate = new Date(); 
 
-        // Remove time part from today's date
         todayDate.setHours(0, 0, 0, 0);
 
         if (isNaN(inputDate.getTime())) {
-            // Check if the inputDate is invalid
             validUntilError.textContent = 'Please enter a valid date.';
             validUntilInput.classList.add('border-red-500');
             return false;
@@ -290,14 +290,16 @@
         }
     }
 
-    // Form submission
+    function validatePrice() {
+        return validateField(price, 'priceError', 'Price must be at least 1.');
+    }
+
     offerForm.addEventListener('submit', function (e) {
         const isOfferTypeValid = validateField(offerType, 'offerTypeError', 'Offer type is required.');
         const isDiscountValid = validateDiscount();
         const isPriceValid = validatePrice();
         const isDateValid = validateDate();
 
-        // Check offerType and validate productName or categoryName accordingly
         let isProductOrCategoryValid = true;
         if (offerType.value === 'product') {
             isProductOrCategoryValid = validateField(productName, 'productNameError', 'Select a product.');
@@ -305,12 +307,12 @@
             isProductOrCategoryValid = validateField(categoryName, 'categoryNameError', 'Select a category.');
         }
 
-        // Prevent form submission if any validation fails
         if (!isOfferTypeValid || !isDiscountValid || !isPriceValid || !isDateValid || !isProductOrCategoryValid) {
             e.preventDefault();
         }
     });
 });
+
 
 
 

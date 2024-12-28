@@ -106,17 +106,6 @@ userRoute.post('/walletPayment',userAuth,walletController.processWalletPayment)
 
 
 
-
-
-
-
-
-
-
-       
-
-
-
 userRoute.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 userRoute.get('/auth/google/callback', passport.authenticate('google', {
@@ -124,6 +113,16 @@ userRoute.get('/auth/google/callback', passport.authenticate('google', {
 }), async (req, res) => {
     try {
         const user = req.user;
+
+        // Check if the user is blocked
+        if (user.is_blocked) { 
+            console.warn(`Blocked user attempted to log in: ${user.email}`);
+            
+            req.flash('error', 'This account has been blocked by the admin.');
+            
+            return res.redirect('/logout');
+        }
+        
 
         const walletExists = await Wallet.findOne({ user: user._id });
 
@@ -141,14 +140,16 @@ userRoute.get('/auth/google/callback', passport.authenticate('google', {
             await wallet.save();
         }
 
+        // Save the user in session
+        req.session.user = req.user; 
+        req.user = null
+        res.redirect('/'); 
 
-    req.session.user = req.user; 
-    res.redirect('/'); 
     } catch (error) {
         console.error('Error in Google login callback:', error);
         res.redirect('/login');     
     }
-    
 });
+
 
 module.exports=userRoute;

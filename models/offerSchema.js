@@ -6,60 +6,53 @@ const OfferSchema = new Schema({
         type: String,
         required: true,
         enum: ['product', 'category'],
-        trim: true
+        trim: true,
     },
     productName: {
         type: Schema.Types.ObjectId,
         ref: 'Product',
-        required: function() {
+        required: function () {
             return this.offerType === 'product';
         },
-        
     },
     categoryName: {
         type: Schema.Types.ObjectId,
         ref: 'Category',
-        required: function() {
+        required: function () {
             return this.offerType === 'category';
         },
-       
     },
     offerDescription: {
         type: String,
-        required: false,
-        trim: true
+        trim: true,
     },
     discountPercentage: {
         type: Number,
         required: true,
         min: [0, 'Discount percentage cannot be negative'],
-        max: [100, 'Discount percentage cannot exceed 100']
+        max: [80, 'Discount percentage cannot exceed 80'], // Adjusted for stricter validation
     },
     startDate: {
         type: Date,
         required: true,
-        
     },
     endDate: {
         type: Date,
         required: true,
-        
     },
-    status: {
-        type: String,
-        enum: ['active', 'expired', 'upcoming'],
-        default: function() {
-            const now = new Date();
-            if (now < this.startDate) return 'upcoming';
-            if (now > this.endDate) return 'expired';
-            return 'active';
-        }
-    }
+   
 }, {
-    timestamps: true
+    timestamps: true,
 });
 
+OfferSchema.index({ endDate: 1 }, { expireAfterSeconds: 0 });
 
+OfferSchema.pre('save', function (next) {
+    if (this.endDate <= new Date()) {
+        return next(new Error('The endDate must be in the future.'));
+    }
+    next();
+});
 
 const Offer = mongoose.model('Offer', OfferSchema);
 module.exports = Offer;

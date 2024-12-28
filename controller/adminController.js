@@ -304,17 +304,16 @@ const loadDashbord = async (req, res) => {
 const pageError = async (req,res)=>{
     res.render('admin_error')
 }
+
 const logout = async (req,res)=>{
    try {
+      if(req.session.admin){
+        delete req.session.admin
+        return res.redirect('/admin/login')
+      }
+      return res.redirect('/admin/login')
 
-    req.session.destroy(error => {
-        if(error){
-            console.error(error)
-            return res.redirect('/admin/pageerror')
-        }
-        res.redirect('/admin/login')
-    })
-   } catch (error) {
+    }catch (error) {
 
     console.error(error)
     return res.redirect("/admin/pageError")
@@ -366,10 +365,10 @@ const getSalesReport = async (req, res) => {
         // Filter orders by the selected time range and exclude failed payments
         const query = {
             ...dateRange ? { createdOn: dateRange } : {},
-            paymentStatus: { $ne: 'failed' } // Exclude failed payments
+            paymentStatus: { $ne: 'failed' },  // Exclude failed payments
+            status: { $nin: ['cancelled', 'returned'] } // Exclude cancelled and returned orders
         };
 
-        // Total Orders and Pagination
         const totalOrders = await Order.countDocuments(query);
         const totalPages = Math.ceil(totalOrders / limit);
 
@@ -380,7 +379,6 @@ const getSalesReport = async (req, res) => {
             .populate('userId', 'name email')
             .populate('orderedItems.product', 'name price offerPrice');
 
-        // Total Revenue, Discount, and Offer Price
         const allOrders = await Order.find(query)
             .populate('orderedItems.product', 'offerPrice');
 

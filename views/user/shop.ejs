@@ -1,309 +1,187 @@
-<%-include('../../views/partials/user/header.ejs')%>
+
+<%- include('../../views/partials/user/header.ejs') %>
+
 <!--================Home Banner Area =================-->
 <!-- breadcrumb start-->
- <style>
-  .product-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .add_cart {
-        order: 1;
-    }
-    .wishlist {
-        order: 2;
-    }
-    .indian-rupee::before {
-        content: "\20B9"; 
-        font-family: Arial, sans-serif;
-        margin-right: 2px;
-        font-weight: 300; 
-        color: #666; 
-    }
-    .category-container {
-        display: flex;
-        gap: 20px; 
-        flex-wrap: wrap; 
-        align-items: center; 
-    }
 
-    .single_product_menu p {
-        margin: 0; 
-        padding: 0; 
-    }
-        .breadcrumb.carousel_section {
-            background-color: #000; 
-        }
 
-        .carousel-inner .carousel-item {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%; 
-        }
-
-        .carousel-inner img {
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
-
-        .carousel-fade .carousel-item {
-            opacity: 0; 
-            transition: opacity 0.5s ease; 
-        }
-
-        .carousel-fade .carousel-item.active {
-            opacity: 1; 
-        }
-
-        .breadcrumb_iner {
-            position: absolute; 
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            text-align: center;
-            z-index: 10; 
-        }
-        .breadcrumb_iner {
-            position: absolute; 
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white; 
-            text-align: center; 
-            z-index: 10; 
-        }
-
-      .product-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .add_cart {
-            order: 1;
-        }
-        .wishlist {
-            order: 2;
-        }
-        .indian-rupee::before {
-            content: "\20B9";
-            font-family: Arial, sans-serif;
-            margin-right: 2px;
-            font-weight: 300; 
-            color: #666;
-        }
-        .form-label {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: #333;
-    }
-
-    /* General Styles */
-    .form-label {
-        margin-top: 30px;
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: #333;
-    }
-    .form-group div {
-        padding: 5px 0;
-    }
-    .form-group div input[type="radio"] {
-        margin-right: 10px;
-    }
-    #sortForm {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .product-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0;
-    }
-    .product-item {
-        background-color: #fff;
-        border: 1px solid #e3e3e3;
-        border-radius: 10px;
-        padding: 15px;
-        text-align: center;
-        transition: box-shadow 0.3s ease;
-        width: 100%;
-    }
-    .product-item:hover {
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    .product-item img {
-        border-radius: 8px;
-        max-width: 100%;
-        height: auto;
-    }
-    .product-item h4 {
-        font-size: 1.2rem;
-        margin-top: 10px;
-        color: #333;
-    }
-    .product-item h3 {
-        font-size: 1rem;
-        color: #007bff;
-        font-weight: bold;
-        margin: 5px 0;
-    }
-    .product-item .original-price {
-        color: #a0a0a0;
-        text-decoration: line-through;
-        margin-right: 5px;
-    }
-     </style>
-
- </style>
 <div class="container-fluid mt-4">
-    <form id="sortForm" action="/shop" method="get">
-        <div class="row gx-4 gy-3 align-items-center">
-            <!-- Search Area -->
-            <div class="col-md-4 col-lg-3 mb-3">
-                <label class="form-label">Search Products</label>
-                <input type="text" name="search" class="form-control" placeholder="Search by product name" value="<%= searchQuery || '' %>" oninput="document.getElementById('sortForm').submit()">
-            </div>
+  <form id="sortForm" action="/shop" method="get">
+    <div class="row gx-4 gy-3 align-items-center ">
+      <!-- Search Area -->
+      <div class="col-md-4 col-lg-3 mb-3 mt-5">
+        <label class="form-label">Search Products</label>
+        <input type="text" name="search" class="form-control" placeholder="Search by product name" value="<%= searchQuery || '' %>" oninput="document.getElementById('sortForm').submit()">
+      </div>
 
-            <!-- Sort by Section -->
-            <div class="col-md-4 col-lg-3 mb-3">
-                <label class="form-label">Sort by</label>
-                <div class="btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-outline-primary <%= sortOption === 'newArrivals' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="sort" value="newArrivals" <%= sortOption === 'newArrivals' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> New Arrivals
-                    </label>
-                    <label class="btn btn-outline-primary <%= sortOption === 'popularity' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="sort" value="popularity" <%= sortOption === 'popularity' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Popularity
-                    </label>
-                    <label class="btn btn-outline-primary <%= sortOption === 'priceLowHigh' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="sort" value="priceLowHigh" <%= sortOption === 'priceLowHigh' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Price: Low to High
-                    </label>
-                    <label class="btn btn-outline-primary <%= sortOption === 'priceHighLow' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="sort" value="priceHighLow" <%= sortOption === 'priceHighLow' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Price: High to Low
-                    </label>
-                    <label class="btn btn-outline-primary <%= sortOption === 'aToZ' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="sort" value="aToZ" <%= sortOption === 'aToZ' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> A - Z
-                    </label>
-                    <label class="btn btn-outline-primary <%= sortOption === 'zToA' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="sort" value="zToA" <%= sortOption === 'zToA' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Z - A
-                    </label>
-                </div>
-            </div>
-
-            <!-- Stock Status Section -->
-            <div class="col-md-4 col-lg-3 mb-3">
-                <label class="form-label">Stock Status</label>
-                <div class="btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-outline-primary <%= stockOption === 'all' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="stock" value="all" <%= stockOption === 'all' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> All
-                    </label>
-                    <label class="btn btn-outline-primary <%= stockOption === 'inStock' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="stock" value="inStock" <%= stockOption === 'inStock' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> In Stock
-                    </label>
-                    <label class="btn btn-outline-primary <%= stockOption === 'outOfStock' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="stock" value="outOfStock" <%= stockOption === 'outOfStock' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Out of Stock
-                    </label>
-                </div>
-            </div>
-
-            <!-- Category Section -->
-            <div class="col-md-4 col-lg-3 mb-3">
-                <label class="form-label">Category</label>
-                <div class="btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-outline-primary <%= selectedCategory === 'all' ? 'active' : '' %>" onclick="setActive(this)">
-                        <input type="radio" name="category" value="all" <%= selectedCategory === 'all' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> All Categories
-                    </label>
-                    <% category.forEach(cat => { %>
-                        <label class="btn btn-outline-primary <%= selectedCategory === cat.id ? 'active' : '' %>" onclick="setActive(this)">
-                            <input type="radio" name="category" value="<%= cat.id %>" <%= selectedCategory === cat.id ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> <%= cat.name %>
-                        </label>
-                    <% }); %>
-                </div>
-            </div>
+      <!-- Sort by Section -->
+      <div class="col-md-4 col-lg-3 mb-3 mt-5">
+        <label class="form-label">Sort by</label>
+        <div class="btn-group-toggle d-flex flex-wrap gap-2" data-toggle="buttons">
+          <label class="btn btn-outline-primary <%= sortOption === 'newArrivals' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="sort" value="newArrivals" <%= sortOption === 'newArrivals' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> New Arrivals
+          </label>
+          <label class="btn btn-outline-primary <%= sortOption === 'popularity' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="sort" value="popularity" <%= sortOption === 'popularity' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Popularity
+          </label>
+          <label class="btn btn-outline-primary <%= sortOption === 'priceLowHigh' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="sort" value="priceLowHigh" <%= sortOption === 'priceLowHigh' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Price: Low to High
+          </label>
+          <label class="btn btn-outline-primary <%= sortOption === 'priceHighLow' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="sort" value="priceHighLow" <%= sortOption === 'priceHighLow' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Price: High to Low
+          </label>
+          <label class="btn btn-outline-primary <%= sortOption === 'aToZ' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="sort" value="aToZ" <%= sortOption === 'aToZ' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> A - Z
+          </label>
+          <label class="btn btn-outline-primary <%= sortOption === 'zToA' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="sort" value="zToA" <%= sortOption === 'zToA' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Z - A
+          </label>
         </div>
-    </form>
+      </div>
+
+      <!-- Stock Status Section -->
+      <div class="col-md-4 col-lg-3 mb-3 mt-5">
+        <label class="form-label">Stock Status</label>
+        <div class="btn-group-toggle d-flex gap-2" data-toggle="buttons">
+          <label class="btn btn-outline-primary <%= stockOption === 'all' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="stock" value="all" <%= stockOption === 'all' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> All
+          </label>
+          <label class="btn btn-outline-primary <%= stockOption === 'inStock' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="stock" value="inStock" <%= stockOption === 'inStock' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> In Stock
+          </label>
+          <label class="btn btn-outline-primary <%= stockOption === 'outOfStock' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="stock" value="outOfStock" <%= stockOption === 'outOfStock' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> Out of Stock
+          </label>
+        </div>
+      </div>
+
+      <!-- Category Section -->
+      <div class="col-md-4 col-lg-3 mb-3 mt-5">
+        <label class="form-label">Category</label>
+        <div class="btn-group-toggle d-flex flex-wrap gap-2" data-toggle="buttons">
+          <label class="btn btn-outline-primary <%= selectedCategory === 'all' ? 'active' : '' %>" onclick="setActive(this)">
+            <input type="radio" name="category" value="all" <%= selectedCategory === 'all' ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> All Categories
+          </label>
+          <% category.forEach(cat => { %>
+            <label class="btn btn-outline-primary <%= selectedCategory === cat.id ? 'active' : '' %>" onclick="setActive(this)">
+              <input type="radio" name="category" value="<%= cat.id %>" <%= selectedCategory === cat.id ? 'checked' : '' %> onchange="document.getElementById('sortForm').submit()"> <%= cat.name %>
+            </label>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>
-
-<!-- CSS Styles -->
-<style>
-    .form-label {
-        font-weight: bold;
-        color: #333; 
-    }
-
-    .btn-group-toggle .btn {
-        margin: 0 5px; 
-    }
-
-    .btn-group-toggle .btn.active {
-        background-color: #007bff; 
-        color: white; 
-        border-color: #0056b3; 
-    }
-
-    .btn-group-toggle .btn {
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .btn-group-toggle .btn:hover {
-        background-color: #0056b3; 
-        color: white; 
-    }
-
-    @media (max-width: 576px) {
-        .form-control {
-            font-size: 14px; 
-        }
-
-        .form-label {
-            font-size: 16px; 
-        }
-    }
-</style>
-
-<!-- JavaScript for Active Button State -->
-<script>
-    function setActive(label) {
-        const buttons = label.closest('.btn-group-toggle').querySelectorAll('.btn');
-        buttons.forEach(btn => {
-            btn.classList.remove('active');
-        });
-        label.classList.add('active');
-    }
-</script>
-
 
 <!-- Products Section -->
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="product-container">
-                <% if (products.length === 0) { %>
-                    <div class="col-12 text-center">
-                        <p>No products available for the selected filters.</p>
-                    </div>
-                <% } else { %>
-                    <% products.forEach(product => { %>
-                    <div class="product-item  col-12 col-md-6 col-lg-3">
-                        <a href="/productDetails/<%= product._id %>">
-                            <img src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>" loading="lazy">
-                        </a>
-                        <div class="single_product_text mt-3">
-                            <h4><%= product.productName %></h4>
-                            <h3>
-                                <span class="original-price"> ₹<%= product.regularPrice %></span>
-                                <span> ₹<%= product.salePrice %></span>
-                            </h3>
-                        </div>
-                    </div>
-                    <% }); %>
-                <% } %>
-            </div>
+<div class="container-fluid px-4">
+    <div class="row g-4">
+      <% if (products.length === 0) { %>
+        <div class="col-12">
+          <div class="alert alert-info" role="alert">
+            No products available for the selected filters.
+          </div>
         </div>
+      <% } else { %>
+        <% products.forEach(product => { %>
+          <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2-4"> 
+            <div class="card h-100 shadow-sm border-0 product-card">
+              <div class="position-relative">
+                <a href="/productDetails/<%= product._id %>" class="text-decoration-none">
+                  <img src="/uploads/product-images/<%= product.productImage[0] %>" class="card-img-top product-image" alt="<%= product.productName %>">
+                </a>
+              </div>
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-truncate text-dark"><%= product.productName %></h5>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div>
+                    <span class="text-muted text-decoration-line-through">₹<%= product.regularPrice %></span>
+                    <span class="text-dark fw-bold ms-2">₹<%= product.salePrice %></span>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <% if (product.quantity <= 0) { %>
+                    <div class="sold-out-overlay">
+                      <span class="badge bg-danger">Sold Out</span>
+                    </div>
+                  <% } else if (product.quantity <= 5) { %>
+                    <div class="low-stock-overlay">
+                      <span class="badge bg-warning text-dark">Only <%= product.quantity %> left</span>
+                    </div>
+                  <% } %>
+                  <% if (product.quantity > 5) { %>
+                    <small class="badge bg-success">In Stock</small>
+                  <% } %>
+                </div>
+                <a href="/productDetails/<%= product._id %>" class="btn btn-outline-dark mt-auto">View Details</a>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
     </div>
-</div>
-    <%-include('../../views/partials/user/footer.ejs')%>
+  </div>
+  
+  <style>
+    /* Custom column width for 5 items per row */
+    .col-xl-2-4 {
+      flex: 0 0 auto;
+      width: 20%;
+    }
+    
+    .product-image {
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    
+    .product-card {
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      margin-bottom: 0;
+    }
+    
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .card-body {
+      padding: 1rem;
+    }
+    
+    .card-title {
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+      .col-xl-2-4 {
+        width: 25%;
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .product-image {
+        height: 180px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .product-image {
+        height: 160px;
+      }
+    }
+  </style>
+<script>
+  function setActive(label) {
+    const buttons = label.closest('.btn-group-toggle').querySelectorAll('.btn');
+    buttons.forEach(btn => {
+      btn.classList.remove('active');
+    });
+    label.classList.add('active');
+  }
+</script>
+
+<%- include('../../views/partials/user/footer.ejs') %>

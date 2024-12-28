@@ -115,6 +115,7 @@ const convertCurrency = async (amount) => {
 
         const wallet = await Wallet.findOne({ user: userId });
         if (!wallet || wallet.balance < amountToDebit) {
+            req.session.paypalDetails = null
             return res.status(400).json({
                 success: false,
                 message: "Insufficient balance in the wallet to complete this transaction.",
