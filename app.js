@@ -47,17 +47,14 @@
    next();
 });
 
-
-app.set('view engine', 'ejs');
-
-// Set multiple views directories
 app.set('views', [
    path.join(__dirname, 'views/user'),
    path.join(__dirname, 'views/partials/user'),
    path.join(__dirname, 'views/partials/admin'),
    path.join(__dirname, 'views/admin')
-]);
-
+ ]);
+ 
+ app.set('view engine', 'ejs');
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 

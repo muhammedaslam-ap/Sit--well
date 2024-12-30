@@ -3,7 +3,7 @@ const userRoute = express()
 const passport=require('passport')
 const {userAuth,adminAuth} = require('../middleware/auth')
 const Wallet  = require('../models/walletSchema')
-userRoute.set('view engine','ejs')
+// userRoute.set('view engine','ejs')
 userRoute.set('views','./views/user')
 const Order = require('../models/orderSchema'); 
 
