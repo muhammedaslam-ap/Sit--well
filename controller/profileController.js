@@ -95,7 +95,6 @@ const verifyForgotPassOtp = async (req, res) => {
         console.log("Entered OTP:", enteredOtp); // Log the entered OTP
         console.log("Stored OTP:", req.session.userOtp); // Log the stored OTP
 
-        // Convert both OTPs to strings before comparing
         if (req.session.userOtp && enteredOtp === req.session.userOtp.toString()) {
             res.json({ success: true, redirectUrl: "/reset-password" });
         } else {
