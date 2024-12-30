@@ -174,8 +174,8 @@ const getPayPal = async(req,res) => {
                 "payment_method": "Paypal"
             },
             "redirect_urls": {
-                "return_url": "http://localhost:3000/walletSuccessPayPal",
-                "cancel_url": "http://localhost:3000/walletCancelPayPal"
+                "return_url": "https://sitwell.aslamap.tech/walletSuccessPayPal",
+                "cancel_url": "https://sitwell.aslamap.tech/walletCancelPayPal"
             },
             "transactions": [{
                 "item_list": {

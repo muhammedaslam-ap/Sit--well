@@ -16,15 +16,12 @@ const getaddAddress = async (req, res) => {
         // Fetch user's addresses
         const userAddresses = await Address.findOne({ userId: user._id }).sort({ createdOn: -1 });
 
-        // Initialize address and edit mode
         let address = {};
         let isEditing = false;
 
-        // If editing, fetch the specific address
         if (addressId) {
             address = await Address.findOne({ _id: addressId, userId: user._id });
 
-            // If address not found, handle the error
             if (!address) {
                 req.flash('error', 'Address not found.');
                 return res.redirect('/addAddress');

@@ -54,8 +54,8 @@ const paypalPayment = async (req, res) => {
                 "payment_method": 'paypal'
             },
             "redirect_urls": {
-                "return_url": "http://localhost:3000/paymentseccuss",
-                "cancel_url": "http://localhost:3000/paymentfail"
+                "return_url": "https://sitwell.aslamap.tech/paymentseccuss",
+                "cancel_url": "https://sitwell.aslamap.tech/paymentfail"
             },
             "transactions": [{
                 "item_list": {
