@@ -57,17 +57,35 @@ const postAddAddress = async (req, res) => {
             return res.redirect('/addAddress');
         }
 
-        // Input validation
         const validationErrors = [];
-        if (!name || name.trim().length < 3) validationErrors.push('Name must be at least 3 characters long.');
-        if (!landMark || landMark.trim().length === 0) validationErrors.push('Landmark is required.');
-        if (!phone || !/^\d{10}$/.test(phone)) validationErrors.push('Phone number must be 10 digits.');
-        if (altPhone && !/^\d{10}$/.test(altPhone)) validationErrors.push('Alternate phone number must be 10 digits.');
-        if (!addressLine1 || addressLine1.trim().length === 0) validationErrors.push('Street address is required.');
-        if (!city || city.trim().length === 0) validationErrors.push('City is required.');
-        if (!district || district.trim().length === 0) validationErrors.push('District is required.');
-        if (!state || state.trim().length === 0) validationErrors.push('State is required.');
-        if (!pinCode || !/^\d{6}$/.test(pinCode)) validationErrors.push('Pin code must be 6 digits.');
+
+        if (!name || name.trim().length < 3) {
+            validationErrors.push('Name must be at least 3 characters long.');
+        }
+        if (!landMark || landMark.trim().length === 0) {
+            validationErrors.push('Landmark is required.');
+        }
+        if (!phone || !/^\d{10}$/.test(phone)) {
+            validationErrors.push('Phone number must be 10 digits.');
+        }
+        if (altPhone && !/^\d{10}$/.test(altPhone)) {
+            validationErrors.push('Alternate phone number must be 10 digits.');
+        }
+        if (!addressLine1 || addressLine1.trim().length === 0) {
+            validationErrors.push('Street address is required.');
+        }
+        if (!city || city.trim().length === 0) {
+            validationErrors.push('City is required.');
+        }
+        if (!district || district.trim().length === 0) {
+            validationErrors.push('District is required.');
+        }
+        if (!state || state.trim().length === 0) {
+            validationErrors.push('State is required.');
+        }
+        if (!pinCode || !/^\d{6}$/.test(pinCode)) {
+            validationErrors.push('Pin code must be 6 digits.');
+        }
         if (!addressType || !['Home', 'Work', 'Other'].includes(addressType)) {
             validationErrors.push('Address type must be Home, Work, or Other.');
         }
@@ -83,61 +101,34 @@ const postAddAddress = async (req, res) => {
             return res.redirect('/addAddress');
         }
 
-        // Check if the address collection exists for the user
-        const existingAddress = await Address.findOne({ userId: existingUser._id });
+        const addAddress = new Address({
+            userId: existingUser._id,
+            address: [{
+                addressType,
+                name,
+                city,
+                district,
+                landMark,
+                addressLine1,
+                state,
+                pinCode,
+                phone,
+                altPhone
+            }]
+        });
 
-        if (!existingAddress) {
-            // If no address exists, create a new one
-            const addAddress = new Address({
-                userId: existingUser._id,
-                address: [{
-                    addressType,
-                    name,
-                    city,
-                    district,
-                    landMark,
-                    addressLine1,
-                    state,
-                    pinCode,
-                    phone,
-                    altPhone
-                }]
-            });
-
-            await addAddress.save();
-            req.flash('success', 'Address added successfully!');
-        } else {
-            // Replace the existing address with the new one (this will overwrite the address array)
-            await Address.updateOne(
-                { userId: existingUser._id },
-                {
-                    $set: {
-                        address: [{
-                            addressType,
-                            name,
-                            city,
-                            district,
-                            landMark,
-                            addressLine1,
-                            state,
-                            pinCode,
-                            phone,
-                            altPhone
-                        }]
-                    }
-                }
-            );
-            req.flash('success', 'Your address has been updated.');
-        }
+        await addAddress.save();
+        req.flash('success', 'Address added successfully!');
 
         return res.redirect('/addAddress');
 
     } catch (error) {
         console.error("Error in postAddAddress:", error);
-        req.flash('error', 'An unexpected error occurred while adding the address.');
+        req.flash('error', 'An error occurred while adding the address.');
         return res.redirect('/addAddress');
     }
 };
+
 
 
 const getEditAddress = async (req, res) => {
