@@ -430,7 +430,7 @@ const getCheckOut = async (req, res) => {
         
         const newTotal = subtotal - discount;
 
-        res.render('user/checkout', { 
+        res.render('checkOut', { 
             cart: userCart, 
             address: userAddress, 
             subtotal:subtotal, 
