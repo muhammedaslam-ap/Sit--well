@@ -412,10 +412,17 @@ const getCheckOut = async (req, res) => {
         if (appliedCoupon) {
 
             isCoupon = true
-            // Use `findOne` to get a single coupon document
             const coupon = await Coupon.findOne({ couponCode: appliedCoupon, islist: true });
-        
-            // Check if coupon exists and the subtotal meets the minimum requirement
+            if(subtotal< coupon.minimumOffer){
+                req.flash(
+                    'error',
+                    `Coupon cannot be applied. Minimum order total for this coupon is ${coupon.minimumOffer}.`
+                );
+                if(req.session.coupon){
+                    req.session.coupon=null
+                }
+                return res.redirect('/checkout');
+            }
             if (coupon && subtotal >= coupon.minimumOffer) {
                 discount = (subtotal * coupon.discount) / 100;
                 couponMessage = `Coupon applied successfully! You saved $${discount.toFixed(2)} (${coupon.discount}%)`;
