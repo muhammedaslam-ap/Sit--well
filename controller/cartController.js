@@ -390,8 +390,8 @@ const getCheckOut = async (req, res) => {
         const userAddress = await Address.findOne({ userId });
 
         if (!userAddress || userAddress.address.length === 0) {
-            req.flash('error', 'Please add an address before checkout.');
-            return res.redirect('/cart');
+            userAddress = null
+           
         }
 
 

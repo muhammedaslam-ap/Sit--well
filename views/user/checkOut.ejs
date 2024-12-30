@@ -280,7 +280,9 @@
                                 </button>
                             </div>
                             <div class="list-group list-group-flush overflow-auto" style="max-height: 400px;">
-                                <% if (address && address.address.length > 0) { %>
+                                <% if(address===null){ %>
+                                    <i class="bi bi-plus-lg me-2"></i>No Address Added
+                                <% }else if (address && address.address.length > 0) { %>
                                     <% address.address.forEach(addr => { %>
                                         <div class="list-group-item list-group-item-action p-3 border rounded mb-2">
                                             <div class="d-flex w-100 justify-content-between">
