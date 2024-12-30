@@ -387,11 +387,10 @@ const getCheckOut = async (req, res) => {
             }
         }
 
-        const userAddress = await Address.findOne({ userId });
+        let userAddress = await Address.findOne({ userId });
 
         if (!userAddress || userAddress.address.length === 0) {
-            userAddress = null
-           
+            userAddress = null  
         }
 
 
@@ -439,7 +438,7 @@ const getCheckOut = async (req, res) => {
 
         res.render('checkOut', { 
             cart: userCart, 
-            address: userAddress, 
+            address: userAddress , 
             subtotal:subtotal, 
             discount, 
             couponMessage, 
