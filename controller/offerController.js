@@ -31,7 +31,6 @@ const addOffer = async (req, res) => {
     try {
         const { offerType, productName, categoryName, offerDescription, discountPercentage, price, validUntil } = req.body;
 
-        console.log("Request body:", req.body);
 
         if (!offerType || !discountPercentage || !validUntil) {
             req.flash('error', 'Required fields are missing');
@@ -67,7 +66,6 @@ const addOffer = async (req, res) => {
 
 
         if (offerType === 'product') {
-            // console.log('hy');
             
             const product = await Product.findById(productName);
             if (!product) {
@@ -92,31 +90,19 @@ const addOffer = async (req, res) => {
            }
           
 
-
-
-            // Calculate salePrice and offerPrice based on the effective discount
-
-            // Update the product with the highest discount
-           
-
         // ** If offerType is category **
         } else if (offerType === 'category') {
             const category = await Category.findById(categoryName);
-            // console.log("1",category)
             if (!category) {
                 req.flash('error', 'Category not found');
                 return res.redirect('/admin/addOffer');
-            }
-
-            // Update all products in the category with the highest discount
+            }       
 
             const newProduct = await Product.find({category:category._id})
 
 
-            // console.log('2',newProduct)
             for(let item of newProduct){
                 if(item.productOffer < discountPercentage){
-                    // console.log('3',item)
                     const effectiveDiscount = Math.max(discountPercentage, item.productOffer);
                     const salesPrice = item.regularPrice * (1 - effectiveDiscount / 100);
                     const offerPrice = item.regularPrice - salesPrice;
@@ -133,7 +119,6 @@ const addOffer = async (req, res) => {
 
         req.flash('success', 'Offer added successfully');
         res.redirect('/admin/addOffer');
-        console.log("New offer created:", newOffer);
     } catch (error) {
         console.error("Error adding offer:", error);
         req.flash('error', error.message || 'An error occurred while creating the offer');
@@ -145,10 +130,8 @@ const addOffer = async (req, res) => {
 const deleteAddOffer = async (req, res) => {
     try {
       const offerId  = req.query.offerId;
-      // console.log(offerId)
 
   
-      // Find the offer to delete
       const offer = await Offer.findById(offerId);
       if (!offer) {
         return res.status(404).json({ message: 'Offer not found' });
@@ -156,18 +139,15 @@ const deleteAddOffer = async (req, res) => {
   
       const { offerType, productName, categoryName, discountPercentage } = offer;
   
-      // Delete the offer
       await Offer.findByIdAndDelete(offerId);
   
       if (offerType === 'product' && productName) {
         const product = await Product.findById(productName);
   
-        // Find next highest offer for this product
         const otherOffers = await Offer.find({ offerType: 'product', productName })
           .sort({ discountPercentage: -1 });
         const nextDiscount = otherOffers.length ? otherOffers[0].discountPercentage : 0;
   
-        // Update the product with new discount values
         if (product) {
           const effectiveDiscount = Math.max(nextDiscount, 0);
           const salePrice = product.regularPrice * (1 - effectiveDiscount / 100);

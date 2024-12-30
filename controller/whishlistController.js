@@ -63,44 +63,36 @@ const addWhishlistItem = async (req, res) => {
         const userId = req.session.user._id;
         productId = req.body.productId;
 
-        // Check if productId is valid
         if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
             req.flash('error', 'Invalid product');
             return res.redirect(`/productDetails/${productId}`);
         }
 
-        // Find product to check existence
         const product = await Product.findById(productId);
         if (!product) {
             req.flash('error', 'Product not found');
             return res.redirect(`/productDetails/${productId}`);
         }
 
-        // Check if the product is already in the user's wishlist
         let whishlist = await Whishlist.findOne({ userId });
         if (whishlist) {
             const existingItem = whishlist.products.find(item => item.productId.toString() === productId);
 
-            // If product is already in wishlist, flash a message and redirect
             if (existingItem) {
                 req.flash('info', 'Product is already in your wishlist');
                 return res.redirect(`/productDetails/${productId}`);
             }
 
-            // Add the new product to the wishlist if it’s not already there
             whishlist.products.push({ productId });
         } else {
-            // If the wishlist doesn't exist, create a new one with the product
             whishlist = new Whishlist({
                 userId,
                 products: [{ productId }]
             });
         }
 
-        // Save the wishlist changes
         await whishlist.save();
 
-        // Flash success message and redirect to product details page
         req.flash('success', 'Product successfully added to your wishlist');
         res.redirect(`/productDetails/${productId}`);
 

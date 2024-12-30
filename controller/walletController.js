@@ -105,9 +105,7 @@ const convertCurrency = async (amount) => {
     try {
         const userId = req.session.user._id;
         const { totalAmount, selectedAddress, selectedPayment,paymentStatus } = req.body;
-        console.log("Total Amount from Client:", totalAmount); // Debugging line
-        // console.log("Selected Address from Client:", selectedAddress); // Debugging line
-        // console.log("Selected Payment Method from Client:", selectedPayment); // Debugging line
+        console.log("Total Amount from Client:", totalAmount); 
         req.session.paypalDetails  =  {totalAmount:totalAmount,selectedPayment:selectedPayment,selectedAddress:selectedAddress,paymentStatus}
 
         
@@ -164,7 +162,6 @@ const getPayPal = async(req,res) => {
     try {
         const addAmount = req.body.addAmount
         const USDCurrency = await convertCurrency(addAmount);
-        console.log(addAmount)
         
         req.session.walletAmount = {
             USDCurrency: USDCurrency,

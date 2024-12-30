@@ -18,7 +18,6 @@ const createCoupon = async (req, res) => {
     try {
         const { name, couponCode, expireOn, discount, minimumOffer, limit, islist } = req.body;
 
-        console.log(req.body);
 
         if (!name || !couponCode || !expireOn || !discount || !minimumOffer || !limit) {
             req.flash('error', 'All fields are required');
@@ -49,7 +48,6 @@ const createCoupon = async (req, res) => {
 
         await newCoupon.save();
 
-        console.log(newCoupon);
         req.flash('success', 'Coupon created successfully');
         return res.status(201).redirect('/admin/coupon');
 
@@ -112,7 +110,6 @@ const getuserCoupons = async (req, res) => {
 const applycoupon = async (req, res) => {
     const { couponCode }= req.body;
     const userId = req.session.user._id
-    console.log(couponCode)
     const coupon = await Coupon.findOne({ couponCode: couponCode, islist: true });
     if (coupon && new Date() <= coupon.expireOn) {
 

@@ -85,12 +85,10 @@ const landing = async (req, res) => {
         // }
         
         if (user) {
-            console.log( user._id)
             const userData = await User.findOne({ _id: user._id, is_blocked: false });
-            console.log(userData);
+  
             
             if (userData) {
-                console.log(1);
                 
                 return res.render("landing", {
                     user: userData,
@@ -102,7 +100,6 @@ const landing = async (req, res) => {
                     searchQuery: search
                 });
             } else {
-                console.log(2);
                 
                 delete req.session.user;
                 return res.render("landing", {
@@ -115,7 +112,6 @@ const landing = async (req, res) => {
                 });
             }
         } else {
-            console.log(3)
             return res.render("landing", {
                 products: productData,
                 category: categories,
@@ -457,7 +453,6 @@ const resendOtp = async (req,res)=>{
 const productDetails = async (req, res) => {
     try {
         const user = req.session.user;
-        console.log('user is:',user)
         const productId = req.params.id;
 
         const products = await Product.findById(productId)
@@ -489,7 +484,6 @@ const productDetails = async (req, res) => {
         const productCategory = categories.find(category => category._id.equals(productData.category));
 
         if (!productCategory) {
-            console.log("Product category not found in listed categories");
             return res.status(404).render('no_recommendations', { category: null });
         }
 

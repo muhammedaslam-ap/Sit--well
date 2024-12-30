@@ -6,7 +6,7 @@ const categorySchema = new Schema({
        type: String,
        required: true,
    },
-   description: {  // Corrected spelling from decription to description
+   description: { 
        type: String,
        required: true,
    },

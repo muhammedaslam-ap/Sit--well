@@ -48,17 +48,15 @@ const login = async (req, res) => {
 
 
 
-// Load Admin Dashboard
 const loadDashbord = async (req, res) => {
     try {
         const { timeFilter, page = 1 } = req.query;
-        const limit = 6; // Number of orders per page
+        const limit = 6; 
         const skip = (page - 1) * limit;
 
         const now = new Date();
         let dateRange = null;
 
-        // Determine the date range based on the time filter
         switch (timeFilter) {
             case 'day':
                 dateRange = {
@@ -87,24 +85,20 @@ const loadDashbord = async (req, res) => {
                 dateRange = null;
         }
 
-        // Create the query for fetching orders
         const query = {
-            ...dateRange ? { createdOn: dateRange } : {}, // Add date range if it exists
-            paymentStatus: { $ne: 'failed' } // Exclude failed payments
+            ...dateRange ? { createdOn: dateRange } : {}, 
+            paymentStatus: { $ne: 'failed' } 
         };
 
-        // Fetch total number of orders
         let totalOrders = 0;
         try {
             totalOrders = await Order.countDocuments(query);
-            console.log('Total Orders:', totalOrders);
         } catch (err) {
             console.error('Error fetching totalOrders:', err);
         }
 
         const totalPages = Math.ceil(totalOrders / limit);
 
-        // Fetch paginated orders
         const orders = await Order.find(query)
             .sort({ createdOn: -1 })
             .skip(skip)
@@ -112,7 +106,6 @@ const loadDashbord = async (req, res) => {
             .populate('userId', 'name email')
             .populate('orderedItems.product', 'name price offerPrice');
 
-        // Fetch all orders for revenue and discount calculations
         const allOrders = await Order.find(query)
             .populate('orderedItems.product', 'offerPrice');
 
@@ -218,7 +211,6 @@ const loadDashbord = async (req, res) => {
             { $limit: 5 }
         ]);
         
-        // Debug logging
         
         // Processing the results
         const processedMostBoughtProducts = mostBoughtProducts.map(product => ({
@@ -230,7 +222,7 @@ const loadDashbord = async (req, res) => {
         const mostBoughtCategories = await Order.aggregate([
             {
                 $match: {
-                    ...dateRange ? { createdOn: dateRange } : {}, // Apply date filter if exists
+                    ...dateRange ? { createdOn: dateRange } : {}, 
                     paymentStatus: { $ne: 'failed' }
                 }
             },

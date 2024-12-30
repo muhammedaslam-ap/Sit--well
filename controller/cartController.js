@@ -37,7 +37,6 @@ const getAddToCart = async (req, res) => {
                     ? item.productId.productImage[0]
                     : 'placeholder.jpg'; 
 
-                // console.log("Product Image:", productImage); 
 
                 return {
                     productId: item.productId._id,
@@ -402,7 +401,6 @@ const getCheckOut = async (req, res) => {
             return total + (item.totalPrice || 0); 
         }, 0);
 
-        // console.log(subtotal)
         
         let isCoupon = false
 

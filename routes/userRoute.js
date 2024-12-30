@@ -114,7 +114,7 @@ userRoute.get('/auth/google/callback', passport.authenticate('google', {
     try {
         const user = req.user;
 
-        // Check if the user is blocked
+       
         if (user.is_blocked) { 
             console.warn(`Blocked user attempted to log in: ${user.email}`);
             
@@ -140,7 +140,6 @@ userRoute.get('/auth/google/callback', passport.authenticate('google', {
             await wallet.save();
         }
 
-        // Save the user in session
         req.session.user = req.user; 
         req.user = null
         res.redirect('/'); 

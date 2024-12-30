@@ -16,7 +16,6 @@ const convertCurrency = async (amount) => {
         const usdToInrRate = response.data.rates[fromCurrency];
         const usdToUsdRate = response.data.rates[toCurrency];
         const convertedAmount = amount * (usdToUsdRate / usdToInrRate);
-        console.log(convertedAmount);
         
         return  convertedAmount.toFixed(2);;
       } else {
@@ -42,11 +41,8 @@ paypal.configure({
 
 const paypalPayment = async (req, res) => {
     try {
-        // const totalAmount = parseFloat(req.body.totalAmount).toFixed(2);
         const {totalAmount,selectedPayment,selectedAddress,orderId} = req.body
-        console.log(totalAmount)
         const USDconvertor = await convertCurrency(totalAmount)
-        console.log("Subtotal received:", orderId);
         if(!orderId){
             req.session.paypalDetails  =  {totalAmount:totalAmount,selectedPayment:selectedPayment,selectedAddress:selectedAddress,USDconvertor:USDconvertor,paymentStatus:'failed'}
         } else {
@@ -103,7 +99,7 @@ const success = async (req, res) => {
     try {
         const USDconvertor =    req.session.paypalDetails.USDconvertor ; 
         req.session.paypalDetails.paymentStatus = 'success'
-        console.log(USDconvertor)
+   
         const payerId = req.query.PayerID;
         const paymentId = req.query.paymentId;
         

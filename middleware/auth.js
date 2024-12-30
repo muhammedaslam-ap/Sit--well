@@ -22,9 +22,9 @@ const userAuth = async (req,res,next)=>{
 const adminAuth = (req, res, next) => {
     
     if (req.session.admin) {
-        next(); // If admin session exists, proceed to the requested route
+        next(); 
     } else {
-        res.redirect('/admin/login'); // If no session, redirect to login
+        res.redirect('/admin/login'); 
     }
 };
 

@@ -43,7 +43,6 @@ const getOrderSuccess = async (req, res) => {
 
         let discount = 0;
         const sessiocoupon = req.session.coupon;
-        // console.log(sessiocoupon)
         if (sessiocoupon) {
             isCoupon = true
             const validCoupon = await Coupon.findOne({ couponCode: sessiocoupon.couponCode, islist: true });
@@ -90,7 +89,6 @@ const proceedTopayment = async (req, res) => {
             paymentStatus = "success"
         }
 
-        // console.log('hyhfygehsfchaesyfgianvyt4uiehvn5iuhy7t8we:',selectedPayment,paymentStatus);
         
         if(orderId) {
             if(paymentStatus == "failed") {
@@ -150,7 +148,6 @@ const proceedTopayment = async (req, res) => {
         let newPrice = 0
         let discount = 0;
         const sessiocoupon = req.session.coupon;
-        // console.log(sessiocoupon)
         if (sessiocoupon) {
             isCoupon = true
             const validCoupon = await Coupon.findOne({ couponCode: sessiocoupon.couponCode, islist: true });
@@ -163,7 +160,6 @@ const proceedTopayment = async (req, res) => {
         }
 
         const totalAmount = newPrice > 0 ? newPrice : totalPrice;
-        console.log('suii',totalAmount)
 
         if (selectedPayment === 'cash' && totalAmount > 20000) {
             req.flash('error', 'Cash on Delivery is only applicable for amounts less than 20,000.');
@@ -172,7 +168,6 @@ const proceedTopayment = async (req, res) => {
 
 
         const selectedAddressDetails = userAddress.address.find(addr => addr._id.toString() === selectedAddress);
-        // console.log("Selected Address Details:", selectedAddressDetails);
 
         if (!selectedAddressDetails) {
             req.flash('error', 'The selected address could not be found.');
@@ -192,7 +187,6 @@ const proceedTopayment = async (req, res) => {
             };
         });
 
-        console.log("Cart Items Prepared for Order:");
 
         const newOrder = new Order({
             userId,
@@ -222,12 +216,7 @@ const proceedTopayment = async (req, res) => {
             createdOn: new Date()
         });
 
-        // console.log(newOrder.totalPrice,'this want you want to see')
-        // console.log(newOrder.finalAmount,'this want you want to see')
-
-
-        
-        // console.log("New Order to Save:", newOrder); 
+ 
         req.session.newOrder = newOrder
         await newOrder.save();
 
@@ -313,8 +302,7 @@ const updateOrderStatus = async (req, res) => {
         const { orderId } = req.params;
         const { status } = req.body;
 
-        // console.log("Updating Order ID:", orderId);
-        // console.log("New Status:", status);
+
 
         const order = await Order.findById(orderId).populate({
             path: 'orderedItems.product' 
@@ -354,7 +342,6 @@ const updateOrderStatus = async (req, res) => {
         }
 
         if (isBecomingCancelled) {
-            console.log(`Order ${orderId} is being cancelled. Restoring product quantities...`);
 
             const productUpdatePromises = order.orderedItems.map(async (orderItem) => {
                 if (orderItem.product && orderItem.quantity) {
@@ -619,7 +606,6 @@ const returnMessage = async (req, res) => {
 const approveReturnRequest = async (req, res) => {
     try {
         const orderId = req.params.orderId;
-        console.log("Processing return approval for orderId:", orderId);
 
         const order = await Order.findById(orderId).populate({
             path: 'orderedItems.product',
@@ -711,7 +697,6 @@ const path = require('path');
 const getOrderPdf = async (req, res) => {
     try {
         const { orderId } = req.query;
-        console.log(orderId)
 
         if (!orderId) {
             return res.status(400).json({ error: "Order ID is required" });

@@ -30,7 +30,7 @@ const OfferSchema = new Schema({
         type: Number,
         required: true,
         min: [0, 'Discount percentage cannot be negative'],
-        max: [80, 'Discount percentage cannot exceed 80'], // Adjusted for stricter validation
+        max: [80, 'Discount percentage cannot exceed 80'], 
     },
     startDate: {
         type: Date,

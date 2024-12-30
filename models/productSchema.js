@@ -13,7 +13,7 @@ const productSchema = new Schema({
     category: {
         type: Schema.Types.ObjectId,
         ref: "Category",
-        sparse: true, // Allows null values but must be unique if defined
+        sparse: true, 
     },
     regularPrice: {
         type: Number,
@@ -33,10 +33,10 @@ const productSchema = new Schema({
     },
     quantity: {
         type: Number,
-        required: true, // Make sure this is a number, not defaulting to true
+        required: true, 
     },
     productImage: {
-        type: [String], // An array of image file names or URLs
+        type: [String], 
         required: true,
     },
     isBlocked: {
