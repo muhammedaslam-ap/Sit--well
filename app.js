@@ -55,7 +55,7 @@ app.set('views', [
  ]);
  
  app.set('view engine', 'ejs');
-// Serve static files
+ 
 app.use(express.static(path.join(__dirname, 'public')));
 
 
